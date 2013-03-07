@@ -20,7 +20,7 @@
 
 class eedbm {
 	
-	const VERSION = "0.0.1.10";
+	const VERSION = "0.0.1.11";
 	
 	public $utf8Mode = false;
 	
@@ -52,6 +52,10 @@ class eedbm {
 	
 	function isConnected() {
 		return $this->connected;	
+	}
+	
+	final function setDebugMode($DbgMode) {
+		$this->dbgMode = $DbgMode;	
 	}
 	
 	final function open($DebugMode=false) {
@@ -218,30 +222,30 @@ class eedbm {
 			$c1 = 0;			
 			while ($c1 < ($c-1)) {
 				if ($this->dbFunction($arr[$a[$c1]])) {
-					$q .= $a[$c1]." = ".$arr[$a[$c1]].", ";
+					$q .= "`".$a[$c1]."` = ".$arr[$a[$c1]].", ";
 				} else {
 					if ($SafeMode)
-						$q .= $a[$c1]." = '".urlencode($arr[$a[$c1]])."', ";
+						$q .= "`".$a[$c1]."` = '".urlencode($arr[$a[$c1]])."', ";
 					else
-						$q .= $a[$c1]." = '".$arr[$a[$c1]]."', ";						
+						$q .= "`".$a[$c1]."` = '".$arr[$a[$c1]]."', ";						
 				}
 				$c1++;
 			}
 			if ($c1 == ($c-1)) {
 				if ($this->dbFunction($arr[$a[$c1]])) {
-					$q .= $a[$c1]." = ".$arr[$a[$c1]]." ";
+					$q .= "`".$a[$c1]."` = ".$arr[$a[$c1]]." ";
 				} else {
 					if ($SafeMode)
-						$q .= $a[$c1]." = '".urlencode($arr[$a[$c1]])."' ";
+						$q .= "`".$a[$c1]."` = '".urlencode($arr[$a[$c1]])."' ";
 					else
-						$q .= $a[$c1]." = '".$arr[$a[$c1]]."' ";
+						$q .= "`".$a[$c1]."` = '".$arr[$a[$c1]]."' ";
 				}
 			}
 		} elseif ($c == 1) {
 			if ($SafeMode)
-				$q = $a[0]." = '".urlencode($arr[$a[0]])."' ";	
+				$q = "`".$a[0]."` = '".urlencode($arr[$a[0]])."' ";	
 			else
-				$q = $a[0]." = '".$arr[$a[0]]."' ";	
+				$q = "`".$a[0]."` = '".$arr[$a[0]]."' ";	
 		}
 		unset($c,$c1,$a);
 		
@@ -252,22 +256,22 @@ class eedbm {
 			$c1 = 0;			
 			while ($c1 < ($c-1)) {
 				if ($SafeMode)
-					$wQ .= $a[$c1]." = '".urlencode($WhereStatement[$a[$c1]])."' AND ";
+					$wQ .= "`".$a[$c1]."` = '".urlencode($WhereStatement[$a[$c1]])."' AND ";
 				else
-					$wQ .= $a[$c1]." = '".$WhereStatement[$a[$c1]]."' AND ";
+					$wQ .= "`".$a[$c1]."` = '".$WhereStatement[$a[$c1]]."' AND ";
 				$c1++;
 			}
 			if ($c1 == ($c-1)) {
 				if ($SafeMode)
-					$wQ .= $a[$c1]." = '".urlencode($WhereStatement[$a[$c1]])."' ";
+					$wQ .= "`".$a[$c1]."` = '".urlencode($WhereStatement[$a[$c1]])."' ";
 				else
-					$wQ .= $a[$c1]." = '".$WhereStatement[$a[$c1]]."' ";
+					$wQ .= "`".$a[$c1]."` = '".$WhereStatement[$a[$c1]]."' ";
 			}
 		} elseif ($c == 1) {
 			if ($SafeMode)
-				$wQ .= $a[0]." = '".urlencode($WhereStatement[$a[0]])."' ";
+				$wQ .= "`".$a[0]."` = '".urlencode($WhereStatement[$a[0]])."' ";
 			else
-				$wQ .= $a[0]." = '".$WhereStatement[$a[0]]."' ";
+				$wQ .= "`".$a[0]."` = '".$WhereStatement[$a[0]]."' ";
 		}
 		
 		unset($c,$c1,$a);
@@ -312,6 +316,7 @@ class eedbm {
 				}
 			}
 		} elseif ($c == 1) {
+				$a = array_keys($arr);
 				$q1 .= "`".$a[0]."`";
 				if ($SafeMode)
 				$q2 .= "'".urlencode($arr[$a[0]])."'";	

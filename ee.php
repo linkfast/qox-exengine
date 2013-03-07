@@ -42,9 +42,9 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 0x9; // 9
+	const V_REVIS = 0xA; // 10
 	
-	const REL_DATE = "11 JAN 2013";
+	const REL_DATE = "07 MARCH 2013";
 	
 	const RELEASE = "alpha";
 	
@@ -652,7 +652,7 @@ class exengine {
 		return $js;
 	}
 	final function miscUName() {
-		return "ExEngine ".exengine::MAJOR.".".exengine::BUILD." Rev. ".exengine::REV;	
+		return "ExEngine ".exengine::V_MAJOR.".".exengine::V_MINOR.".".exengine::V_BUILD." Rev. ".exengine::V_REVIS;	
 	}
 	final function miscMessages($mss,$ret=0) {
 		$ee7_string = "ExEngine 7";
