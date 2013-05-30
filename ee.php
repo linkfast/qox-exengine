@@ -42,9 +42,9 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 0xA; // 10
+	const V_REVIS = 0xB; // 11
 	
-	const REL_DATE = "07 MARCH 2013";
+	const REL_DATE = "30 MAY 2013";
 	
 	const RELEASE = "alpha";
 	

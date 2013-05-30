@@ -28,7 +28,7 @@ class eemvc_index {
 	const VERSION = "0.0.1.9";
 	
 	private $ee;
-	private $controllername;
+	public $controllername;
 	private $defcontroller=null;
 	
 	public $viewsFolder = "views/";
@@ -178,7 +178,9 @@ class eemvc_index {
 							$ctrl->__startup();	
 						}						
 						
+						$ctrl->functionName = $this->urlParsedData[1];
 						call_user_func(array($ctrl, $this->urlParsedData[1]));	
+						
 											
 						if (method_exists($name,'__shutdown')) {
 							$ctrl->__shutdown();	
@@ -194,7 +196,9 @@ class eemvc_index {
 							$ctrl->__startup();	
 						}
 						
+						$ctrl->functionName = $this->urlParsedData[1];
 						call_user_func_array(array($ctrl, $this->urlParsedData[1]), array_slice($this->urlParsedData, 2)); 
+						
 						
 						if (method_exists($name,'__shutdown')) {
 							$ctrl->__shutdown();	
@@ -206,8 +210,12 @@ class eemvc_index {
 				 } else {
 					 if (method_exists($name,'__startup')) {
 							$ctrl->__startup();	
-					 }		
+					 }	
+					 
+					 $ctrl->functionName = "index";	
 					 $ctrl->index();
+					
+					 
 					 if (method_exists($name,'__shutdown')) {
 							$ctrl->__shutdown();	
 					 }
@@ -337,6 +345,7 @@ class eemvc_controller {
 	public $ee;
 	public $index;	
 	public $db;
+	public $functionName;
 	
 	public static $im;
 	
@@ -397,8 +406,10 @@ class eemvc_controller {
 			$this->debug("loadView: Loading: ".$view_file);
 			
 			//if (is_array($data)) {
-				$data["EEMVC_StaticHTTP"] = $this->index->staticFolderHTTP;
-				$data["EEMVC_ControllersHTTP"] = $this->index->controllersFolderHTTP;
+				$data["EEMVC_SF"] = $this->index->staticFolderHTTP;
+				$data["EEMVC_C"] = $this->index->controllersFolderHTTP;
+				$data["EEMVC_SC"] = $this->index->controllersFolderHTTP.strtolower(get_class($this))."/";
+				$data["EEMVC_SCF"] = $this->index->controllersFolderHTTP.strtolower(get_class($this))."/".$this->functionName."/";
 				/*
 				$data["EEMVC_ViewsHTTP"] = $this->index->viewsFolderHTTP;
 				$data["EEMVC_ModelsHTTP"] = $this->index->modelsFolderHTTP;			
