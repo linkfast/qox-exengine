@@ -1,9 +1,9 @@
 ExEngine 7
 ==========
 
-ExEngine 7 PHP MVC Open Source Framework
+ExEngine 7 PHP Open Source Framework
 
-Git nightly repository, tar.xz, tar.gz and zip releases at http://wiki.aldealinkfast.com/exengine/
+Git nightly repository, tar.xz, tar.gz and zip releases at http://wiki.aldealinkfast.com/exengine/ (may be offline)
 
 How To Use
 ==========
@@ -16,5 +16,7 @@ Remember that when changing version numbers (or revision) may be minor or mayor 
 The release of this product is under the GPL license, so its use is at your own risk. No warranties provided.
 
 ExEngine Homepage: (not available yet)
-ExEngine 7 Wiki  : http://wiki.aldealinkfast.com/exengine/ (may be offline by now)
+
+ExEngine 7 Wiki  : http://wiki.aldealinkfast.com/exengine/ (may be offline)
+
 (C) 2013 LinkFast Company (www.linkfastsa.com)
