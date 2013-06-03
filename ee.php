@@ -1,58 +1,67 @@
 <?php
+/**
+@file ee.php
+@author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
+@version 7.0.8.12
+
+@section LICENSE
+
+ExEngine is free software; you can redistribute it and/or modify it under the
+terms of the GNU Lesser Gereral Public Licence as published by the Free Software
+Foundation; either version 2 of the Licence, or (at your opinion) any later version.
+ExEngine is distributed in the hope that it will be usefull, but WITHOUT ANY WARRANTY;
+without even the implied warranty of merchantability or fitness for a particular purpose.
+See the GNU Lesser General Public Licence for more details.
+
+You should have received a copy of the GNU Lesser General Public Licence along with ExEngine;
+if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, Ma 02111-1307 USA.
+
+@section DESCRIPTION
+
+ExEngine 7 Core
+
+ExEngine 7 Framework core, this file contains the EE7 main functions, and the needed ones to load any module that extend the framework functionality.
+*/
+
 // LinkFast ExEngine 7
 // Copyright © 1999-2008 DarkGiank Software
 // Copyright © 2009-2013 LinkFast Company
 //
 // Based on DGS ExEngine by Giancarlo Chiappe Aguilar
-/*
-	This file is part of ExEngine.
-	Copyright © LinkFast Company
-	
-	ExEngine is free software; you can redistribute it and/or modify it under the 
-	terms of the GNU Lesser Gereral Public Licence as published by the Free Software 
-	Foundation; either version 2 of the Licence, or (at your opinion) any later version.
-	
-	ExEngine is distributed in the hope that it will be usefull, but WITHOUT ANY WARRANTY; 
-	without even the implied warranty of merchantability or fitness for a particular purpose. 
-	See the GNU Lesser General Public Licence for more details.
-	
-	You should have received a copy of the GNU Lesser General Public Licence along with ExEngine;
-	if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, Ma 02111-1307 USA.
-*/
 
-#Main ExEngine 7 Class (AKA ExEngine Core)
+/// ExEngine 7 Framework Core Class (default config array is in eefx/cfg.php).
 class exengine {
 	
-	public $cArray; 		# Loaded Configuration Array.
-	public $aArray;			# Arguments Array.
-	public $dbArray;		# Default Database Array.
-	public $libsLoaded; 	# Loaded Libs Array.
-	public $eeScriptPath; 	# Full path to ee7.php file.
-	public $extendedLoaded; # Extended Engines loaded Bool.
+	public $cArray; 		/// Loaded Configuration Array.
+	public $aArray;			/// Arguments Array.
+	public $dbArray;		/// Default Database Array.
+	public $libsLoaded; 	/// Loaded Libs Array.
+	public $eeScriptPath; 	/// Full path to ee7.php file.
+	public $extendedLoaded; /// Extended Engines loaded Bool.
 	
-	public $eePath;			# ExEngine Path (automatic).
-	public $eeDir;			# ExEngine Directory (Relative to $appPath).
-	public $appPath;		# Application Path (automatic, overridable).
+	public $eePath;			/// ExEngine Path (automatic).
+	public $eeDir;			/// ExEngine Directory (Relative to $appPath).
+	public $appPath;		/// Application Path (automatic, overridable).
 	
-	public $forwardMode = false; 	#ExEngine 6 ForwardMode controller.
-	public $ee6version = "6.4.3.2";	#ExEngine 6 ForwardMode Version
+	public $forwardMode = false; 	/// ExEngine 6 ForwardMode controller.
+	public $ee6version = "6.4.3.2";	/// ExEngine 6 ForwardMode Version
 	
-	public $msEnabled = false; # Multi-Site (MuS) Mode (Like- ExEngine 6 MU)	
+	public $msEnabled = false; /// Multi-Site (MuS) Mode (Like- ExEngine 6 MU)	
 	
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 0xB; // 11
+	const V_REVIS = 0xC; // 12
 	
-	const REL_DATE = "30 MAY 2013";
+	const REL_DATE = "03 JUN 2013";
 	
 	const RELEASE = "alpha";
 	
 	const EE7WP = "http://www.aldealinkfast.com/oss/exengine7/";
 	
-	#Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array) ( no operational yet =D )
-	const COMUPS_SERVER = "update.aldealinkfast.com";
-	const COMUPS_PKG	= "exengine7";
+	// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array) ( no operational yet =D )
+	const COMUPS_SERVER = "update.aldealinkfast.com"; /// Comups update server for update checking.
+	const COMUPS_PKG	= "exengine7"; /// Comups package name for version checking.
 	
 	function __construct($args=null,$configArray="default",$dbArr="default") { 
 	
@@ -202,22 +211,24 @@ class exengine {
 			$this->errorWarning("No Libraries are loaded, this mode is not supported.");
 		} else {
 			# You can disable Libraries commenting any of them, putting a # before libLoadRes.
-												#			PROVIDES				(CLASSES PROVIDED)
+												#			PROVIDES				CLASSES PROVIDED
 			# VERY IMPORTANT
 			$this->libLoadRes("me");			# MixedEngines Control Library		(me)
-			#
+			#		
 			
-			$this->libLoadRes("ee6cl");			# ExEngine6 C.L.					(ee6clayer)
 			$this->libLoadRes("eedbm");			# Database Manager					(eedbm)
 			$this->libLoadRes("ee7info");		# EE7 Information Service Class 	(ee7info)
 			$this->libLoadRes("browser");		# Client Browser properties Class 	(browser)
-			$this->libLoadRes("log");			# Loging Class						(eelog)
-			$this->libLoadRes("eepf");			# ExEngine Portal Framework			(eepf)
+			$this->libLoadRes("log");			# Loging Class						(eelog)			
 			$this->libLoadRes("jquery");		# ExEngine's jQuery					(jquery)
 			$this->libLoadRes("ifile");			# Internet Files Manipulation		(ifile)
 			$this->libLoadRes("mail");			# Internet Mail Class				(eemail)
 			$this->libLoadRes("gd");			# GD Image Manipulation				(gd)
-			$this->libLoadRes("mvc");			# Model-View-Controller Implm.		(eemvc_index,eemvc_model,eemvc_controller)
+			$this->libLoadRes("eemvcil");		# EE ModelViewController I.Lib.		(eemvc_index,eemvc_model,eemvc_controller)
+			
+			# DEPRECATED LIBRARIES (SHOULD BE REMOVED SOON, TO ENABLE REMOVE THE COMMENT HASHTAG)
+			#$this->libLoadRes("ee6cl");		# ExEngine6 C.L.					(ee6clayer) (deprecated)
+			#$this->libLoadRes("eepf");			# ExEngine Portal Framework			(eepf) (deprecated)
 		}
 	}
 	

@@ -1,55 +1,65 @@
 <?php
+/**
+@file eemvcil.php
+@author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
+@version 0.0.1.9
 
-# ExEngine 7 / Libs / ExEngine's M-V-C
+@section LICENSE
 
-/*
- This file is part of ExEngine.
- Copyright (C) LinkFast Company
+ExEngine is free software; you can redistribute it and/or modify it under the
+terms of the GNU Lesser Gereral Public Licence as published by the Free Software
+Foundation; either version 2 of the Licence, or (at your opinion) any later version.
+ExEngine is distributed in the hope that it will be usefull, but WITHOUT ANY WARRANTY;
+without even the implied warranty of merchantability or fitness for a particular purpose.
+See the GNU Lesser General Public Licence for more details.
 
- ExEngine is free software; you can redistribute it and/or modify it under the
- terms of the GNU Lesser Gereral Public Licence as published by the Free Software
- Foundation; either version 2 of the Licence, or (at your opinion) any later version.
+You should have received a copy of the GNU Lesser General Public Licence along with ExEngine;
+if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, Ma 02111-1307 USA.
 
- ExEngine is distributed in the hope that it will be usefull, but WITHOUT ANY WARRANTY;
- without even the implied warranty of merchantability or fitness for a particular purpose.
- See the GNU Lesser General Public Licence for more details.
+@section DESCRIPTION
 
- You should have received a copy of the GNU Lesser General Public Licence along with ExEngine;
- if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, Ma 02111-1307 USA.
- */
+ExEngine 7 / Libs / ExEngine's Model View Controller Implementation Library (eemvcil)
+
+ExEngine MVC Implementation Library
+
+*/
  
+/// Get Instance Funciont, connects controllers.
 function &eemvc_get_instance()
 {
 		return eemvc_controller::get_instance();
 }
 
+
+/// eemvc_index Class, used to create the initial object in index.php at the root folder.
 class eemvc_index {
 	
-	const VERSION = "0.0.1.9";
+	const VERSION = "0.0.1.9"; /// Version of EE MVC Implementation library.
 	
-	private $ee;
-	public $controllername;
+	private $ee; /// This is the connector to the main ExEngine object.
+	public $controllername; /// Name of the Controller in use.
 	private $defcontroller=null;
 	
-	public $viewsFolder = "views/";
-	public $modelsFolder = "models/";
-	public $controllersFolder = "controllers/" ;
-	public $staticFolder = "static/";
-	public $indexname = "index.php";
-	public $SessionMode=false;
-	public $AlwaysSilent=false;
+	public $viewsFolder = "views/"; /// Name of the views folder, should be relative to the index file.
+	public $modelsFolder = "models/"; /// Name of the models folder, should be relative to the index file.
+	public $controllersFolder = "controllers/" ; /// Name of the controllers folder, should be relative to the index file.
+	public $staticFolder = "static/"; /// Name of the static folder, should be relative to the index file.
+	public $indexname = "index.php"; /// Name of the index file, normally this should not be changed.
+	public $SessionMode=false; /// Set to true if you are going to use sessions, remember that "session_start()" does not work with EEMVC.
+	public $AlwaysSilent=false; /// Set to true if you do not want to show warnings or slogans to the rendered pages, this is a global variable, you can set silent to a specific controller by setting the $this->imSilent variable to true.
 	
-	public $errorHandler=false;
+	public $errorHandler=false; /// Set to the error handler controller name, that controller should be made using the error controller template.
 	
-	public $urlParsedData;
+	public $urlParsedData; /// Parsed data from the URL string, please do not modify in runtime.
 	
-	public $staticFolderHTTP;
-	public $viewsFolderHTTP;
-	public $modelsFolderHTTP;
-	public $controllersFolderHTTP;
+	public $staticFolderHTTP; /// HTTP path (URL) to the static folder, made for views rendering.
+	public $viewsFolderHTTP;  /// HTTP path (URL) to the views folder, made for views rendering.
+	public $modelsFolderHTTP;  /// HTTP path (URL) to the models folder, made for views rendering.
+	public $controllersFolderHTTP;  /// HTTP path (URL) to the controllers folder, made for views rendering.
 	private $controllersFolderR=null;
 	
-	function __construct(&$parent,$defaultcontroller=null) {
+	/// Default constructor for the index listener.
+	final function __construct(&$parent,$defaultcontroller=null) {
 		$this->ee = &$parent;		
 		$this->debug("MVC Initialized.");			
 		if ($defaultcontroller==null) {
@@ -58,7 +68,57 @@ class eemvc_index {
 			$this->defcontroller = $defaultcontroller;
 	}
 	
-	 function start() {
+	/// Loads a view for the View Simulator, useful for designers that want to test the basic functionality of their pages.
+	final function specialLoadViewStatic($filename) {
+		
+		$view_file = $this->viewsFolder.$filename;	
+		
+		if (file_exists($view_file)) {
+			
+			$this->debug("specialLoadViewStatic: Loading: ".$view_file);
+
+			$data["EEMVC_SF"] = $this->staticFolderHTTP;
+			$data["EEMVC_C"] = $this->controllersFolderHTTP;
+			$data["EEMVC_SC"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=".$view_file."&ERROR=NODYNAMIC&";
+			$data["EEMVC_SCF"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=".$view_file."&ERROR=NODYNAMIC&";
+			
+			$data["EEMVC_VS"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
+
+			extract($data);	
+			
+			ob_start();				
+
+			$this->debug("specialLoadViewStatic: Mode: ReadFile");
+			readfile($view_file);
+			
+			$this->debug("specialLoadViewStatic: Mode: View loaded: ".$view_file);
+			
+			$output = ob_get_contents();
+			ob_end_clean();		
+				
+			echo $output;			
+		} else {
+			$this->ee->errorExit("ExEngine MVC","View not found.","eemvc");
+		}	
+	}
+	
+	/// This function will start the MVC listener, should be called in the index file.
+	final function start() {		
+		
+		if (isset($_GET['EEMVC_SPECIAL']) && ($this->ee->cArray["debug"])) {
+			
+				switch ($_GET['EEMVC_SPECIAL']) {
+					case 'VIEWSIMULATOR':
+						if (isset($_GET['ERROR'])) if ($_GET['ERROR'] == "NODYNAMIC") $this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: EEMVC_SC and EEMVC_SCF special tags does no work in the Views Simulator.",null,true);
+						specialLoadViewStatic($_GET['VIEW']);
+					break;
+					default:
+						$this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: Mode Not Found.");
+					break;
+				}
+			
+		} else {
+		
 		 if ($this->SessionMode===true) { @session_start(); $this->debug("SessionMode=true"); } else {$this->debug("SessionMode=false");}
 		 
 		 if (!$this->ee->argsGet("SilentMode")) {
@@ -84,9 +144,7 @@ class eemvc_index {
 			header("Location: ". $_SERVER['REQUEST_URI']."/" );
 		} else if (!$this->ee->strContains($_SERVER['REQUEST_URI'],"/?",false) && substr($_SERVER['REQUEST_URI'],strlen($_SERVER['REQUEST_URI'])-1,1) != "/") {
 			header("Location: ". str_replace("?","/?",$_SERVER['REQUEST_URI']) );
-		}
-		
-		//print "fuq";
+		}	
 		 
 		 $this->setStaticFolder();
 		 
@@ -99,7 +157,6 @@ class eemvc_index {
 			 $this->urlParsedData[count($this->urlParsedData)-1] = $ne[0];
 			 $this->debug("Index: New url array: " .print_r($this->urlParsedData,1));	
 		 }
-		 
 		 
 		 if (isset($this->urlParsedData[0]) && (!empty($this->urlParsedData[0]))) {
 			 $this->debug("Index: Loading controller: ".$this->urlParsedData[0]);	
@@ -118,57 +175,53 @@ class eemvc_index {
 			 $output = str_replace("<html>",$rpl,$output);
 		 }		 
 		 print $output; 
+		}
 		 
 	 }
 	 
-	 function load_controller($name) {
+	 /// This function will call the controller, parse variables, session and render, the use of this function is totally automatic.
+	 private final function load_controller($name) {
 		 		 		 
-		 ob_start();
-		 
-		 //print "fuq3";	
+		 ob_start();			
 		 
 		 if ($name != null)
 			 $this->controllername = $name;
 		 else
-		 	$name = $this->defcontroller;		 
-		 
-		 //print $this->urlParsedData[1];
+		 	$name = $this->defcontroller;	
+			
 		  $ctl_folder = $this->controllersFolder;
 		  if ($this->controllersFolderR != null) {			
 			$this->controllersFolder = $this->controllersFolderR;
 		  }
 		  
-		  //print $ctl_folder;
-		  //print $this->controllersFolder;
 		  
 		 if (is_dir($this->controllersFolder.$name) && (file_exists($this->controllersFolder.$name."/".$this->urlParsedData[1].".php") || file_exists($this->controllersFolder.$name."/".$this->defcontroller.".php"))) {
-			 //print "ISDIR";
+			 
 			 if (file_exists($this->controllersFolder.$name."/".$this->urlParsedData[1].".php") && isset($this->urlParsedData[1]) && !empty($this->urlParsedData[1])) {
-				 //print "FE";
+				 
 				 $this->controllersFolder = $this->controllersFolder.$name."/";				 
 				 $nc = $this->urlParsedData[1];
 				 $this->urlParsedData = array_slice($this->urlParsedData, 1);
 				 print $this->load_controller($nc);
 			 } else {
-				 //print "DEFCON";
+				
 				 $this->controllersFolder = $this->controllersFolder.$name."/";				 				
 				 $nc = $this->defcontroller;				 
-				 //print $this->controllersFolder.$nc;
-				 //$this->urlParsedData = array_slice($this->urlParsedData, 1);
+				 
 				 print $this->load_controller($nc);
 			 }
 		 } else {
 			 $namel = $name.".php";	
 			 		 
-			 if (file_exists($this->controllersFolder.$namel)) {				 
-				 //print $this->controllersFolder.$namel;
+			 if (file_exists($this->controllersFolder.$namel)) {
+				 
 				 include_once($this->controllersFolder.$namel);
 				 
 				 $name = ucfirst($name);
 				 $ctrl = new $name($this->ee,$this);
 				 
-				 if (isset($ctrl->Silent)) {
-					 if ($ctrl->Silent)
+				 if (isset($ctrl->imSilent)) {
+					 if ($ctrl->imSilent)
 						$this->AlwaysSilent = true; 
 				 }
 				 
@@ -222,17 +275,17 @@ class eemvc_index {
 					 
 				 }
 			 } elseif ($ctl_folder == $this->controllersFolder) {
-				 //print $this->controllersFolder.$this->defcontroller.".php";
+				 
 				 include_once($this->controllersFolder.$this->defcontroller.".php");
 				 
 				 $name = ucfirst($this->defcontroller);
 				 $ctrl = new $name($this->ee,$this);
 				 
-				 if (isset($ctrl->Silent)) {
-					 if ($ctrl->Silent)
+				 if (isset($ctrl->imSilent)) {
+					 if ($ctrl->imSilent)
 						$this->AlwaysSilent = true; 
 				 }
-				 //print $ctrl;
+				 
 				 
 				 if (isset($this->urlParsedData[0]) && !empty($this->urlParsedData[0]) && !isset($this->urlParsedData[1])) {				 
 					 
@@ -272,12 +325,13 @@ class eemvc_index {
 		  
 		  $output = ob_get_contents();
 		  ob_end_clean();
-		  
+		  		  
 		  return $output;		 
 	 }
 	 
-	 private $ctl_folder;
+	 private $ctl_folder; /// System Variable for the controllers folder.
 	 
+	 /// This function will raise an error to the user, if is defined by the developer, it will call the error controller, if not it will raise a default exengine 7 errorExit.
 	 final private function raiseError($error,$data,$controllersfolder=null,$noexit=false) {
 		if ($controllersfolder == null )
 		 	$controllersfolder = $this->controllersFolder;
@@ -298,6 +352,7 @@ class eemvc_index {
 			$this->ee->errorExit("Error ".$error,print_r($data,true),null,$noexit);
 	 }
 	 
+	 /// This function will parse the URL.
 	 final private function parseURL() {
 		$ru = $_SERVER['REQUEST_URI'];
 		$sn = $_SERVER['SCRIPT_NAME'];
@@ -314,6 +369,7 @@ class eemvc_index {
 		$this->urlParsedData = array_slice($x,1);
 	 }
 	 
+	 /// This function sets the static folder path.
 	 final function setStaticFolder() {
 		$str = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'].$this->staticFolder;		
 		$str = str_replace($this->indexname,"",$str);		
@@ -321,36 +377,32 @@ class eemvc_index {
 		
 		$str = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME']."/";		
 		$this->controllersFolderHTTP = $str;
-		/*
-		$str = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'].$this->viewsFolder;		
-		$str = str_replace($this->indexname,"",$str);		
-		$this->viewsFolderHTTP = $str;
-		
-		$str = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'].$this->modelsFolder;		
-		$str = str_replace($this->indexname,"",$str);		
-		$this->modelsFolderHTTP = $str;
-		*/
 	 }
 	 
+	 /// Shortcut to the ExEngine Debugger (Session or remote) for the index class.
 	 final function debug($message) {
 		 $this->ee->debugThis("eemvc",$message);
 	 }
 	 
+	 /// Shortcut to the ExEngine Debugger for the actual controller.
 	 final function debugController($message) {
 		 $this->ee->debugThis("eemvc-".$this->controllername,$message);
 	 }
 }
 
 class eemvc_controller {
-	public $ee;
-	public $index;	
-	public $db;
-	public $functionName;
+	public $ee; /// Parent EE7 Object.
+	public $index; /// Parent eemvc_index object.
+	public $db; /// Default database object, should be loaded first using $this->loadDb.
+	public $functionName; /// The name of the in-use function.
 	
-	public static $im;
+	public static $im; /// don't remenber ... :(
 	
-	private static $inst;
+	private static $inst; /// don't remenber ... :(
 	
+	public $imSilent = false; /// Set this controller to silent, useful for writing ajax/comet servers.
+	
+	/// Default constructor, cannot be overriden, private __atconstruct function should be created in the controller to create a custom event.
 	final function __construct(&$ee,&$parent) {
 		$this->ee = &$ee;
 		$this->index = &$parent;
@@ -362,17 +414,19 @@ class eemvc_controller {
 		}
 	}	
 	
+	/// Connection static function.
 	public static function &get_instance()
 	{
 		return self::$inst;
 	}
 	
-	//EEDBM 0.0.1.x
-	final function loadDB($dbObj="default") {		
+	/// Connects to the default or a connection array specified database (100% compatible with EE DB Manager, depends on its version).
+	final private function loadDB($dbObj="default") {		
 		$this->db = new eedbm($this->ee,$dbObj);
 	}
 	
-	final function loadModel($model_name,$obj_name='') {
+	/// Loads a model, by default will create an object with the same name.
+	final private function loadModel($model_name,$obj_name='',$create_obj=true) {
 		$this->debug("loadModel: ".$model_name);
 		
 		$m_file = $this->index->modelsFolder.$model_name.".php";
@@ -385,7 +439,9 @@ class eemvc_controller {
 				
 			$model_name = ucfirst($model_name);
 			
-			$this->$obj_name = new $model_name();
+			if ($create_obj)
+				$this->$obj_name = new $model_name();
+				
 			$this->debug("loadModel: ".$model_name.'-Done. ($this->'.$model_name.')');
 		} else {
 			$this->debug("loadModel: ".$model_name.'-Not found');
@@ -393,31 +449,25 @@ class eemvc_controller {
 		}		
 	}
 	
-	final function debug ($msg) {
+	final private function debug ($msg) {
 		$this->index->debugController($msg);	
 	}
 	
-	final function loadView($filename,$data=null,$return=false,$dynamic=true) {	
+	final private function loadView($filename,$data=null,$return=false,$dynamic=true) {	
 		
 		$view_file = $this->index->viewsFolder.$filename;	
 		
 		if (file_exists($view_file)) {
 			
 			$this->debug("loadView: Loading: ".$view_file);
-			
-			//if (is_array($data)) {
-				$data["EEMVC_SF"] = $this->index->staticFolderHTTP;
-				$data["EEMVC_C"] = $this->index->controllersFolderHTTP;
-				$data["EEMVC_SC"] = $this->index->controllersFolderHTTP.strtolower(get_class($this))."/";
-				$data["EEMVC_SCF"] = $this->index->controllersFolderHTTP.strtolower(get_class($this))."/".$this->functionName."/";
-				/*
-				$data["EEMVC_ViewsHTTP"] = $this->index->viewsFolderHTTP;
-				$data["EEMVC_ModelsHTTP"] = $this->index->modelsFolderHTTP;			
-				*/	
-				extract($data);	
-			//} else {
-				
-			//}
+
+			$data["EEMVC_SF"] = $this->index->staticFolderHTTP;
+			$data["EEMVC_C"] = $this->index->controllersFolderHTTP;
+			$data["EEMVC_SC"] = $this->index->controllersFolderHTTP.strtolower(get_class($this))."/";
+			$data["EEMVC_SCF"] = $this->index->controllersFolderHTTP.strtolower(get_class($this))."/".$this->functionName."/";
+			$data["EEMVC_VS"] = $this->index->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
+
+			extract($data);	
 			
 			ob_start();	
 			
