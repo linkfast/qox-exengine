@@ -110,7 +110,7 @@ class eemvc_index {
 				switch ($_GET['EEMVC_SPECIAL']) {
 					case 'VIEWSIMULATOR':
 						if (isset($_GET['ERROR'])) if ($_GET['ERROR'] == "NODYNAMIC") $this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: EEMVC_SC and EEMVC_SCF special tags does no work in the Views Simulator.",null,true);
-						specialLoadViewStatic($_GET['VIEW']);
+						$this->specialLoadViewStatic($_GET['VIEW']);
 					break;
 					default:
 						$this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: Mode Not Found.");
@@ -421,12 +421,12 @@ class eemvc_controller {
 	}
 	
 	/// Connects to the default or a connection array specified database (100% compatible with EE DB Manager, depends on its version).
-	final private function loadDB($dbObj="default") {		
+	final function loadDB($dbObj="default") {		
 		$this->db = new eedbm($this->ee,$dbObj);
 	}
 	
 	/// Loads a model, by default will create an object with the same name.
-	final private function loadModel($model_name,$obj_name='',$create_obj=true) {
+	final function loadModel($model_name,$obj_name='',$create_obj=true) {
 		$this->debug("loadModel: ".$model_name);
 		
 		$m_file = $this->index->modelsFolder.$model_name.".php";
@@ -449,11 +449,11 @@ class eemvc_controller {
 		}		
 	}
 	
-	final private function debug ($msg) {
+	final function debug ($msg) {
 		$this->index->debugController($msg);	
 	}
 	
-	final private function loadView($filename,$data=null,$return=false,$dynamic=true) {	
+	final function loadView($filename,$data=null,$return=false,$dynamic=true) {	
 		
 		$view_file = $this->index->viewsFolder.$filename;	
 		
