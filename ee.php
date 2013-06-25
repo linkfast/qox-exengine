@@ -2,7 +2,7 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 7.0.8.12
+@version 7.0.8.14
 
 @section LICENSE
 
@@ -51,9 +51,9 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 0xD; // 13
+	const V_REVIS = 0xE; // 14
 	
-	const REL_DATE = "04 JUN 2013";
+	const REL_DATE = "25 JUN 2013";
 	
 	const RELEASE = "alpha";
 	

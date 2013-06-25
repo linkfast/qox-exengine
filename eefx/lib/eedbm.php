@@ -20,7 +20,7 @@
 
 class eedbm {
 	
-	const VERSION = "0.0.1.11";
+	const VERSION = "0.0.1.12";
 	
 	public $utf8Mode = false;
 	
@@ -41,13 +41,19 @@ class eedbm {
 	private $ee;
 	private $dbgMode = false;
 	
-	private $extendedObj;
+	private $edbl_enabled=false;
+	private $edbl_driver;
+	private $edbl_obj;
 	
 	private $autoquery;
+	
+	private $edblPath;
 	
 	function __construct($parent,$dbObj="default") {
 		$this->ee = &$parent;
 		$this->settingsParse($dbObj);
+		
+		$this->edblPath = $this->ee->eePath."eefx/lib/edbl/";
 	}
 	
 	function isConnected() {
@@ -58,7 +64,7 @@ class eedbm {
 		$this->dbgMode = $DbgMode;	
 	}
 	
-	final function open($DebugMode=false) {
+	final function open($DebugMode=false,$EDBL_Special=null) {
 		$dbg = $DebugMode;
 		if (!$this->connected) {
 			switch ($this->type) {
@@ -110,22 +116,50 @@ class eedbm {
 					}
 				break;
 				default :
+					$this->ee->debugThis("eedbm","EDBL Driver Search");
 					$edbltype = $this->type;
-					
+					if (file_exists($this->edblPath.$edbltype.".edbl.php")) {
+						if ($EDBL_Special==null)
+								for ($l = 0; $l < 100; $l++)
+									$EDBL_Special[$l] = null;	
+						
+						$this->ee->debugThis("eedbm","Loading: ".$edbltype);
+						include_once($this->edblPath.$edbltype.".edbl.php");
+						$edbl_classname = "edbl_".$edbltype;
+						$edbl_con = eval("return $edbl_classname::_edbl_c;");	
+						
+						$this->ee->debugThis("eedbm","EDBL Connection Statement: " . $edbl_con);
+						
+						$this->edbl_obj = eval("return new $edbl_con;");
+						$this->connObj = $this->edbl_obj->open();
+						$this->edbl_driver = $edbltype;
+						$this->edbl_enabled = true;
+						if ($this->connObj) {
+							$this->connected = true;	
+						} else {
+							$this->connected = false;
+						}
+					} else {
+						$this->ee->debugThis("eedbm","EDBL Driver not found");
+						$this->ee->errorExit("eedbm","Database type not valid, EEDBL driver missing?");	
+					}
 				break;
 			}
 		}
 	}
 	
-	# Query Function
+	# Query Function ($EDBL_Special is an array)
 	
-	function query($Query=null,$AutoQuery=0) {
+	function query($Query=null,$AutoQuery=0,$EDBL_Special=null) {
 		$q = $Query;
 		$aQ = $AutoQuery;
 		//return mysql_query($q,$this->connObj);
 		
 		if ($this->connected) {
 			if (isset($q)) {
+				$this->ee->debugThis("eedbm","Query: " . $q);
+				switch ($this->type) {
+					case "mysql":
 					#UTF8 Compat Mode
 					if($this->utf8Mode) 
 						mysql_query("SET NAMES 'utf8'");
@@ -138,55 +172,81 @@ class eedbm {
 							return $ret;
 						else
 							$this->autoquery = $ret;
-					}					
+					}
+					break;
+					default:
+						if ($this->edbl_enabled) {							
+							if ($EDBL_Special==null)
+								for ($l = 0; $l < 100; $l++)
+									$EDBL_Special[$l] = null;							
+							$ret = $this->edbl_obj->query($q,$EDBL_Special);
+							return $ret;
+						}
+					break;
+				}
 			} else {
 				$this->ee->errorWarning("ExEngine 7 : Database Manager : Query text should be provided.");	
 			}
 		} else {
-			$this->ee->errorWarning("ExEngine 7 : Database Manager : Database must be connected before using query.<br/><code>". '$dbObject->open();</code>');	
+			$this->ee->errorWarning("ExEngine 7 : Database Manager : Database must be connected before using query.<br/><code>". '$eedbmObject->open();</code>');	
 		}
 		
 	}
 	
-	# Fetching Functions
-	final function fetchArray($QueryObject=null,$SafeMode=true,$ResultType=null) {
+	# Fetching Functions ($EDBL_Special is an array)
+	final function fetchArray($QueryObject=null,$SafeMode=true,$ResultType=null,$EDBL_Special=null) {
 		$qObj = $QueryObject;
 		$rt = $ResultType;
 		$rObj;		
-		if (true) {
+		
+		if ($this->connected) {
+			#autoquery
 			if (!isset($qObj)) {
 				if (isset($this->autoquery)) {
 					$qObj = $this->autoquery;
 				} else {
 					$this->ee->errorWarning("ExEngine 7 : Database Manager : Query object must be provided,<br/><code>". '$result = $dbObject->fetchArray($queryObject);</code><br/>More help : <a href="http://wiki.aldealinkfast.com/exengine/index.php?title=ExEngine_7:Documentaci%C3%B3n:ExEngine_Database_Manager_(English)" target="_blank">ExEngine Wiki : EE7 : Database Manager</a>');	
 				}
-			}			
-			if (true) {
-				if (isset($qObj)) {
-					if (!isset($rt)) {
-						$rObj =  mysql_fetch_array($qObj);	
-					} else {
-						$rObj = mysql_fetch_array($qObj,$rt);
+			}
+			#autoquery end
+			
+			switch ($this->type) {
+				case "mysql":		
+					if (true) {
+						if (isset($qObj)) {
+							if (!isset($rt)) {
+								$rObj =  mysql_fetch_array($qObj);	
+							} else {
+								$rObj = mysql_fetch_array($qObj,$rt);
+							}
+						}
+					}			
+				break;
+				default:
+					if ($this->edbl_enabled) {
+						if ($EDBL_Special==null)
+								for ($l = 0; $l < 100; $l++)
+									$EDBL_Special[$l] = null;
+						$rObj = $this->edbl_obj->fetchArray($qObj,$EDBL_Special);
 					}
+				break;
+			}		
+					
+			if ($SafeMode) {
+				if (is_array($rObj)) {
+					$aKeys = array_keys($rObj);					
+					foreach ($aKeys as $Key) {
+						$rObj[$Key] = urldecode($rObj[$Key]);
+					}	
+					return $rObj;		
 				}
 			}
-		} else {
-			$this->ee->errorWarning("ExEngine 7 : Database Manager : Database must be connected before using fetchArray,<br/><code>". '$dbObject->open();</code>');
-		}
-		
-		//print_r($rObj);		
-		if ($SafeMode) {
-			if (is_array($rObj)) {
-				$aKeys = array_keys($rObj);					
-				foreach ($aKeys as $Key) {
-					$rObj[$Key] = urldecode($rObj[$Key]);
-				}	
-				return $rObj;		
+			else
+			{
+				return $rObj;
 			}
-		}
-		else
-		{
-			return $rObj;
+		} else {
+				$this->ee->errorWarning("ExEngine 7 : Database Manager : Database must be connected before using fetchArray,<br/><code>". '$dbObject->open();</code>');
 		}
 	}
 	

@@ -1,6 +1,6 @@
 <?php
 /**
-@file dbase.edbl.php
+@file db2.edbl.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
 @version 0.0.1.0
 
@@ -18,13 +18,13 @@ if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 
 @section DESCRIPTION
 
-ExEngine 7 / Database Manager Linker / DBASE
+ExEngine 7 / Database Manager Linker / DB2
 
--- NOT FINISHED / NOT WORKING --
+-- WORKING --
 
 */
 
-class edbl_dbase
+class edbl_db2
 {
 	#EDBL Standard Version
 	const _edbl_sv = "1.0.0.0";
@@ -33,29 +33,42 @@ class edbl_dbase
 	const _edbl_dv = "0.0.1.0";
 	
 	#Constructor eval code
-	const _edbl_c = 'edbl_dbase($this,$this->ee,$this->aDbSettings["file_mode"])';
+	const _edbl_c = 'edbl_db2($this,$this->ee,$EDBL_Special)';
 	
 	#Database mode, socket or file_mode
-	const _edbl_cr = 'file_mode';
+	const _edbl_cr = 'socket';
+	
 	
 	# EDBL DRIVER
 	private $dbm;
 	private $ee;
-	
-	private $file_mode;
-	
-	function __construct($dbm,$ee,$fM=2) {
+		
+	function __construct($dbm,$ee,$EDBL_Special) {
 		$this->dbm = &$dbm;
-		$this->ee = &$ee;
-		$this->file_mode = $fM;
+		$this->ee = &$ee;	
+		
+		$this->ee->debugThis("edbl-db2","Created!");
+	}
+	
+	function query($query,$edbl_options=null) {					
+		if ($edbl_options[0]==null)
+			$edbl_options[0] = array("cursor" => DB_SCROLLABLE);			
+		$r = db2_exec($this->dbm->connObj,$query,$edbl_options[0]);		
+		db2_commit($this->dbm->connObj);
+		return $r;
+	}
+	
+	function fetchArray($query_obj,$edbl_options=null) {		
+		return db2_fetch_array($query_obj,$edbl_options[0]);	
 	}
 	
 	function open() {
-		return dbase_open($file,$this->file_mode);
+		$this->ee->debugThis("edbl-db2","Open (".$this->dbm->db.",".$this->dbm->user.",".$this->dbm->passwd.")");
+		return db2_connect($this->dbm->db,$this->dbm->user,$this->dbm->passwd);		
 	}
 	
 	function close() {
-		return dbase_close($this->edb->close());
+		return db2_close($this->dbm->connObj);
 	}
 }
 ?>

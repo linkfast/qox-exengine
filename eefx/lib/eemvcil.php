@@ -2,7 +2,7 @@
 /**
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.9
+@version 0.0.1.11
 
 @section LICENSE
 
@@ -34,7 +34,7 @@ function &eemvc_get_instance()
 /// eemvc_index Class, used to create the initial object in index.php at the root folder.
 class eemvc_index {
 	
-	const VERSION = "0.0.1.9"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.11"; /// Version of EE MVC Implementation library.
 	
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -47,6 +47,9 @@ class eemvc_index {
 	public $indexname = "index.php"; /// Name of the index file, normally this should not be changed.
 	public $SessionMode=false; /// Set to true if you are going to use sessions, remember that "session_start()" does not work with EEMVC.
 	public $AlwaysSilent=false; /// Set to true if you do not want to show warnings or slogans to the rendered pages, this is a global variable, you can set silent to a specific controller by setting the $this->imSilent variable to true.
+	public $jQueryUITheme="base"; /// Default EEMVC JQuery UI Theme.
+	public $jQueryVersion = null; /// Default EEMVC JQuery JS Lib Version.
+	public $jQueryUIVersion = null; /// Default EEMVC JQuery UI JS Lib Version.
 	
 	public $errorHandler=false; /// Set to the error handler controller name, that controller should be made using the error controller template.
 	
@@ -69,27 +72,58 @@ class eemvc_index {
 	}
 	
 	/// Loads a view for the View Simulator, useful for designers that want to test the basic functionality of their pages.
-	final function specialLoadViewStatic($filename) {
+	final function specialLoadViewStatic($filename,$fullpath=false) {
 		
-		$view_file = $this->viewsFolder.$filename;	
+		if ($fullpath) {
+			$view_fileo = $filename;
+		}
+		else
+			$view_fileo = $this->viewsFolder.$filename;	
+			
+		$view_file = $view_fileo;	
+		
+		if (!file_exists($view_file)) {
+			$view_file = $view_fileo.".php";
+		}
+		
+		if (!file_exists($view_file)) {
+			$view_file = $view_fileo.".html";
+		}
 		
 		if (file_exists($view_file)) {
 			
 			$this->debug("specialLoadViewStatic: Loading: ".$view_file);
 
 			$data["EEMVC_SF"] = $this->staticFolderHTTP;
+			$data["EEMVC_SFTAGGED"] =  $this->controllersFolderHTTP."?EEMVC_SPECIAL=STATICTAGGED&FILE=";
 			$data["EEMVC_C"] = $this->controllersFolderHTTP;
 			$data["EEMVC_SC"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=".$view_file."&ERROR=NODYNAMIC&";
 			$data["EEMVC_SCF"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=".$view_file."&ERROR=NODYNAMIC&";
 			
 			$data["EEMVC_VS"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
+			
+			
+			
+			$jq = new jquery($this->ee);
+			$jqstr = $jq->load($this->jQueryVersion,true);
+			$data["EEMVC_JQUERY"]  = $jqstr; 
+			$jqstr2 = $jq->load_ui($this->jQueryUITheme,$this->jQueryUIVersion,true);			
+			$data["EEMVC_JQUERYUI"]  = $jqstr2; 
 
 			extract($data);	
 			
 			ob_start();				
 
-			$this->debug("specialLoadViewStatic: Mode: ReadFile");
-			readfile($view_file);
+			if ((bool) @ini_get('short_open_tag') === FALSE)
+			{
+				$this->debug("loadView: Mode: ShortTags_Rewriter");
+				echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('<?=', '<?php echo ', file_get_contents($view_file))));
+			}
+			else
+			{		
+				$this->debug("loadView: Mode: Include");	
+				include_once($view_file);
+			}
 			
 			$this->debug("specialLoadViewStatic: Mode: View loaded: ".$view_file);
 			
@@ -103,7 +137,10 @@ class eemvc_index {
 	}
 	
 	/// This function will start the MVC listener, should be called in the index file.
-	final function start() {		
+	final function start() {	
+	
+	$this->setStaticFolder();
+	if ($this->SessionMode===true) { @session_start(); $this->debug("SessionMode=true"); } else {$this->debug("SessionMode=false");}	
 		
 		if (isset($_GET['EEMVC_SPECIAL']) && ($this->ee->cArray["debug"])) {
 			
@@ -112,6 +149,10 @@ class eemvc_index {
 						if (isset($_GET['ERROR'])) if ($_GET['ERROR'] == "NODYNAMIC") $this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: EEMVC_SC and EEMVC_SCF special tags does no work in the Views Simulator.",null,true);
 						$this->specialLoadViewStatic($_GET['VIEW']);
 					break;
+					case 'STATICTAGGED':
+						$file = $this->staticFolder.$_GET['FILE'];
+						$this->specialLoadViewStatic($file,true);
+					break;
 					default:
 						$this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: Mode Not Found.");
 					break;
@@ -119,7 +160,7 @@ class eemvc_index {
 			
 		} else {
 		
-		 if ($this->SessionMode===true) { @session_start(); $this->debug("SessionMode=true"); } else {$this->debug("SessionMode=false");}
+		 
 		 
 		 if (!$this->ee->argsGet("SilentMode")) {
 			 print "<h1>MVC-ExEngine can not work with SilentMode argument set to FALSE. Please set it to TRUE.</h1>";
@@ -146,7 +187,7 @@ class eemvc_index {
 			header("Location: ". str_replace("?","/?",$_SERVER['REQUEST_URI']) );
 		}	
 		 
-		 $this->setStaticFolder();
+		 
 		 
 		 $this->debug(print_r($this->urlParsedData,1));		
 		 
@@ -235,8 +276,8 @@ class eemvc_index {
 						call_user_func(array($ctrl, $this->urlParsedData[1]));	
 						
 											
-						if (method_exists($name,'__shutdown')) {
-							$ctrl->__shutdown();	
+						if (method_exists($name,'__atdestroy')) {
+							$ctrl->__atdestroy();	
 						}
 					 } else {
 						 $this->raiseError("e404cs",array($name,$this->urlParsedData[1]),$ctl_folder,true);	
@@ -253,8 +294,8 @@ class eemvc_index {
 						call_user_func_array(array($ctrl, $this->urlParsedData[1]), array_slice($this->urlParsedData, 2)); 
 						
 						
-						if (method_exists($name,'__shutdown')) {
-							$ctrl->__shutdown();	
+						if (method_exists($name,'__atdestroy')) {
+							$ctrl->__atdestroy();	
 						}
 					 } else {
 						 $this->raiseError("e404ca",array($name,print_r(array_slice($this->urlParsedData, 2),true)),$ctl_folder,true);
@@ -269,8 +310,8 @@ class eemvc_index {
 					 $ctrl->index();
 					
 					 
-					 if (method_exists($name,'__shutdown')) {
-							$ctrl->__shutdown();	
+					 if (method_exists($name,'__atdestroy')) {
+							$ctrl->__atdestroy();	
 					 }
 					 
 				 }
@@ -295,6 +336,10 @@ class eemvc_index {
 						}
 						call_user_func(array($ctrl, $this->urlParsedData[0]));
 						
+						if (method_exists($name,'__atdestroy')) {
+							$ctrl->__atdestroy();	
+						}
+						
 					 } else {
 						 $this->raiseError("e404cs",array($name,$this->urlParsedData[0]),$ctl_folder,true);		
 					 }
@@ -306,6 +351,10 @@ class eemvc_index {
 							$ctrl->__startup();	
 						}
 						call_user_func_array(array($ctrl, $this->urlParsedData[0]), array_slice($this->urlParsedData, 1)); 
+						
+						if (method_exists($name,'__atdestroy')) {
+							$ctrl->__atdestroy();	
+						}
 						
 					 } else {
 						 $this->raiseError("e404ca",array($name,print_r(array_slice($this->urlParsedData, 1),true)),$ctl_folder,true);		
@@ -390,25 +439,91 @@ class eemvc_index {
 	 }
 }
 
+class eemvc_methods {
+	
+	var $cparent;	
+	
+	final function sf() {
+		return $this->cparent->index->staticFolderHTTP;;
+	}
+	
+	final function fsf() {
+		return $this->cparent->index->staticFolder ;	
+	}
+	
+	final function c() {
+		return $this->cparent->index->controllersFolderHTTP;;
+	}
+	
+	final function sc() {
+		return $this->cparent->index->controllersFolderHTTP.strtolower(get_class($this->cparent))."/";	
+	}
+	
+	final function scf() {
+		return $this->cparent->index->controllersFolderHTTP.strtolower(get_class($this->cparent))."/".$this->cparent->functionName."/";
+	}
+	
+	final function vs() {
+		return $this->cparent->index->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";	
+	}
+	
+	final function __construct(&$parent) {
+		$this->cparent = &$parent;
+	}
+	
+	final function getSession($element) {
+		if ($this->cparent->index->SessionMode)			
+			return $_SESSION[$element];
+		else {
+			$this->cparent->debug("Cannot get a session variable, SessionMode is set to false.");
+			return null;	
+		}			
+	}
+	
+	final function setSession($element,$value) {
+		if ($this->cparent->index->SessionMode)
+			$_SESSION[$element] = $value;	
+		else {
+			$this->cparent->debug("Cannot get a session variable, SessionMode is set to false.");
+			return null;	
+		}
+	}
+
+	final function get($element) {
+		return $_GET[$element];	
+	}
+	
+	final function post($element) {
+		return $_POST[$element];	
+	}
+	
+	final function file($pname) {
+		return $_FILES[$pname];	
+	}
+}
+
 class eemvc_controller {
 	public $ee; /// Parent EE7 Object.
 	public $index; /// Parent eemvc_index object.
 	public $db; /// Default database object, should be loaded first using $this->loadDb.
 	public $functionName; /// The name of the in-use function.
 	
+	public $r; /// Input data methods  
+	
 	public static $im; /// don't remenber ... :(
 	
-	private static $inst; /// don't remenber ... :(
+	private static $inst; /// This contoller instance.
 	
 	public $imSilent = false; /// Set this controller to silent, useful for writing ajax/comet servers.
 	
 	/// Default constructor, cannot be overriden, private __atconstruct function should be created in the controller to create a custom event.
 	final function __construct(&$ee,&$parent) {
 		$this->ee = &$ee;
-		$this->index = &$parent;
+		$this->index = &$parent;		
 		
 		self::$inst =& $this;
 		
+		$this->r = new eemvc_methods($this);
 		if (method_exists($this,'__atconstruct')) {
 			$this->__atconstruct();	
 		}
@@ -426,15 +541,15 @@ class eemvc_controller {
 	}
 	
 	/// Loads a model, by default will create an object with the same name.
-	final function loadModel($model_name,$obj_name='',$create_obj=true) {
-		$this->debug("loadModel: ".$model_name);
+	final function loadModel($model_name,$obj_name=null,$create_obj=true) {
+		$this->debug("loadModel: Load: ".$model_name);
 		
 		$m_file = $this->index->modelsFolder.$model_name.".php";
 		
 		if (file_exists($m_file)) {
 			include_once($m_file);
 			
-			if ($obj_name=='')
+			if ($obj_name==null)
 				$obj_name = $model_name;
 				
 			$model_name = ucfirst($model_name);
@@ -442,7 +557,7 @@ class eemvc_controller {
 			if ($create_obj)
 				$this->$obj_name = new $model_name();
 				
-			$this->debug("loadModel: ".$model_name.'-Done. ($this->'.$model_name.')');
+			$this->debug("loadModel: ".$model_name.'-Done. ($this->'.$obj_name.')');
 		} else {
 			$this->debug("loadModel: ".$model_name.'-Not found');
 			$this->ee->errorExit("ExEngine MVC","Model not found.","eemvc");
@@ -455,17 +570,36 @@ class eemvc_controller {
 	
 	final function loadView($filename,$data=null,$return=false,$dynamic=true) {	
 		
-		$view_file = $this->index->viewsFolder.$filename;	
+		$view_fileo = $this->index->viewsFolder.$filename;	
+		
+		$view_file = $view_fileo;	
+		
+		if (!file_exists($view_file)) {
+			$view_file = $view_fileo.".php";
+		}
+		
+		if (!file_exists($view_file)) {
+			$view_file = $view_fileo.".html";
+		}
 		
 		if (file_exists($view_file)) {
 			
 			$this->debug("loadView: Loading: ".$view_file);
 
 			$data["EEMVC_SF"] = $this->index->staticFolderHTTP;
+			$data["EEMVC_SFTAGGED"] =  $this->index->controllersFolderHTTP."?EEMVC_SPECIAL=STATICTAGGED&FILE=";
+			
 			$data["EEMVC_C"] = $this->index->controllersFolderHTTP;
 			$data["EEMVC_SC"] = $this->index->controllersFolderHTTP.strtolower(get_class($this))."/";
 			$data["EEMVC_SCF"] = $this->index->controllersFolderHTTP.strtolower(get_class($this))."/".$this->functionName."/";
+						
 			$data["EEMVC_VS"] = $this->index->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
+			
+			$jq = new jquery($this->ee);
+			$jqstr = $jq->load($this->index->jQueryVersion,true);
+			$data["EEMVC_JQUERY"]  = $jqstr; 
+			$jqstr2 = $jq->load_ui($this->index->jQueryUITheme,$this->index->jQueryUIVersion,true);			
+			$data["EEMVC_JQUERYUI"]  = $jqstr2; 
 
 			extract($data);	
 			
