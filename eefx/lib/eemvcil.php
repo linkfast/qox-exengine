@@ -2,7 +2,7 @@
 /**
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.11
+@version 0.0.1.12
 
 @section LICENSE
 
@@ -34,7 +34,7 @@ function &eemvc_get_instance()
 /// eemvc_index Class, used to create the initial object in index.php at the root folder.
 class eemvc_index {
 	
-	const VERSION = "0.0.1.11"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.12"; /// Version of EE MVC Implementation library.
 	
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -499,6 +499,14 @@ class eemvc_methods {
 	
 	final function file($pname) {
 		return $_FILES[$pname];	
+	}
+	
+	final function allpost() {
+		return $_POST;	
+	}
+	
+	final function allget() {
+		return $_GET;	
 	}
 }
 

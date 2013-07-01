@@ -51,7 +51,7 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 0xE; // 14
+	const V_REVIS = 0xF; // 15
 	
 	const REL_DATE = "25 JUN 2013";
 	

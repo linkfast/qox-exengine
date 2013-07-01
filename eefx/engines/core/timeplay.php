@@ -6,8 +6,8 @@ class timeplay
 	private $ee;
 	const CNAME = "timeplay";
 	const NAME = "TimePlay Class";
-	const VERSION = "0.0.1.2";
-	const DATE = "29/05/2012";
+	const VERSION = "0.0.1.3";
+	const DATE = "30/06/2013";
 	const RQEE7 = "7.0.0.7";
 	
 	private $langSet = "es";
@@ -38,7 +38,7 @@ class timeplay
 				
 		$dayCrossPlatform = strftime($this->crossPlatformE("%e"),$timestamp);
 		$avail = array("{dName}","{dNumber}","{mName}","{mNumber}","{yFull}","{yMin}","{12hour}","{24hour}","{minutes}","{sec}","{ap}");
-		$repla = array($this->getDayName(strftime("%w",$timestamp)),$dayCrossPlatform,$this->getMonthName(strftime("%m",$timestamp)),strftime("%m",$timestamp),strftime("%Y",$timestamp),strftime("%y",$timestamp),strftime("%I",$timestamp),strftime("%H",$timestamp),strftime("%M",$timestamp),strftime("%S",$timestamp),strftime("%P",$timestamp));
+		$repla = array($this->getDayName(strftime("%w",$timestamp)),$dayCrossPlatform,$this->getMonthName(strftime("%m",$timestamp)),strftime("%m",$timestamp),strftime("%Y",$timestamp),strftime("%y",$timestamp),strftime("%I",$timestamp),strftime("%H",$timestamp),strftime("%M",$timestamp),strftime("%S",$timestamp),strftime("%p",$timestamp));
 		
 		return str_replace($avail,$repla,$format);		
 	}
