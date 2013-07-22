@@ -2,7 +2,7 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 7.0.8.14
+@version 7.0.8.16
 
 @section LICENSE
 
@@ -51,15 +51,15 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 0xF; // 15
+	const V_REVIS = 0x10; // 16
 	
-	const REL_DATE = "25 JUN 2013";
+	const REL_DATE = "22 JUL 2013";
 	
 	const RELEASE = "alpha";
 	
 	const EE7WP = "http://www.aldealinkfast.com/oss/exengine7/";
 	
-	// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array) ( no operational yet =D )
+	// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array) ( no operational yet =( )
 	const COMUPS_SERVER = "update.aldealinkfast.com"; /// Comups update server for update checking.
 	const COMUPS_PKG	= "exengine7"; /// Comups package name for version checking.
 	

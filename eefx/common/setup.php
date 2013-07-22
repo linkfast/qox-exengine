@@ -53,7 +53,9 @@ a:active {
 
 <body>
 <div align="center">
-  <p><img src="ee7_th.png" width="223" height="159" alt="ExEngine 7 Logo" /><br/>
+  <p><img src="ee7_th.png" width="223" height="159" alt="ExEngine 7 Logo" /></p>
+  <p><strong>CONCEPT OF EXENGINE 7 SETUP</strong></p>
+  <p><strong>== NOT WORKING EXAMPLE ==</strong><br/>
   </p>
   <table width="70%" border="0" cellspacing="0" cellpadding="0">
     <tr>
@@ -63,20 +65,35 @@ a:active {
         <div align="center">
         <table width="70%" border="0" cellspacing="0" cellpadding="0">
           <tr>
-            <td width="100%" height="45" align="left" valign="middle">
+            <td height="45" colspan="2" align="left" valign="middle">
               <p>
                 <input name="radio" type="radio" id="radio" value="radio" checked="checked" />
               <span class="optionEE">Real Mode</span><span class="descrOpt"> Select this if your are planning to create only EE7, MEv3.5/4 applications, you can also use <strong>ForwardMode</strong> with this mode, <strong>recommended</strong>.</span></p></td>
-          </tr>
+            </tr>
           <tr>
-            <td height="45" align="left" valign="middle" bgcolor="#BFF1C1">
+            <td height="45" colspan="2" align="left" valign="middle" bgcolor="#BFF1C1">
               <p>
-                <input type="radio" name="radio" id="radio2" value="radio" disabled="disabled" />
+                <input name="radio" type="radio" disabled="disabled" id="radio2" value="radio" />
               <span class="optionEE">Compatibility Mode</span> <span class="descrOpt">You may select this option ONLY if you NEED IT (Please read documentation first), you <strong>cannot use ForwardMode</strong> with this enabled.</span> <strong class="descrOpt">This wil enable EE6CL by default.</strong></p></td>
             </tr>
+          <tr>
+            <td height="45" colspan="2" align="left" valign="middle" bgcolor="#FFFFFF" ><input type="checkbox" name="checkbox" id="checkbox" />
+              <span class="optionEE">load jquery</span><span class="descrOpt">Check to load jquery.</span> </td>
+            </tr>
+          <tr>
+            <td width="28%" height="45" align="left" valign="middle" bgcolor="#BFF1C1" class="optionEE">silentmode</td>
+            <td width="72%" align="left" valign="middle" bgcolor="#BFF1C1" class="descrOpt"><select name="select5" class="optionEE" id="select5">
+              <option value="true">enabled</option>
+              <option value="false" selected="selected">disabled</option>
+            </select>
+              Supresses all warnings and slogans written to the code of the rendered html script.</td>
+          </tr>
         </table>
+        <p>
+          <input type="button" name="button" id="button" value="Create INIT Script" />
+        </p>
         </div>
-        <h2>Core</h2>
+        <h2>Core Configuration Array Creator</h2>
         <div align="center">
           <table width="70%" border="0" cellspacing="0" cellpadding="0">
             <tr>
@@ -107,7 +124,7 @@ a:active {
                 <option value="true">enabled</option>
                 <option value="false" selected="selected">disabled</option>
               </select> 
-                <span class="descrOpt">this will enable the ForwardMode libraries, cannot be used in COMPATIBILITY MODE (EE6CL comflicts with it).</span></td>
+                <span class="descrOpt">this will enable the ForwardMode libraries, cannot be used in COMPATIBILITY MODE (EE6CL conflicts with it).</span></td>
             </tr>
             <tr>
               <td height="45" align="left" valign="middle" bgcolor="#BFF1C1" class="optionEE">debug mode</td>
@@ -123,7 +140,7 @@ a:active {
                 <option value="true">enabled</option>
                 <option value="false" selected="selected">disabled</option>
               </select> 
-                <span class="descrOpt">this will enable remote debugging, this will affect the debug functions making them use a database instead of SESSION variables to work, this will ensure that you can debug applications that are running in another computer, this mode should not be used when application is published because uses a lot of database querys to work. Also requires a database (or a table prefix) to work, a EEDBM config array should be provided for its use. </span></td>
+                <span class="descrOpt">this will enable remote debugging, this will affect the debug functions making them use a database instead of SESSION variables to work, this will ensure that you can debug applications that are running in another computer, this mode should not be used when application is published because uses a lot of database querys to work. Also requires a database (or a table prefix) to work, a EEDBM connection array should be provided for its use. </span></td>
             </tr>
             <tr>
               <td height="45" align="left" valign="middle" bgcolor="#BFF1C1" class="optionEE">Time Zone</td>
@@ -132,8 +149,13 @@ a:active {
                 <span class="descrOpt">              i.e. America/Lima (<a href="http://php.net/manual/en/timezones.php" target="_blank">PHP Timezones</a>)</span></p></td>
             </tr>
           </table>
+          <p><strong>NOTE:</strong><br /> 
+          You should copy the generated configuration script into eefx/cfg.php for default usage<strong></strong>.</p>
+          <p>
+            <input type="button" name="createConfig" id="createConfig" value="Create Config Script" />
+          </p>
         </div>
-        <h2>Database Configuration Array Creator</h2>
+        <h2>Database Connection Array Creator</h2>
         <div align="center">
           <table width="70%" border="0" cellspacing="0" cellpadding="0">
             <tr>
@@ -179,14 +201,78 @@ a:active {
           </table>
           <p><strong>NOTE:</strong><br />
           To make this the<strong> DEFAULT DATABASE</strong> copy the generated code to the cfg.php file and <strong>set the variable to $ee_ddb</strong>.</p>
+          <p>
+            <input type="button" name="createConfig2" id="createConfig2" value="Create EEDBM Connection Array" />
+          </p>
         </div>
-        <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p></td>
+        <h2>ExEngine MVC Implementation INIT Creator</h2>
+        <div align="center">
+          <table width="70%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+              <td height="45" align="left" valign="middle" bgcolor="#BFF1C1" class="optionEE">index file name</td>
+              <td height="45" align="left" valign="middle" bgcolor="#BFF1C1"><input name="textfield12" type="text" id="textfield16" value="index.php" />
+              <span class="descrOpt">Set the file name of the app starting file, i.e. index.php. (the generated code by this tool will be in &quot;that&quot; file)</span></td>
+            </tr>
+            <tr>
+              <td width="28%" height="45" align="left" valign="middle" class="optionEE">Startup controller name</td>
+              <td width="72%" height="45" align="left" valign="middle"><p>
+                <input name="textfield11" type="text" id="textfield11" value="startup" />
+                <span class="descrOpt">Set the name to the default controller class name.</span></p></td>
+            </tr>
+            <tr>
+              <td height="45" align="left" valign="middle" bgcolor="#BFF1C1" class="optionEE">Views folder</td>
+              <td height="45" align="left" valign="middle" bgcolor="#BFF1C1"><input name="textfield11" type="text" id="textfield12" value="views/" />
+                <span class="descrOpt">i.e. views, relative to the root of the application.</span></td>
+            </tr>
+            <tr>
+              <td height="45" align="left" valign="middle" class="optionEE">controllers folder</td>
+              <td height="45" align="left" valign="middle"><input name="textfield11" type="text" id="textfield13" value="controllers/" />                
+                <span class="descrOpt">i.e. controllers, relative to the root of the application.</span></td>
+            </tr>
+            <tr>
+              <td height="45" align="left" valign="middle" bgcolor="#BFF1C1" class="optionEE">models folder</td>
+              <td height="45" align="left" valign="middle" bgcolor="#BFF1C1"><input name="textfield11" type="text" id="textfield14" value="models/" />
+              <span class="descrOpt">i.e. models, relative to the root of the application.</span></td>
+            </tr>
+            <tr>
+              <td height="45" align="left" valign="middle" class="optionEE">static content folder</td>
+              <td height="45" align="left" valign="middle"><input name="textfield11" type="text" id="textfield15" value="static/" />
+                <span class="descrOpt">i.e. static, relative to the root of the application.</span></td>
+            </tr>
+            <tr>
+              <td height="45" align="left" valign="middle" bgcolor="#BFF1C1" class="optionEE">session mode</td>
+              <td height="45" align="left" valign="middle" bgcolor="#BFF1C1"><select name="select6" class="optionEE" id="select6">
+                <option value="true" selected="selected">enabled</option>
+                <option value="false">disabled</option>
+              </select>                
+                <span class="descrOpt">Enable the use of sessions in the MVC application.</span></td>
+            </tr>
+            <tr>
+              <td height="45" align="left" valign="middle" class="optionEE">silent mode</td>
+              <td height="45" align="left" valign="middle"><select name="select7" class="optionEE" id="select7">
+                <option value="true">enabled</option>
+                <option value="false" selected="selected">disabled</option>
+              </select>
+              <span class="descrOpt">Supresses all warnings and slogans in the rendered html code.</span></td>
+            </tr>
+            <tr>
+              <td height="45" align="left" valign="middle" bgcolor="#BFF1C1" class="optionEE">jquery ui theme</td>
+              <td height="45" align="left" valign="middle" bgcolor="#BFF1C1"><input name="textfield13" type="text" id="textfield17" value="base" />
+              <span class="descrOpt">Set the JQuery UI theme to use with the embedded jquery of the MVC implementation.</span></td>
+            </tr>
+            <tr>
+              <td height="45" align="left" valign="middle" bgcolor="#FFFFFF" class="optionEE">error handler controller</td>
+              <td height="45" align="left" valign="middle" bgcolor="#FFFFFF"><input name="textfield14" type="text" id="textfield18" value="myerrorcontroller" />
+              <span class="descrOpt">Set the name of the controller that will handle errors like 404, 403, etc.</span></td>
+            </tr>
+          </table>
+          <p>
+            <input type="button" name="button2" id="button2" value="Create MVC INIT Script" />
+          </p>
+        </div></td>
     </tr>
     <tr>
-      <td align="right"><input type="button" name="createConfig" id="createConfig" value="Create Config" />
-      <input type="button" name="button" id="button" value="Create INIT Script" /></td>
+      <td align="right">&nbsp;</td>
     </tr>
   </table>
   <p><strong>ExEngine/<? print $ee->miscGetVersion()." ".exengine::RELEASE; ?> </strong></p>

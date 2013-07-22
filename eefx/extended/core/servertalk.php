@@ -20,6 +20,7 @@
 	
 */
 
+// TO-DO
 class servertalk_server {
 
 	private $ee;
@@ -42,6 +43,7 @@ class servertalk_server {
 		}
 	}
 	
+	// TO-DO
 	function checkDatabase() {
 		$db = &$this->eedbm;
 		$dbPrefix = $this->__cfg["dbPrefix"];

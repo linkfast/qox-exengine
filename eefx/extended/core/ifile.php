@@ -20,6 +20,8 @@
 	
 */
 
+// REWRITE CHECKED
+
 ini_set('memory_limit', '1024M');
 set_time_limit(0);
 

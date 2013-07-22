@@ -18,6 +18,8 @@
 	if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, Ma 02111-1307 USA.
 */
 
+// UPDATE OF THIS LIB IS REQUIRED, COMUPS IS GETTING A BIG UPDATE, THIS LIB WILL WAIT THAT.
+
 # Comups for ExEngine is based in Comups Class for PHP.
 
 class comups
