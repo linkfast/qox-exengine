@@ -2,7 +2,7 @@
 /**
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.12
+@version 0.0.1.13
 
 @section LICENSE
 
@@ -34,7 +34,7 @@ function &eemvc_get_instance()
 /// eemvc_index Class, used to create the initial object in index.php at the root folder.
 class eemvc_index {
 	
-	const VERSION = "0.0.1.12"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.13"; /// Version of EE MVC Implementation library.
 	
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -72,7 +72,7 @@ class eemvc_index {
 	}
 	
 	/// Loads a view for the View Simulator, useful for designers that want to test the basic functionality of their pages.
-	final function specialLoadViewStatic($filename,$fullpath=false) {
+	final function specialLoadViewStatic($filename,$fullpath=false,$checkmime=false) {
 		
 		if ($fullpath) {
 			$view_fileo = $filename;
@@ -89,10 +89,17 @@ class eemvc_index {
 		if (!file_exists($view_file)) {
 			$view_file = $view_fileo.".html";
 		}
-		
+
 		if (file_exists($view_file)) {
 			
 			$this->debug("specialLoadViewStatic: Loading: ".$view_file);
+			
+			if ($checkmime) {
+				$this->ee->eeLoad("mime");
+				$eemime = new eemime($this->ee);
+				$mime_type = $eemime->getMIMEType($view_file);				
+				$this->debug("specialLoadViewStatic: File Mime Type: ".$mime_type);
+			}
 
 			$data["EEMVC_SF"] = $this->staticFolderHTTP;
 			$data["EEMVC_SFTAGGED"] =  $this->controllersFolderHTTP."?EEMVC_SPECIAL=STATICTAGGED&FILE=";
@@ -101,8 +108,6 @@ class eemvc_index {
 			$data["EEMVC_SCF"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=".$view_file."&ERROR=NODYNAMIC&";
 			
 			$data["EEMVC_VS"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
-			
-			
 			
 			$jq = new jquery($this->ee);
 			$jqstr = $jq->load($this->jQueryVersion,true);
@@ -130,6 +135,9 @@ class eemvc_index {
 			$output = ob_get_contents();
 			ob_end_clean();		
 				
+			if ($checkmime)
+				header('Content-type: '.$mime_type);
+			
 			echo $output;			
 		} else {
 			$this->ee->errorExit("ExEngine MVC","View not found.","eemvc");
@@ -151,7 +159,7 @@ class eemvc_index {
 					break;
 					case 'STATICTAGGED':
 						$file = $this->staticFolder.$_GET['FILE'];
-						$this->specialLoadViewStatic($file,true);
+						$this->specialLoadViewStatic($file,true,true);
 					break;
 					default:
 						$this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: Mode Not Found.");
