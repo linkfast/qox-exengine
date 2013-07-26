@@ -2,7 +2,7 @@
 /**
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.13
+@version 0.0.1.14
 
 @section LICENSE
 
@@ -34,7 +34,7 @@ function &eemvc_get_instance()
 /// eemvc_index Class, used to create the initial object in index.php at the root folder.
 class eemvc_index {
 	
-	const VERSION = "0.0.1.13"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.14"; /// Version of EE MVC Implementation library.
 	
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -60,6 +60,13 @@ class eemvc_index {
 	public $modelsFolderHTTP;  /// HTTP path (URL) to the models folder, made for views rendering.
 	public $controllersFolderHTTP;  /// HTTP path (URL) to the controllers folder, made for views rendering.
 	private $controllersFolderR=null;
+	
+	public $sameControllerFolderHTTP;
+	
+	public $actualInputQuery;
+	public $unModUrlParsedData;
+	
+	private $origControllerFolderName;
 	
 	/// Default constructor for the index listener.
 	final function __construct(&$parent,$defaultcontroller=null) {
@@ -127,7 +134,7 @@ class eemvc_index {
 			else
 			{		
 				$this->debug("loadView: Mode: Include");	
-				include_once($view_file);
+				include($view_file);
 			}
 			
 			$this->debug("specialLoadViewStatic: Mode: View loaded: ".$view_file);
@@ -148,6 +155,8 @@ class eemvc_index {
 	final function start() {	
 	
 	$this->setStaticFolder();
+	$this->origControllerFolderName = $this->controllersFolder;
+	
 	if ($this->SessionMode===true) { @session_start(); $this->debug("SessionMode=true"); } else {$this->debug("SessionMode=false");}	
 		
 		if (isset($_GET['EEMVC_SPECIAL']) && ($this->ee->cArray["debug"])) {
@@ -191,8 +200,10 @@ class eemvc_index {
 		!$this->ee->strContains($_SERVER['REQUEST_URI'],"?",false) 
 		) {
 			header("Location: ". $_SERVER['REQUEST_URI']."/" );
+			exit();
 		} else if (!$this->ee->strContains($_SERVER['REQUEST_URI'],"/?",false) && substr($_SERVER['REQUEST_URI'],strlen($_SERVER['REQUEST_URI'])-1,1) != "/") {
 			header("Location: ". str_replace("?","/?",$_SERVER['REQUEST_URI']) );
+			exit();
 		}	
 		 
 		 
@@ -208,7 +219,7 @@ class eemvc_index {
 		 }
 		 
 		 if (isset($this->urlParsedData[0]) && (!empty($this->urlParsedData[0]))) {
-			 $this->debug("Index: Loading controller: ".$this->urlParsedData[0]);	
+			 	
 			 $output = $this->load_controller($this->urlParsedData[0]);
 		 } else {
 			if ($this->defcontroller) {
@@ -255,14 +266,22 @@ class eemvc_index {
 			 } else {
 				
 				 $this->controllersFolder = $this->controllersFolder.$name."/";				 				
-				 $nc = $this->defcontroller;				 
-				 
+				 $nc = $this->defcontroller;			 
 				 print $this->load_controller($nc);
 			 }
 		 } else {
 			 $namel = $name.".php";	
 			 		 
 			 if (file_exists($this->controllersFolder.$namel)) {
+				 
+				 $this->debug("Index: Loading controller: ".$this->controllersFolder.$name);
+				 
+				 $strx = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME']."/";
+				 
+				 
+				 
+				 $this->sameControllerFolderHTTP = $strx.str_replace($this->origControllerFolderName,"",$this->controllersFolder).$name."/";
+				 $this->debug("SCFH: ".$this->sameControllerFolderHTTP);
 				 
 				 include_once($this->controllersFolder.$namel);
 				 
@@ -423,7 +442,11 @@ class eemvc_index {
 			$x[$i] = urldecode($x[$i]);
 		}
 		
+		$this->actualInputQuery = $data;
 		$this->urlParsedData = array_slice($x,1);
+		$this->unModUrlParsedData = array_slice($x,1);
+		
+		$this->debug("Parsed Data: " . print_r($this->urlParsedData,true));
 	 }
 	 
 	 /// This function sets the static folder path.
@@ -434,6 +457,10 @@ class eemvc_index {
 		
 		$str = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME']."/";		
 		$this->controllersFolderHTTP = $str;
+		
+		
+		
+		
 	 }
 	 
 	 /// Shortcut to the ExEngine Debugger (Session or remote) for the index class.
@@ -463,12 +490,26 @@ class eemvc_methods {
 		return $this->cparent->index->controllersFolderHTTP;;
 	}
 	
-	final function sc() {
-		return $this->cparent->index->controllersFolderHTTP.strtolower(get_class($this->cparent))."/";	
+	/* TO-DO: REMOVE
+	final function scpath() {
+		$urldata = $this->cparent->index->unModUrlParsedData;
+		$size = count($urldata);
+		$str_make = null;
+		$urldata = array_slice($urldata,0,($size-3));
+		$size = count($urldata);
+		for ($i = 0; $i < $size ; $i++) {
+			$str_make .= $urldata[$i].'/';	
+		}
+		return $str_make;
+	}
+	*/
+	
+	final function sc() {		
+		return $this->cparent->index->sameControllerFolderHTTP;	
 	}
 	
 	final function scf() {
-		return $this->cparent->index->controllersFolderHTTP.strtolower(get_class($this->cparent))."/".$this->cparent->functionName."/";
+		return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->functionName."/";
 	}
 	
 	final function vs() {
@@ -584,7 +625,7 @@ class eemvc_controller {
 		$this->index->debugController($msg);	
 	}
 	
-	final function loadView($filename,$data=null,$return=false,$dynamic=true) {	
+	final function loadView($filename,$data=null,$return=false,$dynamic=true,$checkmime=false) {	
 		
 		$view_fileo = $this->index->viewsFolder.$filename;	
 		
@@ -598,6 +639,13 @@ class eemvc_controller {
 			$view_file = $view_fileo.".html";
 		}
 		
+		if ($checkmime) {
+				$this->ee->eeLoad("mime");
+				$eemime = new eemime($this->ee);
+				$mime_type = $eemime->getMIMEType($view_file);				
+				$this->debug("specialLoadViewStatic: File Mime Type: ".$mime_type);
+		}
+		
 		if (file_exists($view_file)) {
 			
 			$this->debug("loadView: Loading: ".$view_file);
@@ -606,8 +654,8 @@ class eemvc_controller {
 			$data["EEMVC_SFTAGGED"] =  $this->index->controllersFolderHTTP."?EEMVC_SPECIAL=STATICTAGGED&FILE=";
 			
 			$data["EEMVC_C"] = $this->index->controllersFolderHTTP;
-			$data["EEMVC_SC"] = $this->index->controllersFolderHTTP.strtolower(get_class($this))."/";
-			$data["EEMVC_SCF"] = $this->index->controllersFolderHTTP.strtolower(get_class($this))."/".$this->functionName."/";
+			$data["EEMVC_SC"] = $this->index->sameControllerFolderHTTP;
+			$data["EEMVC_SCF"] = $this->index->sameControllerFolderHTTP.$this->functionName."/";
 						
 			$data["EEMVC_VS"] = $this->index->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
 			
@@ -630,7 +678,7 @@ class eemvc_controller {
 				else
 				{		
 					$this->debug("loadView: Mode: Include");	
-					include_once($view_file);
+					include($view_file);
 				}
 			}
 			else
@@ -650,6 +698,8 @@ class eemvc_controller {
 			{
 				return $output;
 			} else {
+				if ($checkmime)
+					header('Content-type: '.$mime_type);
 				echo $output;
 			}				
 		} else {
