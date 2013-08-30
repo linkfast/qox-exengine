@@ -15,11 +15,13 @@ Quick Start MVC Application
 3. Copy all files to that folder (download as zip or clone).
 4. Create an index.php file that will serve all calls in the root of your app.
 5. Copy this code into that file, and modify paths if necessary.
+	```php
 	include_once("libs/ee/ee.php");
 	$ee = new exengine(array("SilentMode" => true));
 	$mvc = new eemvc_index($ee,"start");
 	$mvc->SessionMode = true;
 	$mvc->start();
+	```
 6. Create these folders: models, views, controllers and static in the root of your app.
 7. Create a new Controller to test the install, create a file called "start.php" inside the controllers folder.
 8. Copy this code into start.php:
