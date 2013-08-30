@@ -23,29 +23,27 @@ class jquery {
 	private $fresPath;
 	private $jqUIThemes;
 	private $ee;
-	private $jqVersion = "1.7.1";
+	private $jqVersion = "1.10.2";
 	private $jqUIVersion = "1.8.16";
 
 	public $tagMode = false;
 	public $tagData = "";
 	public $jqThemes = array ("base","ui-darkness","ui-lightness","start","redmond","black-tie","blitzer","cupertino","dark-hive","dot-luv","eggplant","excite-bike","hot-sneaks","humanity","le-frog","mint-choc","overcast","pepper-grinder","smoothness","south-street","sunny","swanky-purse","trontastic","vader");
 
-	//Google's CDN
-	private $remoteGET = "http://ajax.googleapis.com/ajax/libs/LIBNAME/LIBVERSION/LIBFILE.js";
+	//CDN Servers: 0: google, 1: jquery (mt) [no https], 2: Microsoft, 3: CloudFlare
+	private $remoteGET = array("//ajax.googleapis.com/ajax/libs/LIBNAME/LIBVERSION/LIBFILE.js", "http://code.jquery.com/jquery-LIBVERSION.min.js",
+	"//ajax.aspnetcdn.com/ajax/jQuery/jquery-LIBVERSION.min.js", "//cdnjs.cloudflare.com/ajax/libs/jquery/LIBVERSION/LIBFILE.js");
+	public $CDNServer = 0;
 
-	const VERSION = "1.0.7";
+	const VERSION = "1.0.8";
 
 	function __construct($parent) {
 		$this->ee = &$parent;
 		$this->resPath = $this->ee->libGetResPath("jquery","http") ;
 		$this->fresPath = $this->ee->libGetResPath("jquery","full") ;
-		$this->jqUIThemes = $this->resPath . "themes/";
-		
-		#SSL
-		if ($_SERVER['SERVER_PORT']=="443") {
-			$this->remoteGET = "https://ajax.googleapis.com/ajax/libs/LIBNAME/LIBVERSION/LIBFILE.js";	
-		}		
+		$this->jqUIThemes = $this->resPath . "themes/";	
 	}
+	
 	function load($ver = null, $ret = false) {
 		if (!$ver) $ver = $this->jqVersion;
 		$file = $this->ee->libGetResPath("jquery","full")."jquery-".$ver.".min.js";
@@ -63,8 +61,8 @@ class jquery {
 			}
 				
 		} else {
-			//Try to load from Google Server
-			$uri = str_replace("LIBNAME","jquery",$this->remoteGET);
+			//Try to load from CDN
+			$uri = str_replace("LIBNAME","jquery",$this->remoteGET[$this->CDNServer]);
 			$uri = str_replace("LIBVERSION",$ver,$uri);
 			$uri = str_replace("LIBFILE","jquery.min",$uri);
 				
@@ -94,8 +92,8 @@ class jquery {
 					print $t;
 			}
 		} else {
-			//Try to load from Google Server
-			$uri = str_replace("LIBNAME","jquery",$this->remoteGET);
+			//Try to load from CDN
+			$uri = str_replace("LIBNAME","jquery",$this->remoteGET[$this->CDNServer]);
 			$uri = str_replace("LIBVERSION",$ver,$uri);
 			$uri = str_replace("LIBFILE","jquery",$uri);
 			$t= '<script type="text/javascript" src="'.$uri.'"></script>'."\n";
@@ -124,8 +122,8 @@ class jquery {
 					print $t;
 			}
 		} else {
-			//Try to load from Google Server
-			$uri = str_replace("LIBNAME","jqueryui",$this->remoteGET);
+			//Try to load from CDN
+			$uri = str_replace("LIBNAME","jqueryui",$this->remoteGET[$this->CDNServer]);
 			$uri = str_replace("LIBVERSION",$ver,$uri);
 			$uri = str_replace("LIBFILE","jquery-ui.min",$uri);
 			$t= '<script type="text/javascript" src="'.$uri.'"></script>'."\n";
@@ -145,7 +143,7 @@ class jquery {
 			} else
 				$htp = "http";
 			
-			//Try to load from Google Server..			
+			//Try to load from CDN.		
 			if ($this->ee->httpCheckURL("$htp://ajax.googleapis.com/ajax/libs/jqueryui/".$this->jqUIVersion."/themes/".$theme."/jquery-ui.css")) {
 				$t = '<link type="text/css" href="'."$htp://ajax.googleapis.com/ajax/libs/jqueryui/".$this->jqUIVersion."/themes/".$theme."/jquery-ui.css".'" rel="stylesheet" />'."\n";
 			} else {

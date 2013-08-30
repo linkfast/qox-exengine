@@ -68,8 +68,9 @@ class eedbm {
 		$dbg = $DebugMode;
 		if (!$this->connected) {
 			switch ($this->type) {
-				case "mysql" :
-					#MySQL MODE
+				
+				#MySQL MODE (LEGACY)
+				case "mysql" :					
 					$this->connObj  = mysql_connect($this->host,$this->user,$this->passwd);
 					$this->dbselObj = mysql_select_db($this->db,$this->connObj);			
 					if ( ($this->connObj) && ($this->dbselObj) ) { 			
@@ -93,8 +94,21 @@ class eedbm {
 						print "<!-- ". $r . "-->\n";		
 					}
 					break;
+				# LEGACY
+				
+				case "mysqli":
+					$this->connObj = mysqli_connect($this->host,$this->user,$this->passwd);
+					$this->dbselObj = mysqli_select_db($this->connObj,$this->db);
+					if ($this->connObj && $this->dbselObj) $this->connected = true;
+					else {
+						$this->ee->errorWarning("ExEngine : Database Manager : Can not connect to database server.");
+						$this->ee->debugThis("eedbm","Can not connect to server. Error: ". mysqli_errno($this->connObj) . " " . mysqli_error($this->connObj));
+						$this->connected = false;
+					}
+				break;				
 				case "pgsql":
-					#PostgreSQL Mode
+					#PostgreSQL Mode -> TODO
+					/*
 					$this->connObj  = mysql_connect($this->host,$this->user,$this->passwd);
 					$this->dbselObj = mysql_select_db($this->db,$this->connObj);			
 					if ( ($this->connObj) && ($this->dbselObj) ) { 			
@@ -114,6 +128,8 @@ class eedbm {
 						print "Database\t\t: ".$this->db."\n";
 						print "Port\t\t\t: ".$this->port."\n-->\n";
 					}
+					*/
+					$this->ee->errorExit("ExEngine : Database Manager : PostgreSQL not supported.");
 				break;
 				default :
 					$this->ee->debugThis("eedbm","EDBL Driver Search");
@@ -148,8 +164,7 @@ class eedbm {
 		}
 	}
 	
-	# Query Function ($EDBL_Special is an array)
-	
+	# Query Function ($EDBL_Special is an array)	
 	function query($Query=null,$AutoQuery=0,$EDBL_Special=null) {
 		$q = $Query;
 		$aQ = $AutoQuery;
@@ -159,10 +174,11 @@ class eedbm {
 			if (isset($q)) {
 				$this->ee->debugThis("eedbm","Query: " . $q);
 				switch ($this->type) {
+					#LEGACY
 					case "mysql":
 					#UTF8 Compat Mode
 					if($this->utf8Mode) 
-						mysql_query("SET NAMES 'utf8'");
+						mysql_query("SET NAMES 'utf8'",$this->connObj);
 					##
 					$ret = mysql_query($q,$this->connObj);	
 					if (!$ret) {
@@ -174,15 +190,24 @@ class eedbm {
 							$this->autoquery = $ret;
 					}
 					break;
+					#END LEGACY
+					case "mysqli":
+						#UTF8 Compat Mode
+						if($this->utf8Mode) 
+							mysqli_query($this->connObj,"SET NAMES 'utf8'");
+						##
+						$ret = mysqli_query($this->connObj,$Query);
+						if ($aQ==1) $this->autoquery = $ret; else return $ret;					
+					break;
 					default:
 						if ($this->edbl_enabled) {							
 							if ($EDBL_Special==null)
 								for ($l = 0; $l < 100; $l++)
 									$EDBL_Special[$l] = null;							
 							$ret = $this->edbl_obj->query($q,$EDBL_Special);
-							return $ret;
+							if ($aQ==1) $this->autoquery = $ret; else return $ret;	
 						}
-					break;
+					break;					
 				}
 			} else {
 				$this->ee->errorWarning("ExEngine 7 : Database Manager : Query text should be provided.");	
@@ -211,6 +236,8 @@ class eedbm {
 			#autoquery end
 			
 			switch ($this->type) {
+				
+				#LEGACY
 				case "mysql":		
 					if (true) {
 						if (isset($qObj)) {
@@ -218,6 +245,19 @@ class eedbm {
 								$rObj =  mysql_fetch_array($qObj);	
 							} else {
 								$rObj = mysql_fetch_array($qObj,$rt);
+							}
+						}
+					}			
+				break;
+				#END LEGACY
+				
+				case "mysqli":
+					if (true) {
+						if (isset($qObj)) {
+							if (!isset($rt)) {
+								$rObj =  mysqli_fetch_array($qObj);	
+							} else {
+								$rObj = mysqli_fetch_array($qObj,$rt);
 							}
 						}
 					}			
@@ -253,8 +293,13 @@ class eedbm {
 	final function errorLatest() {
 		if ($this->connected) {
 			switch ($this->type) {
+				#LEGACY
 				case "mysql" :
 					return mysql_error($this->connObj);
+				break;
+				#LEGACY
+				case "mysqli":
+					return mysqli_error($this->connObj);
 				break;
 				default:
 				
@@ -388,8 +433,22 @@ class eedbm {
 			print "INSERT INTO `".$this->db."`.`".$table."` (".$q1.") VALUES (".$q2.")".$fQ;
 		}
 		$q = $this->query("INSERT INTO `".$this->db."`.`".$table."` (".$q1.") VALUES (".$q2.")".$fQ);
-		if ($this->type=="mysql")
-			$this->InsertedID = mysql_insert_id($this->connObj);
+		
+		switch ($this->type) {
+			#LEGACY
+			case "mysql":
+				$this->InsertedID = mysql_insert_id($this->connObj);
+			break;	
+			#LEGACY
+			case "mysqli":
+				$this->InsertedID = mysqli_insert_id($this->connObj);
+			break;
+			default:
+				if ($this->edbl_enabled)
+					$this->InsertedID = $this->edbl_obj->Inserted_Id();
+			break;
+		}
+			
 		return $q;
 	}
 	
@@ -424,9 +483,18 @@ class eedbm {
 	final function rowCount($q) {
 		if ($this->connected) {
 			switch ($this->type) {
+				#LEGACY
 				case "mysql":
 					return mysql_num_rows($q);
 					break;
+				#LEGACY
+				case "mysqli":
+					return mysqli_num_rows($q);
+					break;
+				default:
+					if ($this->edbl_enabled)
+						return $this->edbl_obj->rowCount($q);
+				break;
 			}
 		}
 	}
@@ -435,7 +503,16 @@ class eedbm {
 	final function close() {
 		unset($this->autoquery);
 		$this->connected = false;
-		return mysql_close($this->connObj);
+		switch ($this->type) {
+			#legacy
+			case "mysql":
+				return mysql_close($this->connObj);
+			#legacy
+			case "mysqli":
+				return mysqli_close($this->connObj);
+		}
+		
+		
 	}
 	
 	# Settings Parser

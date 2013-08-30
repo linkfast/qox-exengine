@@ -23,6 +23,7 @@ $arg["ShowSlogan"] = false;
 $ee = new exengine($arg);
 $ee->eeLoad("ajaxcore2");
 $ac2 = new ajaxcore2($ee);
+$version = $ee->miscGetVersion()." ".exengine::RELEASE;
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -112,7 +113,7 @@ function comm_genCleanUrl() {
               </td>
           </tr>
         </table>
-        <? if ($_POST['act']=="getCleanUrl") { ?>
+        <? if (@$_POST['act']=="getCleanUrl") { ?>
         <p>&nbsp;</p>
         <table width="70%" border="0" cellspacing="0" cellpadding="0">
           <tr>
@@ -130,7 +131,7 @@ function comm_genCleanUrl() {
       <td align="center" class="vw_Small">ExEngine Commander 7 (1.0.0.0) | AjaxCore2 VisualWeb Powered</td>
     </tr>
   </table>
-  <p>LinkFast<strong>ExEngine/<? print exengine::VERSION."-".exengine::RELEASE; ?> </strong></p>
+  <p>LinkFast<strong>ExEngine/<? print $version; ?> </strong></p>
 </div>
 </body>
 </html>

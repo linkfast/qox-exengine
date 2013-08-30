@@ -2,7 +2,7 @@
 /**
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.14
+@version 0.0.1.17
 
 @section LICENSE
 
@@ -24,7 +24,7 @@ ExEngine MVC Implementation Library
 
 */
  
-/// Get Instance Funciont, connects controllers.
+/// Get Instance Function, connects controllers.
 function &eemvc_get_instance()
 {
 		return eemvc_controller::get_instance();
@@ -34,7 +34,7 @@ function &eemvc_get_instance()
 /// eemvc_index Class, used to create the initial object in index.php at the root folder.
 class eemvc_index {
 	
-	const VERSION = "0.0.1.14"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.17"; /// Version of EE MVC Implementation library.
 	
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -133,7 +133,7 @@ class eemvc_index {
 			}
 			else
 			{		
-				$this->debug("loadView: Mode: Include");	
+				$this->debug("loadView: Mode: Include");;	
 				include($view_file);
 			}
 			
@@ -147,12 +147,17 @@ class eemvc_index {
 			
 			echo $output;			
 		} else {
-			$this->ee->errorExit("ExEngine MVC","View not found.","eemvc");
+			$this->ee->errorExit("ExEngine MVC","View not found.","eemvcil");
 		}	
 	}
 	
 	/// This function will start the MVC listener, should be called in the index file.
 	final function start() {	
+	
+	if (!$this->ee->argsGet("SilentMode")) {
+			 print "<h1>MVC-ExEngine can not work with SilentMode argument set to FALSE. Please set it to TRUE.</h1>";
+			 exit();
+	}
 	
 	$this->setStaticFolder();
 	$this->origControllerFolderName = $this->controllersFolder;
@@ -175,14 +180,7 @@ class eemvc_index {
 					break;
 				}
 			
-		} else {
-		
-		 
-		 
-		 if (!$this->ee->argsGet("SilentMode")) {
-			 print "<h1>MVC-ExEngine can not work with SilentMode argument set to FALSE. Please set it to TRUE.</h1>";
-			 exit();
-		 }
+		} else {	 
 		 
 		if (!$this->ee->strContains($_SERVER['REQUEST_URI'],$this->indexname)) {
 			header("Location: ".$_SERVER['REQUEST_URI'].$this->indexname);
@@ -204,9 +202,7 @@ class eemvc_index {
 		} else if (!$this->ee->strContains($_SERVER['REQUEST_URI'],"/?",false) && substr($_SERVER['REQUEST_URI'],strlen($_SERVER['REQUEST_URI'])-1,1) != "/") {
 			header("Location: ". str_replace("?","/?",$_SERVER['REQUEST_URI']) );
 			exit();
-		}	
-		 
-		 
+		}		 
 		 
 		 $this->debug(print_r($this->urlParsedData,1));		
 		 
@@ -226,13 +222,13 @@ class eemvc_index {
 				$this->debug("Index: Loading default controller: ".$this->defcontroller);	
 				$output = $this->load_controller($this->defcontroller);
 			}else {
-				$this->ee->errorExit("ExEngine MVC","No default controller set.","eemvc");
+				$this->ee->errorExit("ExEngine MVC","No default controller set.","eemvcil");
 			}
 		 }	 	 
 		 
 		 if (!$this->AlwaysSilent) {
-			 $rpl = "<html>\n"."<!-- Powered by MVC-".$this->ee->miscMessages("Slogan",1)." -->";
-			 $output = str_replace("<html>",$rpl,$output);
+			 $rpl = "<head>\n"."\t<!-- X-Powered by MVC-".$this->ee->miscMessages("Slogan",1)." -->\n\t<!-- https://github.com/gchiappe/exengine7/ -->";
+			 $output = str_replace("<head>",$rpl,$output);
 		 }		 
 		 print $output; 
 		}
@@ -344,6 +340,8 @@ class eemvc_index {
 				 }
 			 } elseif ($ctl_folder == $this->controllersFolder) {
 				 
+				 $strx = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME']."/";
+				 $this->sameControllerFolderHTTP = $strx.str_replace($this->origControllerFolderName,"",$this->controllersFolder).$name."";
 				 include_once($this->controllersFolder.$this->defcontroller.".php");
 				 
 				 $name = ucfirst($this->defcontroller);
@@ -465,7 +463,7 @@ class eemvc_index {
 	 
 	 /// Shortcut to the ExEngine Debugger (Session or remote) for the index class.
 	 final function debug($message) {
-		 $this->ee->debugThis("eemvc",$message);
+		 $this->ee->debugThis("eemvcil",$message);
 	 }
 	 
 	 /// Shortcut to the ExEngine Debugger for the actual controller.
@@ -490,7 +488,7 @@ class eemvc_methods {
 		return $this->cparent->index->controllersFolderHTTP;;
 	}
 	
-	/* TO-DO: REMOVE
+	/* TODO: REMOVE
 	final function scpath() {
 		$urldata = $this->cparent->index->unModUrlParsedData;
 		$size = count($urldata);
@@ -522,7 +520,7 @@ class eemvc_methods {
 	
 	final function getSession($element) {
 		if ($this->cparent->index->SessionMode)			
-			return $_SESSION[$element];
+			return @$_SESSION[$element];
 		else {
 			$this->cparent->debug("Cannot get a session variable, SessionMode is set to false.");
 			return null;	
@@ -537,25 +535,33 @@ class eemvc_methods {
 			return null;	
 		}
 	}
+	
+	final function clearSession() {
+		session_unset();	
+	}
+	
+	final function remSession($element) {
+		unset($_SESSION[$element]);	
+	}
 
 	final function get($element) {
-		return $_GET[$element];	
+		return @$_GET[$element];	
 	}
 	
 	final function post($element) {
-		return $_POST[$element];	
+		return @$_POST[$element];	
 	}
 	
 	final function file($pname) {
-		return $_FILES[$pname];	
+		return @$_FILES[$pname];	
 	}
 	
 	final function allpost() {
-		return $_POST;	
+		return @$_POST;	
 	}
 	
 	final function allget() {
-		return $_GET;	
+		return @$_GET;	
 	}
 }
 
@@ -617,7 +623,7 @@ class eemvc_controller {
 			$this->debug("loadModel: ".$model_name.'-Done. ($this->'.$obj_name.')');
 		} else {
 			$this->debug("loadModel: ".$model_name.'-Not found');
-			$this->ee->errorExit("ExEngine MVC","Model not found.","eemvc");
+			$this->ee->errorExit("ExEngine MVC","Model not found.","eemvcil");
 		}		
 	}
 	
@@ -703,14 +709,24 @@ class eemvc_controller {
 				echo $output;
 			}				
 		} else {
-			$this->ee->errorExit("ExEngine MVC","View not found.","eemvc");
+			$this->ee->errorExit("ExEngine MVC","View not found.","eemvcil");
 		}
 	}
 }
 
 class eemvc_model {
 	
-	function __construct() {		
+	//Default Database Object (used for Code-Hinting compatibility)
+	public $db;
+	public $r; 
+	
+	function __construct() {
+		$this->r = new eemvc_methods($this);		
+	}
+	
+	//Database loader, compatible with EEDBM (used for Code-Hinting compatibility)
+	final function loadDB($dbObj="default") {		
+		$this->db = new eedbm($this->ee,$dbObj);
 	}
 	
 	//Get all Controller's properties
@@ -730,6 +746,133 @@ class eemvc_model {
 				call_user_func_array(array($Contr,$name), $args); 
 			}
 		}
+	}
+}
+
+class eemvc_model_dbo extends eemvc_model {
+	
+	private function getProperties() {
+		$vars = get_object_vars($this);
+		
+		unset($vars["db"]);
+		unset($vars["r"]);		
+
+		unset($vars[$this->INDEXKEY]);
+		unset($vars["TABLEID"]);
+		unset($vars["INDEXKEY"]);
+		
+		if (isset ($this->EXCLUDEVARS) ) {
+			unset($vars["EXCLUDEVARS"]);
+			for ($c = 0; $c < count($this->EXCLUDEVARS); $c++) {
+				unset($vars[$this->EXCLUDEVARS[$c]]);	
+			}
+		}
+		
+		return $vars;
+	}
+	
+	final function load() {		
+		$ik = $this->INDEXKEY;
+		
+		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		
+		if (isset($this->$ik)) {
+			
+			if (method_exists($this,'__befload')) {
+				$this->__befload();	
+			}
+			
+			$this->loadDb();
+			$this->db->open();				
+			$q = $this->db->query("SELECT * FROM ".$this->TABLEID." WHERE ".$this->INDEXKEY." = '".urlencode($this->$ik)."' LIMIT 1");
+			//$this->ee->debugThis("eemvcil","QuERY");
+			$data = $this->db->fetchArray($q,null,MYSQLI_ASSOC);
+			unset($data[$this->INDEXKEY]);
+			$keys = @array_keys($data);
+			for ($c = 0; $c < count($keys); $c++) {
+				$this->$keys[$c] = $data[$keys[$c]];	
+			}
+			
+			if (method_exists($this,'__aftload')) {
+				return $this->__aftload();	
+			} else
+				return true;
+			
+		} else return false;
+	}
+	
+	function load_page($from,$count) {
+		
+		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		$cn = get_class($this);	
+		$ik = $this->INDEXKEY;
+		$this->loadDb();
+		$this->db->open();	
+		$re = null;
+		$c=0;
+		$q = $this->db->query("SELECT * FROM ".$this->TABLEID." LIMIT ".$from." , ".$count);
+		if ($q) {
+			while ($row = $this->db->fetchArray($q)) {
+				$re[$c] = new $cn();
+				$re[$c]->$ik = $row[$ik];
+				$re[$c]->load();
+				$c++;
+			}
+		}
+		return $re;
+		/**/
+		//print "hola mundo";
+	}
+	
+	final function insert() {
+		$ik = $this->INDEXKEY;
+		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		if (isset($this->$ik)) {
+			if (method_exists($this,'__befinsert')) {
+				$this->__befinsert();	
+			}
+			$iarr = $this->getProperties();
+			$r = $this->db->insertArray($this->TABLEID,$iarr);
+			if ($r) {
+				$this->$ik = $this->db->InsertedID;	
+				if (method_exists($this,'__aftinsert')) {
+					$this->__aftinsert($r);	
+				}
+				return true;
+			} else 
+				return false;			
+		}		
+	}
+	
+	final function update() {
+		$ik = $this->INDEXKEY;
+		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		if (isset($this->$ik)) {
+			if (method_exists($this,'__befupdate')) {
+				$this->__befupdate();	
+			}
+			$this->loadDb();
+			$this->db->open();		
+			$uarr = $this->getProperties();
+			$warr = array( $ik => $this->$ik );	
+			$res = $this->db->updateArray($this->TABLEID,$uarr,$warr);		
+			if (method_exists($this,'__aftupdate')) {
+				return $this->__aftupdate($r);	
+			} else
+				return $r;
+		} else return false;
+	}
+	
+	final function delete() {
+		$ik = $this->INDEXKEY;
+		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		if (isset($this->$ik)) {
+			$this->loadDb();
+			$this->db->open();
+			$q = $this->db->query("DELETE FROM ".$this->TABLEID." WHERE ".$ik." = '".urlencode($this->$ik)."' LIMIT 1");		
+			$this->$this->INDEXKEY = null;
+			return true;
+		} else return false;
 	}
 }
 
