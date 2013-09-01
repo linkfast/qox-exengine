@@ -2,7 +2,7 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 7.0.8.19
+@version 7.0.8.20
 
 @section LICENSE
 
@@ -29,6 +29,11 @@ ExEngine 7 Framework core, this file contains the EE7 main functions, and the ne
 //
 // Based on DGS ExEngine by Giancarlo Chiappe Aguilar
 
+function &ee_gi()
+{
+		return exengine::get_instance();
+}
+
 /// ExEngine 7 Framework Core Class (default config array is in eefx/cfg.php).
 class exengine {
 	
@@ -51,17 +56,25 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 0x13; // 19
+	const V_REVIS = 20;	
 	
-	const REL_DATE = "19 AUG 2013";
+	const REL_DATE = "31 AUG 2013";
 	
 	const RELEASE = "alpha";
 	
 	const EE7WP = "http://www.aldealinkfast.com/oss/exengine7/";
 	
+	#New mode for avoiding passing the parent object to every object that uses EE.
+	private static $instance;
+	
 	// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array) ( no operational yet =( )
 	const COMUPS_SERVER = "update.aldealinkfast.com"; /// Comups update server for update checking.
 	const COMUPS_PKG	= "exengine7"; /// Comups package name for version checking.
+	
+	public static function &get_instance()
+	{
+		return self::$instance;
+	}
 	
 	function __construct($args=null,$configArray="default",$dbArr="default") { 
 	
@@ -119,6 +132,14 @@ class exengine {
 				//$pIncPath = get_include_path();				
 				set_include_path(".:".$this->cArray["pear_path"]);
 			}
+			#Check ForwardMode in CfgFile.
+			if ($this->cArray["forwardmode"]) {
+				$this->forwardMode=true;	
+			}			
+			
+			self::$instance =& $this;
+			
+			if (defined('STDIN')) { echo 'X-Powered by ExEngine 7 ('.$this->miscUName().")\n"; }
 		}
 		
 		#Check for ExEngine MS (Multi-Site)
@@ -288,13 +309,25 @@ class exengine {
 	final function errorExit($title,$mess,$wikiPage=null,$noexit=false) {
 		if ($this->argsGet("ErrorLevel") >= 1) {
 			if ($this->argsGet("VisualError")) {
-				if ($wikiPage) {
-					$mess .= '<br/><br/> <a href="http://wiki.aldealinkfast.com/exengine/index.php?title='.$wikiPage.'">More information...</a>';	
+				if (!defined('STDIN')) {
+					if ($wikiPage) {
+						$mess .= '<br/><br/> <a href="http://aldea.linkfastsa.com/proyectos/exengine/wiki/index.php?title='.$wikiPage.'">More information...</a>';	
+					}
+					print "<h2>".$title."</h2><br/>".$mess;
+					if ($this->argsGet("HaltOnError"))
+						if (!$noexit) {
+							print " <br/>\nExEngine Core halted.";
+							exit();
+						}
+				} else {
+					if ($wikiPage)
+						$mess .= ' More Info at: http://aldea.linkfastsa.com/proyectos/exengine/wiki/index.php?title='.$wikiPage;
+					echo $title.' -> '. $mess . "\n";
+					if (!$noexit) {
+						print "ExEngine Core halted.\n";
+						exit;
+					}
 				}
-				print "<h1>".$title."</h1><br/>".$mess." <br/>\nExEngine Core halted.";
-				if ($this->argsGet("HaltOnError"))
-					if (!$noexit)
-						exit();
 			} else {
 				if (!$this->argsGet("SilentMode")) {
 					print "<!-- == ".$title." ==\n    ".$mess." -->\n";
@@ -309,12 +342,16 @@ class exengine {
 	final function errorWarning($mess) {
 		if ($this->argsGet("ErrorLevel") >= 2) {
 			if (!$this->argsGet("SilentMode")) {
-				if ($this->argsGet("VisualWarning")) {				
-						print "<p><b>ExEngine Warning:</b> ".$mess."</p>";
-					
-				} else {				
-						print "<!-- == ExEngine Warning ==\n    ".$mess." -->\n";
-					
+				if (!defined('STDIN')) {
+					if ($this->argsGet("VisualWarning")) {				
+							print "<p><b>ExEngine Warning:</b> ".$mess."</p>";
+						
+					} else {				
+							print "<!-- == ExEngine Warning ==\n    ".$mess." -->\n";
+						
+					}
+				} else {
+					echo "ExEngine Warning: ".$mess."\n";
 				}
 			}
 		}
@@ -326,7 +363,7 @@ class exengine {
 	
 	final function errorLib($libName) {
 		if (!class_exists($libName)) {
-			$this->errorExit("ExEngine Library Error [XC03]","Enable Library load to use some EE7 functions, like 'meLoad'.<br/><a href=\"http://wiki.aldealinkfast.com/exengine/index.php?title=ExEngine_7:Library_(English)#Provides\" target=\"_blank\">More info</a>.");
+			$this->errorExit("ExEngine Library Error [XC03]","Enable Library load to use some EE7 functions, like 'meLoad'.<br/><a href=\"http://aldea.linkfastsa.com/proyectos/exengine/wiki/index.php?title=Library_(English)#Provides\" target=\"_blank\">More info</a>.");
 		}
 	}
 	
@@ -676,11 +713,11 @@ class exengine {
 			case "Slogan":
 				if ($this->cArray["debug"]) {
 					$_versionString = $this->miscGetVersion();
-					$str = $ee7_string.$extra."/".$_versionString." // DebugMode Enabled";
+					$str = "X-Powered by ".$ee7_string.$extra."/".$_versionString." // DebugMode Enabled // https://github.com/gchiappe/exengine7/";
 					if ($ret==0)
 						$this->miscMessShow($str);
 				} else {
-					$str=$ee7_string.$extra."-Powered Site // http://www.aldealinkfast.com/oss/exengine7/";
+					$str= "X-Powered by ".$ee7_string.$extra." // https://github.com/gchiappe/exengine7/";
 					if ($ret==0)
 						$this->miscMessShow($str);	
 				}
@@ -955,6 +992,9 @@ class exengine {
 		}		
 		print $this->TagTempFile[$name];
 	}
+	#For EE6's ForwardMode Compatibility
+	const REALVERSION = "7.0.8";
+	const BUILD = 20;
 }
 
 //Prevent from non-include access
