@@ -34,7 +34,7 @@ function &eemvc_get_instance()
 /// eemvc_index Class, used to create the initial object in index.php at the root folder.
 class eemvc_index {
 	
-	const VERSION = "0.0.1.17"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.18"; /// Version of EE MVC Implementation library.
 	
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -80,13 +80,19 @@ class eemvc_index {
 	
 	# ExEngine UnitTesting
 	var $unitTest = false;
+	var $utSuite;
 	final function prepareUnitTesting() {
 		$this->ee->eeLoad("unittest");
+		$eeunit = &eeunit_get_instance();
+		if ($eeunit) {
+			$this->utSuite = &$eeunit;
+			$this->utSuite->write("<b>MVC-ExEngine</b><tab>ExEngine Unit Testing Suite Detected!");
+		}
 		$this->debug("Unit Testing Mode");
-		if(defined('STDIN')) {
+		if(defined('STDIN') && !$this->utSuite) {
 			echo 'MVC-ExEngine 7 -> Unit Testing Mode ENABLED'."\n";
 		} else {
-			echo '<h1>MVC-ExEngine 7 Unit Testing Mode</h1>'.'<p><a href="javascript:location.reload(true);">ReRun Tests</a></p>'."<p><b>Output:</b></p>";
+			$this->utSuite->write("<b>MVC-ExEngine</b><tab>Unit Testing Mode <green>ENABLED</green>");
 		}
 		$this->unitTest = true;
 	}
@@ -94,20 +100,24 @@ class eemvc_index {
 	final function prepareController($Controller) {
 		$Controller = strtolower($Controller);
 		if (file_exists($this->controllersFolder.$Controller.".php")) {
-			if(defined('STDIN')) {
+			if(defined('STDIN') && !$this->utSuite) {
 				echo 'MVC-ExEngine 7 -> Preparing controller '.ucfirst($Controller)." for unit testing.\n";
 			} else {
-				echo 'MVC-ExEngine 7 -> Preparing controller '.ucfirst($Controller)." for unit testing.<br/>";
+				$this->utSuite->write("<b>MVC-ExEngine</b><tab>Preparing controller ".ucfirst($Controller)." for unit testing.");
 			}
 			include_once($this->controllersFolder.$Controller.".php");
 			$Controller = ucfirst($Controller);
 			$Controller = new $Controller($this->ee,$this);		
 			return $Controller;	
 		} else {
-			if(defined('STDIN')) {
+			if(defined('STDIN') && !$this->utSuite) {
 				echo 'MVC-ExEngine 7 -> Controller '.ucfirst($Controller).' Not Found. (Test Halted)'."\n";
 				exit;
-			} else
+			} elseif ($this->utSuite) {
+				$this->utSuite->write("<b>MVC-ExEngine</b><tab>Controller ".ucfirst($Controller)." Not Found. (Test Halted)");
+				exit;
+			}
+			else
 				$this->ee->errorExit("MVC-ExEngine","Controller ".ucfirst($Controller)." Not Found. (Test Halted)");
 		}
 	}
@@ -269,7 +279,7 @@ class eemvc_index {
 		 }	 	 
 		 
 		 if (!$this->AlwaysSilent) {
-			 $rpl = "<head>\n"."\t<!-- X-Powered by MVC-".$this->ee->miscMessages("Slogan",1)." -->\n\t<!-- https://github.com/gchiappe/exengine7/ -->";
+			 $rpl = "<head>\n"."\t<!-- ".$this->ee->miscMessages("Slogan",1)." (MVC-ExEngine) -->";
 			 $output = str_replace("<head>",$rpl,$output);
 		 }		 
 		 print $output; 
@@ -648,9 +658,13 @@ class eemvc_controller {
 	/// Loads a model, by default will create an object with the same name.
 	final function loadModel($model_name,$obj_name=null,$create_obj=true) {
 		$this->debug("loadModel: Load: ".$model_name);
-		if ($this->index->unitTest && defined('STDIN')) {
+		if ($this->index->unitTest && defined('STDIN') && !$this->index->utSuite) {
 				echo 'MVC-ExEngine 7 -> Preparing model '.ucfirst($model_name).' for unit testing.'."\n";
-		} else if ($this->index->unitTest) echo 'MVC-ExEngine 7 -> Preparing model '.ucfirst($model_name).' for unit testing.'."<br/>";
+		} else		
+			if ($this->index->utSuite)
+				$this->index->utSuite->write("<b>MVC-ExEngine</b><tab>Preparing model ".ucfirst($model_name)." for unit testing.");
+			else
+				echo 'MVC-ExEngine 7 -> Preparing model '.ucfirst($model_name).' for unit testing.'."<br/>";
 		
 		$m_file = $this->index->modelsFolder.$model_name.".php";
 		
@@ -668,10 +682,15 @@ class eemvc_controller {
 			$this->debug("loadModel: ".$model_name.'-Done. ($this->'.$obj_name.')');
 		} else {
 			$this->debug("loadModel: ".$model_name.'-Not found');
-			if ($this->index->unitTest && defined('STDIN')) {
+			if ($this->index->unitTest && defined('STDIN') && !$this->index->utSuite) {
 				echo 'MVC-ExEngine 7 -> Model '.$model_name.' not found. (Test Halted)'."\n";
 				exit;
 			} else
+				if ($this->index->utSuite) {
+					$this->index->utSuite->write("<b>MVC-ExEngine</b><tab>Model ".$model_name." not found. (Test Halted).");
+					exit;
+				}
+				else
 				$this->ee->errorExit("ExEngine MVC","Model not found.","eemvcil");
 		}		
 	}

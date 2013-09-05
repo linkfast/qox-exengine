@@ -1,6 +1,6 @@
 <?php
 /**
-@file mobiledetect.php
+@file clicolors.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
 @version 1.0.0.0
 
@@ -18,30 +18,33 @@ if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 
 @section DESCRIPTION
 
-Wrapper for https://github.com/serbanghita/Mobile-Detect.
+Wrapper for https://github.com/kevinlebrun/colors.php.
 
 @section TODO
 
-Add some special functions exclusive to ExEngine about Mobile_Detect.
+Add some special functions exclusive to ExEngine about Colors.PHP.
 
-@section Mobile_Detect_License
+@section Colors.php_License
 
-MIT License https://github.com/serbanghita/Mobile-Detect/blob/master/LICENSE.txt
+MIT License https://github.com/kevinlebrun/colors.php/blob/master/LICENSE
 
 */
 
-class mobiledetect {
+class clicolors {
 	private $ee;
-	/// Standard Extended Engine constructor.
+	
 	function __construct($ee=null) {
 		if ($ee == null)		
 			$this->ee = &ee_gi();	
 		else
 			$this->ee = &$ee;
 	}
-	/// Call "load()" to "include_once" the Mobile_Detect.php file in order to access the class functions.
+	/// Call "load()" to "include_once" the files in order to access the class functions.
 	function load() {
-		include_once($this->ee->eeResPath().'mobile_detect/'.'Mobile_Detect.php');	
+		include_once($this->ee->eeResPath().'clicolors/'.'Color.php');
+		include_once($this->ee->eeResPath().'clicolors/'.'Exception.php');
+		include_once($this->ee->eeResPath().'clicolors/'.'InvalidStyleNameException.php');
+		include_once($this->ee->eeResPath().'clicolors/'.'NoStyleFoundException.php');	
 	}
 }
 ?>

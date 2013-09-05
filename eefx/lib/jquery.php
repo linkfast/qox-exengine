@@ -35,13 +35,19 @@ class jquery {
 	"//ajax.aspnetcdn.com/ajax/jQuery/jquery-LIBVERSION.min.js", "//cdnjs.cloudflare.com/ajax/libs/jquery/LIBVERSION/LIBFILE.js");
 	public $CDNServer = 0;
 
-	const VERSION = "1.0.8";
+	const VERSION = "1.0.9";
 
 	function __construct($parent) {
 		$this->ee = &$parent;
 		$this->resPath = $this->ee->libGetResPath("jquery","http") ;
 		$this->fresPath = $this->ee->libGetResPath("jquery","full") ;
 		$this->jqUIThemes = $this->resPath . "themes/";	
+	}
+	
+	function load_migrate($ret = false) {
+			$file = $this->ee->libGetResPath("jquery","http")."jquery-migrate-1.1.0.js";
+			$t = '<script type="text/javascript" src="'.$file.'"></script>'."\n";
+			if ($ret) return $t ; else print $t;
 	}
 	
 	function load($ver = null, $ret = false) {
