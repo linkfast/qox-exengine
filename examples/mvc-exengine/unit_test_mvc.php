@@ -1,15 +1,15 @@
 <?php
-//error_reporting(E_ALL); 
-//ini_set("display_errors", 1); 
+error_reporting(E_ALL ^ E_NOTICE); 
+ini_set("display_errors", 1); 
 include_once( '../../ee/ee.php' );
 
-$ee = new exengine(array("SilentMode"=> true));
+$ee = new exengine(array("SpecialMode"=> "MVCOnly"));
 $ee->eeLoad("unittest");
 
 $ut = new EEUnitTest_Suite();
 
 $mvc = new eemvc_index($ee,"start");
-$mvc->prepareUnitTesting();
+$mvc->prepareUnitTesting(); // prepare MVC lib for UnitTesting (no url parsing, etc.)
 
 $ctl = $mvc->prepareController("start");
 $model = $mvc->prepareModel($ctl,"testmodel");
