@@ -308,6 +308,39 @@ class eedbm {
 		}
 	}
 	
+	final function whereArrayToSQL($WhereArray,$SafeMode=true) {
+		$WhereStatement = $WhereArray;
+		if (!is_array($WhereStatement)) {
+			$this->ee->errorExit("eedbm->whereArrayToSQL","Invalid arguments, array for WhereStatements is required.");
+		}
+		$wQ='';
+		$c = count($WhereStatement);
+		$a = array_keys($WhereStatement);		
+		if ($c > 0) {
+			$c1 = 0;			
+			while ($c1 < ($c-1)) {
+				if ($SafeMode)
+					$wQ .= "`".$a[$c1]."` = '".urlencode($WhereStatement[$a[$c1]])."' AND ";
+				else
+					$wQ .= "`".$a[$c1]."` = '".$WhereStatement[$a[$c1]]."' AND ";
+				$c1++;
+			}
+			if ($c1 == ($c-1)) {
+				if ($SafeMode)
+					$wQ .= "`".$a[$c1]."` = '".urlencode($WhereStatement[$a[$c1]])."' ";
+				else
+					$wQ .= "`".$a[$c1]."` = '".$WhereStatement[$a[$c1]]."' ";
+			}
+		} elseif ($c == 1) {
+			if ($SafeMode)
+				$wQ .= "`".$a[0]."` = '".urlencode($WhereStatement[$a[0]])."' ";
+			else
+				$wQ .= "`".$a[0]."` = '".$WhereStatement[$a[0]]."' ";
+		}		
+		unset($c,$c1,$a);
+		return "WHERE " . $wQ;
+	}
+	
 	#EE Query Functions
 	final function updateArray($Table,$InputArray,$WhereArray,$SafeMode=true,$AdditonalQuery=null) {
 		$WhereStatement = $WhereArray;

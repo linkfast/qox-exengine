@@ -19,6 +19,9 @@ class EEUnitTest_Suite {
 	var $Tbot;
 	
 	private $noAsk=false;
+	private $utils;
+	
+	var $tc_timer;
 	
 	private static $instance;
 	public static function &get_instance()
@@ -60,6 +63,12 @@ class EEUnitTest_Suite {
 			}
 			
 		}
+		$this->ee->eeLoad("scripttimer");
+		$st = new scripttimer();
+		$st->load();
+		$this->ee->eeLoad("utils");
+		$this->utils = new EE_Utilities();
+		$this->utils->TextRenderer->Load("clihtml");
 		$this->write("<b>ExEngine 7 Unit Testing Suite : Initialized</b>");
 	}	
 	
@@ -93,10 +102,13 @@ class EEUnitTest_Suite {
 			$this->write("<br/><b>ExEngine 7 Unit Testing Suite</b>");
 			$this->write("<tab>Tests Started (".count($this->TestCases)." Packages)");
 			$TCCount=1;
-			foreach ($this->TestCases as $tc) {
-				$methods=0;
-				$c = 0;
+			
+			$global_timer = new CA_Timer();
+			$global_timer->start();
 				
+			foreach ($this->TestCases as $tc) {				
+				$methods=0;
+				$c = 0;				
 				$funcs = get_class_methods($tc);
 				foreach ($funcs as $f) {
 					if ($this->ee->strContains($f,"test")) {
@@ -104,37 +116,45 @@ class EEUnitTest_Suite {
 					}
 				}
 				$this->write("<br/><b>RUN UNIT TEST CASE</b> : Package ".get_class($tc)." (".$methods." Tests Methods) (Package #".$TCCount."/".count($this->TestCases).")");	
-						
+				$this->tc_timer = new CA_Timer();
+				$this->tc_timer->start();
 				$tc->utStartup();
 				$this->TestCasesInst[] = &$tc->unitTestCase;			
 				foreach ($funcs as $f) {
 					if ($this->ee->strContains($f,"test")) {
+						
 						$this->write("<tab><b>Testing: ".str_replace("test","",$f)."</b> (Method ".($c+1)."/".$methods.")");			
 						$tc->$f();
 						$c++;
+						
 					}
 				}
+				$this->tc_timer->stop();
 				$Results[] = $tc->unitTestCase->Results;
 				$this->Asserts += $tc->unitTestCase->Asserts;
 				$this->Failures += $tc->unitTestCase->Failures;
 				$tc->utFinish();
 				$TCCount++;			
 			}
-			$this->Finish();
+			$global_timer->stop();
+			$this->Finish($global_timer);
 		}
 		
 	}
 	
-	public final function Finish() {
+	public final function Finish(&$gt) {
+		$time = $gt->get(CA_Timer::MILLISECONDS);
 		
 		$this->Total = $this->Asserts + $this->Failures;
 		$this->write("<br/><b>GLOBAL SUMMARY:</b>");
 		if ($this->Total == $this->Asserts) {			
 			$this->write("<b><green>PASSED</green></b>");
-			$this->write("ASSERTS: ".$this->Asserts." FAILURES: ".$this->Failures. " TOTAL: ".$this->Total." <b>ASSERTION RATE: ".number_format(($this->Asserts/$this->Total*100),2)."%</b><br/>");
+			$this->write("ASSERTS: ".$this->Asserts." FAILURES: ".$this->Failures. " TOTAL: ".$this->Total." <b>ASSERTION RATE: ".number_format(($this->Asserts/$this->Total*100),2)."%</b>");
+			$this->write("TOTAL TIME: ".$time.'ms<br/>');
 		} else if ($this->Failures>0) {
 			$this->write("<b>Result: <red>FAILED</red></b>");
-			$this->write("ASSERTS: ".$this->Asserts." FAILURES: ".$this->Failures. " TOTAL: ".$this->Total." <b>ASSERTION RATE: ".number_format(($this->Asserts/$this->Total*100),2)."%</b><br/>");
+			$this->write("ASSERTS: ".$this->Asserts." FAILURES: ".$this->Failures. " TOTAL: ".$this->Total." <b>ASSERTION RATE: ".number_format(($this->Asserts/$this->Total*100),2)."%</b>");
+			$this->write("TOTAL TIME: ".$time.'ms<br/>');
 		}
 		if (!$this->fromCli)
 			print $this->Tbot;
@@ -145,11 +165,8 @@ class EEUnitTest_Suite {
 		echo $this->parseFormat($Text."<br/>");		
 	}
 	
-	public final function parseFormat($Text) {
-		$this->ee->eeLoad("utils");
-		$utils = new EE_Utilities();
-		$utils->TextRenderer->Load("clihtml");		
-		return	$utils->TextRenderer->RenderText("clihtml",$this->RenderMode,$Text);		
+	public final function parseFormat($Text) {				
+		return	$this->utils->TextRenderer->RenderText("clihtml",$this->RenderMode,$Text);		
 	}
 		
 	private function askFromCli() {
@@ -176,16 +193,23 @@ class EEUnitTest_Case {
 	
 	public final function Finish() {
 		$this->Total = $this->Asserts + $this->Failures;
+		$tc_timer = &$this->eeu->tc_timer;
+		$time = $tc_timer->get(CA_Timer::MILLISECONDS);
 		
 		if ($this->Total == $this->Asserts) {	
 			$this->eeu->write("<tab><b>PACKAGE SUMMARY <green>PASSED</green></b>");	
 			$this->eeu->write("<tab>".$this->CaseName);
-			$this->eeu->write("<tab>ASSERTS: ".$this->Asserts." FAILURES: ".$this->Failures. " TOTAL: ".$this->Total);
+			
+			$this->eeu->write("<tab>ASSERTS: ".$this->Asserts." FAILURES: ".$this->Failures. " TOTAL: ".$this->Total.' TIME: '.$time.'ms');
 		} else if ($this->Failures>0) {
 			$this->eeu->write("<tab><b>PACKAGE SUMMARY <red>FAILED</red></b>");
 			$this->eeu->write("<tab>".$this->CaseName);
-			$this->eeu->write("<tab>ASSERTS: ".$this->Asserts." FAILURES: ".$this->Failures. " TOTAL: ".$this->Total);
+			$this->eeu->write("<tab>ASSERTS: ".$this->Asserts." FAILURES: ".$this->Failures. " TOTAL: ".$this->Total.' TIME: '.$time.'ms');
 		}
+	}
+	
+	public final function write($Text) {
+		$this->eeu->write("<tab><tab><b>MESSAGE: </b>".$Text);
 	}
 	
 	public final function __construct($CaseName) {
@@ -204,12 +228,17 @@ class EEUnitTest_Function {
 	var $Failures=0;
 	var $Total=0;
 	var $c=0;
+	var $methodTime;
+	
+	private $timer;
 	
 	public final function __construct(EEUnitTest_Case $testCase,$MethodDesc=null) {
 		$this->testCase = &$testCase;
 		$this->eeu = &eeunit_get_instance();
 		if ($MethodDesc==null) $MethodDesc = "-NOT SET-";
 		$this->FunctionName = $MethodDesc;
+		$this->timer = new CA_Timer();
+		$this->timer->start();
 	}
 	
 	public final function write($Text) {
@@ -217,6 +246,9 @@ class EEUnitTest_Function {
 	}
 	
 	public final function Finish() {
+		$this->timer->stop();
+		$this->methodTime = $this->timer->get(CA_Timer::MILLISECONDS);
+		
 		$this->Total = $this->Asserts + $this->Failures;
 		$this->testCase->Asserts += $this->Asserts;
 		$this->testCase->Failures += $this->Failures;		
@@ -226,11 +258,11 @@ class EEUnitTest_Function {
 		if ($this->Total == $this->Asserts) {	
 			$this->eeu->write("<tab><tab><b>METHOD SUMMARY <green>PASSED</green></b>");		
 			$this->eeu->write("<tab><tab>DESC.: ".$this->FunctionName);
-			$this->eeu->write("<tab><tab>ASSERTS: ".$this->Asserts." FAILURES: ".$this->Failures. " TOTAL: ".$this->Total);
+			$this->eeu->write("<tab><tab>ASSERTS: ".$this->Asserts." FAILURES: ".$this->Failures. " TOTAL: ".$this->Total.' TIME: '.$this->methodTime.'ms');
 		} else if ($this->Failures>0) {
 			$this->eeu->write("<tab><tab><b>METHOD SUMMARY <red>FAILED</red></b>");
 			$this->eeu->write("<tab><tab>DESC.: ".$this->FunctionName);
-			$this->eeu->write("<tab><tab>ASSERTS: ".$this->Asserts." FAILURES: ".$this->Failures. " TOTAL: ".$this->Total);
+			$this->eeu->write("<tab><tab>ASSERTS: ".$this->Asserts." FAILURES: ".$this->Failures. " TOTAL: ".$this->Total.' TIME: '.$this->methodTime.'ms');
 		}
 	}
 	
@@ -269,6 +301,8 @@ class EEUnitTest_Result {
 	
 	var $data;
 	var $Title;
+	var $Message;
+	var $UsedTime;
 	
 	function __construct($title=null) {
 		$this->Title = $title;	

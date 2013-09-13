@@ -24,7 +24,7 @@ class jquery {
 	private $jqUIThemes;
 	private $ee;
 	private $jqVersion = "1.10.2";
-	private $jqUIVersion = "1.8.16";
+	private $jqUIVersion = "1.10.3";
 
 	public $tagMode = false;
 	public $tagData = "";
@@ -116,60 +116,43 @@ class jquery {
 	function load_ui($theme="base",$ver = null,$ret=false) {
 		if (!$ver) $ver = $this->jqUIVersion;
 		$file = $this->ee->libGetResPath("jquery","full")."jquery-ui-".$ver.".min.js";
-
-		if (file_exists($file)) {
-			$t = '<script type="text/javascript" src="'.$this->resPath."jquery-ui-".$ver.".min.js".'"></script>'."\n";
-			if ($this->tagMode)
-			$this->tagData .= $t;
-			else{
-				if ($ret)
-					return $t; 
-				else				
-					print $t;
+		$t = '';
+		//THEME LOAD
+		if (!file_exists($this->ee->libGetResPath("jquery","full").'/themes/'.$theme.'/jquery.ui.all.css')) {
+			if ($_SERVER['SERVER_PORT']=="443") {
+				$htp = "https";	
+			} else
+				$htp = "http";			
+			//Try to load from CDN.		
+			if ($this->ee->httpCheckURL("$htp://ajax.googleapis.com/ajax/libs/jqueryui/".$this->jqUIVersion."/themes/".$theme."/jquery-ui.css")) {
+				$t .= '<link type="text/css" href="'."$htp://ajax.googleapis.com/ajax/libs/jqueryui/".$this->jqUIVersion."/themes/".$theme."/jquery-ui.css".'" rel="stylesheet" />'."\n";
+			} else {
+				$this->ee->errorWarning("Theme not found locally neither Google's CDN. ("."http://ajax.googleapis.com/ajax/libs/jqueryui/".$this->jqUIVersion."/themes/".$theme."/jquery-ui.css".").");	
 			}
+		} else {
+			$t .= '<link type="text/css" href="'.$this->jqUIThemes.$theme.'/jquery.ui.all.css" rel="stylesheet" />'."\n";
+		}
+		// JQUERY UI LOAD
+		if (file_exists($file)) {
+			$t .= '<script type="text/javascript" src="'.$this->resPath."jquery-ui-".$ver.".min.js".'"></script>'."\n";						
 		} else {
 			//Try to load from CDN
 			$uri = str_replace("LIBNAME","jqueryui",$this->remoteGET[$this->CDNServer]);
 			$uri = str_replace("LIBVERSION",$ver,$uri);
 			$uri = str_replace("LIBFILE","jquery-ui.min",$uri);
-			$t= '<script type="text/javascript" src="'.$uri.'"></script>'."\n";
-			if ($this->tagMode)
-				$this->tagData .= $t;
-			else{
-				if ($ret)
-					return $t; 
-				else				
-					print $t;
-			}
-		}
+			$t .= '<script type="text/javascript" src="'.$uri.'"></script>'."\n";						
+		}	
 		
-		if (!file_exists($this->ee->libGetResPath("jquery","full").'/themes/'.$theme.'/jquery.ui.all.css')) {
-			if ($_SERVER['SERVER_PORT']=="443") {
-				$htp = "https";	
-			} else
-				$htp = "http";
-			
-			//Try to load from CDN.		
-			if ($this->ee->httpCheckURL("$htp://ajax.googleapis.com/ajax/libs/jqueryui/".$this->jqUIVersion."/themes/".$theme."/jquery-ui.css")) {
-				$t = '<link type="text/css" href="'."$htp://ajax.googleapis.com/ajax/libs/jqueryui/".$this->jqUIVersion."/themes/".$theme."/jquery-ui.css".'" rel="stylesheet" />'."\n";
-			} else {
-				$this->ee->errorWarning("Theme not found locally neither Google's CDN. ("."http://ajax.googleapis.com/ajax/libs/jqueryui/".$this->jqUIVersion."/themes/".$theme."/jquery-ui.css".").");	
-			}
-		} else {
-			$t = '<link type="text/css" href="'.$this->jqUIThemes.$theme.'/jquery.ui.all.css" rel="stylesheet" />'."\n";
-		}
-
 		if ($this->tagMode)
-		$this->tagData .= $t;
+			$this->tagData .= $t;
 		else{
 				if ($ret)
 					return $t; 
 				else				
 					print $t;
 			}
-
-
 	}
+	
 	function load_plugin($name,$opt=null) {
 		$findme   = ',';
 		$pos = strpos($name, $findme);

@@ -1,8 +1,8 @@
-<?
+<?php
 /**
-@file log.php
+@file rovalidation.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.1
+@version 1.0.0.0
 
 @section LICENSE
 
@@ -18,52 +18,23 @@ if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 
 @section DESCRIPTION
 
-ExEngine 7 / Libs / Remote Logging
+Wrapper for class version of http://www.phpro.org/classes/Validation-Class.html
+
+@section TODO
+
+Add some special functions exclusive to ExEngine about PHPRO.org's Validation Class.
 
 */
 
-class eelog {
-	
+class rovalidation {
 	private $ee;
-	private $application;
 	
-	private $eedbmObj;
-	
-	private $eedbmConfig;
-	private $tableToUse;
-	
-	function __construct($parent,$application,$eedbmConfig="default") {
-		$this->ee = &$parent;
-		$this->application = $application;
-		
-		if ($eedbmConfig == "default")
-			$this->eedbmConfig = $this->ee->dbArray;
+	function __construct($ee=null) {
+		if ($ee == null)		
+			$this->ee = &ee_gi();	
 		else
-		$this->eedbmConfig = $eedbmConfig;	
-		
-		$this->tableToUse = $this->eedbmConfig["logTable"];
-		$this->eedbmObj = new eedbm($this->ee, $this->eedbmConfig);
-	}
-	
-	function logThis($message,$loglevel) {
-		
-	}
-	
-	function createLogTable() {
-		
-	}
-	
-	function clearLog() {
-			
-	}
-	
-	function destroyLogTable() {
-		
-	}
-	
-	function loadDefault() {
-		
+			$this->ee = &$ee;
+		include_once($this->ee->eeResPath().'vclass/'.'validation-class.php');
 	}
 }
-
 ?>

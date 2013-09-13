@@ -173,6 +173,8 @@ class eemvc_index {
 			$data["EEMVC_JQUERY"]  = $jqstr; 
 			$jqstr2 = $jq->load_ui($this->jQueryUITheme,$this->jQueryUIVersion,true);			
 			$data["EEMVC_JQUERYUI"]  = $jqstr2; 
+			$jqstr3 = $jq->load_migrate(true);
+			$data["EEMVC_JQUERYMIGRATE"] = $jqstr3;
 
 			extract($data);	
 			
@@ -199,7 +201,7 @@ class eemvc_index {
 			
 			echo $output;			
 		} else {
-			$this->ee->errorExit("ExEngine MVC","View not found.","eemvcil");
+			$this->ee->errorExit("MVC-ExEngine","View not found.","eemvcil");
 		}	
 	}
 	
@@ -216,12 +218,16 @@ class eemvc_index {
 	
 	if ($this->SessionMode===true) { @session_start(); $this->debug("SessionMode=true"); } else {$this->debug("SessionMode=false");}	
 		
-		if (isset($_GET['EEMVC_SPECIAL']) && ($this->ee->cArray["debug"])) {
+		if (isset($_GET['EEMVC_SPECIAL'])) {
 			
 				switch ($_GET['EEMVC_SPECIAL']) {
 					case 'VIEWSIMULATOR':
-						if (isset($_GET['ERROR'])) if ($_GET['ERROR'] == "NODYNAMIC") $this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: EEMVC_SC and EEMVC_SCF special tags does no work in the Views Simulator.",null,true);
-						$this->specialLoadViewStatic($_GET['VIEW']);
+						if ($this->ee->cArray["debug"]) {
+							if (isset($_GET['ERROR'])) if ($_GET['ERROR'] == "NODYNAMIC") $this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: EEMVC_SC and EEMVC_SCF special tags does no work in the Views Simulator.",null,true);
+							$this->specialLoadViewStatic($_GET['VIEW']);
+						} else {
+							$this->ee->errorExit("MVC-ExEngine","VIEWSIMULATOR doesn´t work in production mode. (Enable debug mode first)","eemvcil");	
+						}
 					break;
 					case 'STATICTAGGED':
 						$file = $this->staticFolder.$_GET['FILE'];
@@ -519,9 +525,9 @@ class eemvc_index {
 	 }
 	 
 	 /// Shortcut to the ExEngine Debugger for the actual controller.
-	 final function debugController($message) {
+	 /*final function debugController($message) {
 		 $this->ee->debugThis("eemvc-".$this->controllername,$message);
-	 }
+	 }*/
 }
 
 class eemvc_methods {
@@ -663,8 +669,6 @@ class eemvc_controller {
 		} else		
 			if ($this->index->utSuite)
 				$this->index->utSuite->write("<b>MVC-ExEngine</b><tab>Preparing model ".ucfirst($model_name)." for unit testing.");
-			else
-				echo 'MVC-ExEngine 7 -> Preparing model '.ucfirst($model_name).' for unit testing.'."<br/>";
 		
 		$m_file = $this->index->modelsFolder.$model_name.".php";
 		
@@ -696,7 +700,9 @@ class eemvc_controller {
 	}
 	
 	final function debug ($msg) {
-		$this->index->debugController($msg);	
+		//$this->index->debugController($msg);	
+		$this->ee->debugThis("eemvc-".get_class($this),$msg);
+		
 	}
 	
 	final function loadView($filename,$data=null,$return=false,$dynamic=true,$checkmime=false) {	
@@ -738,6 +744,8 @@ class eemvc_controller {
 			$data["EEMVC_JQUERY"]  = $jqstr; 
 			$jqstr2 = $jq->load_ui($this->index->jQueryUITheme,$this->index->jQueryUIVersion,true);			
 			$data["EEMVC_JQUERYUI"]  = $jqstr2; 
+			$jqstr3 = $jq->load_migrate(true);
+			$data["EEMVC_JQUERYMIGRATE"] = $jqstr3;
 
 			extract($data);	
 			
@@ -825,7 +833,7 @@ class eemvc_model_dbo extends eemvc_model {
 		unset($vars["db"]);
 		unset($vars["r"]);		
 
-		unset($vars[$this->INDEXKEY]);
+		//unset($vars[$this->INDEXKEY]);
 		unset($vars["TABLEID"]);
 		unset($vars["INDEXKEY"]);
 		
@@ -853,7 +861,8 @@ class eemvc_model_dbo extends eemvc_model {
 			$this->loadDb();
 			$this->db->open();				
 			$q = $this->db->query("SELECT * FROM ".$this->TABLEID." WHERE ".$this->INDEXKEY." = '".urlencode($this->$ik)."' LIMIT 1");
-			//$this->ee->debugThis("eemvcil","QuERY");
+			if (!$q) return false;
+			if ($this->db->rowCount($q) == 0) return false;
 			$data = $this->db->fetchArray($q,null,MYSQLI_ASSOC);
 			unset($data[$this->INDEXKEY]);
 			$keys = @array_keys($data);
@@ -869,27 +878,94 @@ class eemvc_model_dbo extends eemvc_model {
 		} else return false;
 	}
 	
-	function load_page($from,$count) {
-		
+	function load_all() {
 		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
 		$cn = get_class($this);	
+		$this->loadDb();
+		$this->db->open();	
+		$re = null;
+		$o=0;
+		$q = $this->db->query("SELECT * FROM ".$this->TABLEID);
+		if ($q) {
+			while ($row = $this->db->fetchArray($q,null,MYSQLI_ASSOC)) {
+				unset($v);
+				$v = new $cn();								
+				$keys = @array_keys($row);
+				for ($c = 0; $c < count($keys); $c++) {
+					$v->$keys[$c] = $row[$keys[$c]];	
+				}	
+				$re[$o] = &$v;		
+				$o++;
+			}
+		} else return false;
+		return $re;
+	}
+	
+	function debug($message) {
+		$this->ee->debugThis("eemvc-dbo-".get_class($this),$message);
+	}
+	
+	function load_values() {
 		$ik = $this->INDEXKEY;
+		
+		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		
+		$v = $this->getProperties();	
+		$nnc = 0;		
+		foreach (array_keys($v) as $ak) {
+			if ($v[$ak] == null) unset($v[$ak]); else $nnc++;
+		}
+		if ($nnc == 0) { $this->debug("load_values() requires at least one property set.");  return false; }
+			
+		
+		if (method_exists($this,'__befload')) {
+			$this->__befload();	
+		}
+		
+		$this->loadDb();
+		$this->db->open();	
+		
+		
+								
+		$wq = $this->db->whereArrayToSQL($v);	
+		
+		$q = $this->db->query("SELECT * FROM `".$this->TABLEID."` ".$wq." LIMIT 1");		
+		if (!$q) return false;
+		if ($this->db->rowCount($q) == 0) return false;
+		$data = $this->db->fetchArray($q,null,MYSQLI_ASSOC);
+		unset($data[$this->INDEXKEY]);
+		$keys = @array_keys($data);
+		for ($c = 0; $c < count($keys); $c++) {
+			$this->$keys[$c] = $data[$keys[$c]];	
+		}
+		
+		if (method_exists($this,'__aftload')) {
+			return $this->__aftload();	
+		} else
+			return true;		
+	}
+	
+	function load_page($from,$count) {		
+		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		$cn = get_class($this);	
 		$this->loadDb();
 		$this->db->open();	
 		$re = null;
 		$c=0;
-		$q = $this->db->query("SELECT * FROM ".$this->TABLEID." LIMIT ".$from." , ".$count);
+		$q = $this->db->query("SELECT * FROM `".$this->TABLEID."` LIMIT ".$from." , ".$count);
 		if ($q) {
-			while ($row = $this->db->fetchArray($q)) {
-				$re[$c] = new $cn();
-				$re[$c]->$ik = $row[$ik];
-				$re[$c]->load();
-				$c++;
+			while ($row = $this->db->fetchArray($q,null,MYSQLI_ASSOC)) {
+				unset($v);
+				$v = new $cn();								
+				$keys = @array_keys($row);
+				for ($c = 0; $c < count($keys); $c++) {
+					$v->$keys[$c] = $row[$keys[$c]];	
+				}	
+				$re[$o] = &$v;		
+				$o++;
 			}
-		}
+		} else return false;
 		return $re;
-		/**/
-		//print "hola mundo";
 	}
 	
 	final function insert() {
@@ -900,6 +976,8 @@ class eemvc_model_dbo extends eemvc_model {
 				$this->__befinsert();	
 			}
 			$iarr = $this->getProperties();
+			$this->loadDb();
+			$this->db->open();
 			$r = $this->db->insertArray($this->TABLEID,$iarr);
 			if ($r) {
 				$this->$ik = $this->db->InsertedID;	
@@ -922,6 +1000,7 @@ class eemvc_model_dbo extends eemvc_model {
 			$this->loadDb();
 			$this->db->open();		
 			$uarr = $this->getProperties();
+			unset($uarr[$ik]);
 			$warr = array( $ik => $this->$ik );	
 			$res = $this->db->updateArray($this->TABLEID,$uarr,$warr);		
 			if (method_exists($this,'__aftupdate')) {
@@ -937,7 +1016,7 @@ class eemvc_model_dbo extends eemvc_model {
 		if (isset($this->$ik)) {
 			$this->loadDb();
 			$this->db->open();
-			$q = $this->db->query("DELETE FROM ".$this->TABLEID." WHERE ".$ik." = '".urlencode($this->$ik)."' LIMIT 1");		
+			$q = $this->db->query("DELETE FROM `".$this->TABLEID."` WHERE `".$ik."` = '".urlencode($this->$ik)."' LIMIT 1");		
 			$this->$this->INDEXKEY = null;
 			return true;
 		} else return false;

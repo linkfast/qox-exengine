@@ -1,8 +1,8 @@
-<?
+<?php
 /**
-@file log.php
+@file scripttimer.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.1
+@version 1.0.0.0
 
 @section LICENSE
 
@@ -18,52 +18,26 @@ if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 
 @section DESCRIPTION
 
-ExEngine 7 / Libs / Remote Logging
+Wrapper for class version of http://codeaid.net/php/calculate-script-execution-time-%28php-class%29
+
+@section TODO
+
+Add some special functions exclusive to ExEngine about CodeAid's Timer Class.
 
 */
 
-class eelog {
-	
+class scripttimer {
 	private $ee;
-	private $application;
 	
-	private $eedbmObj;
-	
-	private $eedbmConfig;
-	private $tableToUse;
-	
-	function __construct($parent,$application,$eedbmConfig="default") {
-		$this->ee = &$parent;
-		$this->application = $application;
-		
-		if ($eedbmConfig == "default")
-			$this->eedbmConfig = $this->ee->dbArray;
+	function __construct($ee=null) {
+		if ($ee == null)		
+			$this->ee = &ee_gi();	
 		else
-		$this->eedbmConfig = $eedbmConfig;	
-		
-		$this->tableToUse = $this->eedbmConfig["logTable"];
-		$this->eedbmObj = new eedbm($this->ee, $this->eedbmConfig);
+			$this->ee = &$ee;
 	}
-	
-	function logThis($message,$loglevel) {
-		
-	}
-	
-	function createLogTable() {
-		
-	}
-	
-	function clearLog() {
-			
-	}
-	
-	function destroyLogTable() {
-		
-	}
-	
-	function loadDefault() {
-		
+	/// Call "load()" to "include_once" the files in order to access the class functions.
+	function load() {
+		include_once($this->ee->eeResPath().'timer_codeaid/'.'timer_codeaid.php');
 	}
 }
-
 ?>

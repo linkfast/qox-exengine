@@ -2,7 +2,7 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 7.0.8.21
+@version 7.0.8.22
 
 @section LICENSE
 
@@ -56,9 +56,9 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 21;	
+	const V_REVIS = 22;	
 	
-	const REL_DATE = "05 SEP 2013";
+	const REL_DATE = "09 SEP 2013";
 	
 	const RELEASE = "alpha";
 	
@@ -237,19 +237,27 @@ class exengine {
 			$this->libLoadRes("me");			# MixedEngines Control Library		(me)
 			#		
 			
-			$this->libLoadRes("eedbm");			# Database Manager					(eedbm)
-			$this->libLoadRes("ee7info");		# EE7 Information Service Class 	(ee7info)
-			$this->libLoadRes("browser");		# Client Browser properties Class 	(browser)
-			$this->libLoadRes("log");			# Loging Class						(eelog)			
-			$this->libLoadRes("jquery");		# ExEngine's jQuery					(jquery)
-			$this->libLoadRes("ifile");			# Internet Files Manipulation		(ifile)
-			$this->libLoadRes("mail");			# Internet Mail Class				(eemail)
-			$this->libLoadRes("gd");			# GD Image Manipulation				(gd)
-			$this->libLoadRes("eemvcil");		# EE ModelViewController I.Lib.		(eemvc_index,eemvc_model,eemvc_controller)
+			if ($this->argsGet("SpecialMode") == "MVCOnly") {
+				$this->libLoadRes("eedbm");
+				$this->libLoadRes("jquery");
+				$this->libLoadRes("eemvcil");
+				$this->aArray["SilentMode"] = true;
+			} else {
 			
-			# DEPRECATED LIBRARIES (SHOULD BE REMOVED SOON, TO ENABLE REMOVE THE COMMENT HASHTAG)
-			#$this->libLoadRes("ee6cl");		# ExEngine6 C.L.					(ee6clayer) (deprecated)
-			#$this->libLoadRes("eepf");			# ExEngine Portal Framework			(eepf) (deprecated)
+				$this->libLoadRes("eedbm");			# Database Manager					(eedbm)
+				$this->libLoadRes("ee7info");		# EE7 Information Service Class 	(ee7info)
+				$this->libLoadRes("browser");		# Client Browser properties Class 	(browser)
+				$this->libLoadRes("log");			# Loging Class						(eelog)			
+				$this->libLoadRes("jquery");		# ExEngine's jQuery					(jquery)
+				$this->libLoadRes("ifile");			# Internet Files Manipulation		(ifile)
+				$this->libLoadRes("mail");			# Internet Mail Class				(eemail)
+				$this->libLoadRes("gd");			# GD Image Manipulation				(gd)
+				$this->libLoadRes("eemvcil");		# EE ModelViewController I.Lib.		(eemvc_index,eemvc_model,eemvc_controller)
+				
+				# DEPRECATED LIBRARIES (SHOULD BE REMOVED SOON, TO ENABLE REMOVE THE COMMENT HASHTAG)
+				#$this->libLoadRes("ee6cl");		# ExEngine6 C.L.					(ee6clayer) (deprecated)
+				#$this->libLoadRes("eepf");			# ExEngine Portal Framework			(eepf) (deprecated)
+			}
 		}
 	}
 	
@@ -389,10 +397,17 @@ class exengine {
 		$a["HaltOnError"] = true;
 		$a["VisualError"] = true;
 		$a["VisualWarning"] = true;	
-		$a["BrowserCache"] = true;
+		$a["BrowserCache"] = true;		
+		$a["SpecialMode"] = null;		
+		
 		if (isset($args) && is_array($args)) {
 			$a = array_merge($a,$args);
 		}
+		
+		if ($a["SpecialMode"] == "MVCOnly") {
+			$a["SilentMode"] = true;
+		}
+		
 		#Production Enviroment
 		$this->aArray = $a;	
 	}
@@ -994,7 +1009,7 @@ class exengine {
 	}
 	#For EE6's ForwardMode Compatibility
 	const REALVERSION = "7.0.8";
-	const BUILD = 21;
+	const BUILD = 22;
 }
 
 //Prevent from non-include access
