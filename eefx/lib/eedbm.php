@@ -1,26 +1,30 @@
 <?php
+/**
+@file eedbm.php
+@author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
+@version 0.0.1.13
 
-# ExEngine 7 / Libs / Database Manager
+@section LICENSE
 
-/*
-	This file is part of ExEngine.
-	Copyright © LinkFast Company
-	
-	ExEngine is free software; you can redistribute it and/or modify it under the 
-	terms of the GNU Lesser Gereral Public Licence as published by the Free Software 
-	Foundation; either version 2 of the Licence, or (at your opinion) any later version.
-	
-	ExEngine is distributed in the hope that it will be usefull, but WITHOUT ANY WARRANTY; 
-	without even the implied warranty of merchantability or fitness for a particular purpose. 
-	See the GNU Lesser General Public Licence for more details.
-	
-	You should have received a copy of the GNU Lesser General Public Licence along with ExEngine;
-	if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, Ma 02111-1307 USA.
+ExEngine is free software; you can redistribute it and/or modify it under the
+terms of the GNU Lesser Gereral Public Licence as published by the Free Software
+Foundation; either version 2 of the Licence, or (at your opinion) any later version.
+ExEngine is distributed in the hope that it will be usefull, but WITHOUT ANY WARRANTY;
+without even the implied warranty of merchantability or fitness for a particular purpose.
+See the GNU Lesser General Public Licence for more details.
+
+You should have received a copy of the GNU Lesser General Public Licence along with ExEngine;
+if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, Ma 02111-1307 USA.
+
+@section DESCRIPTION
+
+ExEngine 7 / Libs / ExEngine Database Manager 2
+
 */
 
 class eedbm {
 	
-	const VERSION = "0.0.1.12";
+	const VERSION = "0.0.1.13";
 	
 	public $utf8Mode = false;
 	
@@ -307,12 +311,15 @@ class eedbm {
 			}
 		}
 	}
-	
-	final function whereArrayToSQL($WhereArray,$SafeMode=true) {
+
+	/// Converts a search array to SQL. (Currently only supports MySQL)
+	final function searchArrayToSQL($SearchArray, $SafeMode=true, $Mode="AND") {
 		$WhereStatement = $WhereArray;
 		if (!is_array($WhereStatement)) {
-			$this->ee->errorExit("eedbm->whereArrayToSQL","Invalid arguments, array for WhereStatements is required.");
+			$this->ee->errorExit("eedbm->searchArrayToSQL","Invalid arguments, array for SearchStatements is required.");
 		}
+		$Mode = strtoupper($Mode);
+		if ($Mode != "AND" OR $Mode != "OR") $this->ee->errorExit("eedbm->searchArrayToSQL","Invalid arguments, $Mode must be either AND or OR.");
 		$wQ='';
 		$c = count($WhereStatement);
 		$a = array_keys($WhereStatement);		
@@ -320,9 +327,44 @@ class eedbm {
 			$c1 = 0;			
 			while ($c1 < ($c-1)) {
 				if ($SafeMode)
-					$wQ .= "`".$a[$c1]."` = '".urlencode($WhereStatement[$a[$c1]])."' AND ";
+					$wQ .= "`".$a[$c1]."` LIKE '%".urlencode($WhereStatement[$a[$c1]])."%' ".$Mode." ";
 				else
-					$wQ .= "`".$a[$c1]."` = '".$WhereStatement[$a[$c1]]."' AND ";
+					$wQ .= "`".$a[$c1]."` LIKE '%".$WhereStatement[$a[$c1]]."%' ".$Mode." ";
+				$c1++;
+			}
+			if ($c1 == ($c-1)) {
+				if ($SafeMode)
+					$wQ .= "`".$a[$c1]."` LIKE '%".urlencode($WhereStatement[$a[$c1]])."%' ";
+				else
+					$wQ .= "`".$a[$c1]."` LIKE '%".$WhereStatement[$a[$c1]]."%' ";
+			}
+		} elseif ($c == 1) {
+			if ($SafeMode)
+				$wQ .= "`".$a[0]."` LIKE '%".urlencode($WhereStatement[$a[0]])."%' ";
+			else
+				$wQ .= "`".$a[0]."` LIKE '%".$WhereStatement[$a[0]]."%' ";
+		}		
+		unset($c,$c1,$a);
+		return "WHERE " . $wQ;		
+	}
+	
+	final function whereArrayToSQL($WhereArray,$SafeMode=true,$Mode="AND") {
+		$WhereStatement = $WhereArray;
+		if (!is_array($WhereStatement)) {
+			$this->ee->errorExit("eedbm->whereArrayToSQL","Invalid arguments, array for WhereStatements is required.");
+		}
+		$Mode = strtoupper($Mode);
+		if ($Mode != "AND" OR $Mode != "OR") $this->ee->errorExit("eedbm->whereArrayToSQL","Invalid arguments, $Mode must be either AND or OR.");
+		$wQ='';
+		$c = count($WhereStatement);
+		$a = array_keys($WhereStatement);		
+		if ($c > 0) {
+			$c1 = 0;			
+			while ($c1 < ($c-1)) {
+				if ($SafeMode)
+					$wQ .= "`".$a[$c1]."` = '".urlencode($WhereStatement[$a[$c1]])."' ".$Mode." ";
+				else
+					$wQ .= "`".$a[$c1]."` = '".$WhereStatement[$a[$c1]]."' ".$Mode." ";
 				$c1++;
 			}
 			if ($c1 == ($c-1)) {

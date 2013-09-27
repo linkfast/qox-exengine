@@ -34,7 +34,7 @@ function &eemvc_get_instance()
 /// eemvc_index Class, used to create the initial object in index.php at the root folder.
 class eemvc_index {
 	
-	const VERSION = "0.0.1.18"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.19"; /// Version of EE MVC Implementation library.
 	
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -130,8 +130,12 @@ class eemvc_index {
 	}
 	#ExEngine UnitTesting
 	
+	final function loadView($filename,$data=null,$return=false,$dynamic=true,$checkmime=false) {
+		$this->specialLoadViewStatic($filename,false,$checkmime,$data,$dynamic);
+	}
+	
 	/// Loads a view for the View Simulator, useful for designers that want to test the basic functionality of their pages.
-	final function specialLoadViewStatic($filename,$fullpath=false,$checkmime=false) {
+	final function specialLoadViewStatic($filename,$fullpath=false,$checkmime=false,$data=null,$dynamic=true) {
 		
 		if ($fullpath) {
 			$view_fileo = $filename;
@@ -178,20 +182,27 @@ class eemvc_index {
 
 			extract($data);	
 			
-			ob_start();				
-
-			if ((bool) @ini_get('short_open_tag') === FALSE)
-			{
-				$this->debug("loadView: Mode: ShortTags_Rewriter");
-				echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('<?=', '<?php echo ', file_get_contents($view_file))));
+			ob_start();		
+			
+			if ($dynamic) {
+				if ((bool) @ini_get('short_open_tag') === FALSE)
+				{
+					$this->debug("loadView: Mode: ShortTags_Rewriter");
+					echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('<?=', '<?php echo ', file_get_contents($view_file))));
+				}
+				else
+				{		
+					$this->debug("specialLoadViewStatic: Mode: Include");	
+					include($view_file);
+				}
 			}
 			else
-			{		
-				$this->debug("loadView: Mode: Include");;	
-				include($view_file);
-			}
+			{
+				$this->debug("specialLoadViewStatic: Mode: ReadFile");
+				readfile($view_file);
+			}		
 			
-			$this->debug("specialLoadViewStatic: Mode: View loaded: ".$view_file);
+			$this->debug("specialLoadViewStatic: View loaded: ".$view_file);
 			
 			$output = ob_get_contents();
 			ob_end_clean();		
@@ -878,22 +889,63 @@ class eemvc_model_dbo extends eemvc_model {
 		} else return false;
 	}
 	
-	function load_all() {
+	function search($SearchArray=null) {
 		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
 		$cn = get_class($this);	
 		$this->loadDb();
 		$this->db->open();	
 		$re = null;
 		$o=0;
-		$q = $this->db->query("SELECT * FROM ".$this->TABLEID);
+		if ($SearchArray!=null && is_array($SearchArray))
+			$w = $this->db->searchArrayToSQL($SearchArray);
+		else return false;
+		$q = $this->db->query("SELECT * FROM ".$this->TABLEID. " " . $w);
 		if ($q) {
 			while ($row = $this->db->fetchArray($q,null,MYSQLI_ASSOC)) {
 				unset($v);
-				$v = new $cn();								
+				$v = new $cn();	
+				if (method_exists($v,'__befload')) {
+					$v->__befload();
+				}							
 				$keys = @array_keys($row);
 				for ($c = 0; $c < count($keys); $c++) {
 					$v->$keys[$c] = $row[$keys[$c]];	
 				}	
+				if (method_exists($v,'__aftload')) {
+					$v->__aftload();
+				}
+				$re[$o] = &$v;		
+				$o++;
+			}
+		} else return false;
+		return $re;
+	}
+
+	function load_all($WhereArray=null) {
+		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		$cn = get_class($this);	
+		$this->loadDb();
+		$this->db->open();	
+		$re = null;
+		$o=0;
+		if ($WhereArray!=null && is_array($WhereArray))
+			$w = $this->db->whereArrayToSQL($WhereArray);
+		else $w = null;
+		$q = $this->db->query("SELECT * FROM ".$this->TABLEID. " " . $w);
+		if ($q) {
+			while ($row = $this->db->fetchArray($q,null,MYSQLI_ASSOC)) {
+				unset($v);
+				$v = new $cn();	
+				if (method_exists($v,'__befload')) {
+					$v->__befload();
+				}							
+				$keys = @array_keys($row);
+				for ($c = 0; $c < count($keys); $c++) {
+					$v->$keys[$c] = $row[$keys[$c]];	
+				}	
+				if (method_exists($v,'__aftload')) {
+					$v->__aftload();
+				}
 				$re[$o] = &$v;		
 				$o++;
 			}
@@ -924,8 +976,6 @@ class eemvc_model_dbo extends eemvc_model {
 		
 		$this->loadDb();
 		$this->db->open();	
-		
-		
 								
 		$wq = $this->db->whereArrayToSQL($v);	
 		
@@ -956,11 +1006,17 @@ class eemvc_model_dbo extends eemvc_model {
 		if ($q) {
 			while ($row = $this->db->fetchArray($q,null,MYSQLI_ASSOC)) {
 				unset($v);
-				$v = new $cn();								
+				$v = new $cn();				
+				if (method_exists($v,'__befload')) {
+					$v->__befload();
+				}				
 				$keys = @array_keys($row);
 				for ($c = 0; $c < count($keys); $c++) {
 					$v->$keys[$c] = $row[$keys[$c]];	
 				}	
+				if (method_exists($v,'__aftload')) {
+					$v->__aftload();
+				}
 				$re[$o] = &$v;		
 				$o++;
 			}
@@ -1022,5 +1078,4 @@ class eemvc_model_dbo extends eemvc_model {
 		} else return false;
 	}
 }
-
 ?>
