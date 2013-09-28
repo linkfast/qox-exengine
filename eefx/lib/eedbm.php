@@ -2,7 +2,7 @@
 /**
 @file eedbm.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.13
+@version 0.0.1.14
 
 @section LICENSE
 
@@ -24,7 +24,7 @@ ExEngine 7 / Libs / ExEngine Database Manager 2
 
 class eedbm {
 	
-	const VERSION = "0.0.1.13";
+	const VERSION = "0.0.1.14";
 	
 	public $utf8Mode = false;
 	
@@ -319,7 +319,7 @@ class eedbm {
 			$this->ee->errorExit("eedbm->searchArrayToSQL","Invalid arguments, array for SearchStatements is required.");
 		}
 		$Mode = strtoupper($Mode);
-		if ($Mode != "AND" OR $Mode != "OR") $this->ee->errorExit("eedbm->searchArrayToSQL","Invalid arguments, $Mode must be either AND or OR.");
+		if ($Mode != "AND" && $Mode != "OR") $this->ee->errorExit("eedbm->searchArrayToSQL","Invalid arguments, $Mode must be either AND or OR.");
 		$wQ='';
 		$c = count($WhereStatement);
 		$a = array_keys($WhereStatement);		
@@ -354,7 +354,7 @@ class eedbm {
 			$this->ee->errorExit("eedbm->whereArrayToSQL","Invalid arguments, array for WhereStatements is required.");
 		}
 		$Mode = strtoupper($Mode);
-		if ($Mode != "AND" OR $Mode != "OR") $this->ee->errorExit("eedbm->whereArrayToSQL","Invalid arguments, $Mode must be either AND or OR.");
+		if ($Mode != "AND" && $Mode != "OR") $this->ee->errorExit("eedbm->whereArrayToSQL","Invalid arguments, $Mode must be either AND or OR.");
 		$wQ='';
 		$c = count($WhereStatement);
 		$a = array_keys($WhereStatement);		
