@@ -2,7 +2,7 @@
 /**
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.17
+@version 0.0.1.20
 
 @section LICENSE
 
@@ -34,7 +34,7 @@ function &eemvc_get_instance()
 /// eemvc_index Class, used to create the initial object in index.php at the root folder.
 class eemvc_index {
 	
-	const VERSION = "0.0.1.19"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.20"; /// Version of EE MVC Implementation library.
 	
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -47,6 +47,7 @@ class eemvc_index {
 	public $indexname = "index.php"; /// Name of the index file, normally this should not be changed.
 	public $SessionMode=false; /// Set to true if you are going to use sessions, remember that "session_start()" does not work with EEMVC.
 	public $AlwaysSilent=false; /// Set to true if you do not want to show warnings or slogans to the rendered pages, this is a global variable, you can set silent to a specific controller by setting the $this->imSilent variable to true.
+	public $jQueryEnabled = true; /// Set to true if you want jQuery Enabled.
 	public $jQueryUITheme="base"; /// Default EEMVC JQuery UI Theme.
 	public $jQueryVersion = null; /// Default EEMVC JQuery JS Lib Version.
 	public $jQueryUIVersion = null; /// Default EEMVC JQuery UI JS Lib Version.
@@ -172,12 +173,17 @@ class eemvc_index {
 			
 			$data["EEMVC_VS"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
 			
-			$jq = new jquery($this->ee);
-			$jqstr = $jq->load($this->jQueryVersion,true);
+			if ($this->jQueryEnabled) {
+				$jq = new jquery($this->ee);
+				$jqstr = $jq->load($this->jQueryVersion,true);			
+				$jqstr2 = $jq->load_ui($this->jQueryUITheme,$this->jQueryUIVersion,true);			
+				$jqstr3 = $jq->load_migrate(true);			
+			} else {
+				$jqstr = '<!-- MVC-EXENGINE: jQuery is not enabled. -->';
+
+			}
 			$data["EEMVC_JQUERY"]  = $jqstr; 
-			$jqstr2 = $jq->load_ui($this->jQueryUITheme,$this->jQueryUIVersion,true);			
 			$data["EEMVC_JQUERYUI"]  = $jqstr2; 
-			$jqstr3 = $jq->load_migrate(true);
 			$data["EEMVC_JQUERYMIGRATE"] = $jqstr3;
 
 			extract($data);	
