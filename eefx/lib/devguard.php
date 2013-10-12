@@ -2,7 +2,7 @@
 /**
 @file devguard.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.0
+@version 0.0.1.1
 
 @section LICENSE
 
@@ -85,7 +85,7 @@ class ee_devguard {
 		if (!$sk_size) {
 			$this->ee->errorExit("ExEngine DevGuard Error", "Cannot write server Key file. ($fname).");
 		}
-		$enc_data_client = mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($key), md5($sk_size), MCRYPT_MODE_CBC, md5(md5($key)));
+		$enc_data_client = mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($key), md5_file($fname), MCRYPT_MODE_CBC, md5(md5($key)));
 		#file download
 		header('Content-Description: File Transfer');
 		header('Content-Type: application/octet-stream');
@@ -113,7 +113,7 @@ class ee_devguard {
 		if (!$sk_size) {
 			$this->ee->errorExit("ExEngine DevGuard Error", "Cannot open server Key file. ($fname).");
 		}
-		if (md5($sk_size) == $data) return true; else return false;
+		if (md5_file($fname) == $data) return true; else return false;
 
 	}
 
