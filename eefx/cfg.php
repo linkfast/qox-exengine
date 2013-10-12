@@ -2,7 +2,7 @@
 /**
 @file cfg.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.0.3
+@version 0.0.0.4
 
 @section LICENSE
 
@@ -39,6 +39,7 @@ $ee_config = array(
 					   #Debug mode (start default debugger at http://apphost/exengine_lib_path/eefx/common/debug.php or create a remote debugger):
 					   "debug" => true,
 
+					   #DevGuard (see examples)
 					   "devguard" => false, #DevGuard enable/disable (enables the lib loading, you must instanciate it for using it).
 					   "devguard_keys_path" => "", #DevGuard keys files path, full path is required (ex. /var/mykeysfolder/).
 					   
@@ -56,23 +57,23 @@ $ee_ddb = array(
 					"type" => "mysqli", 
 					#     TYPE     |   DESCRIPTION  |    SUPPORT     |                NOTES                 #
 					###############|#########################################################################
-					# mysql		   | MySQL DB.      | PARTIAL/NATIVE | Deprecated, support up to PHP 5.4.9  #
+					# mysql        | MySQL DB.      | PARTIAL/NATIVE | Deprecated, support up to PHP 5.4.9  #
 					###############|#########################################################################
-					# mysqli	   | MySQL DB.      | PARTIAL/NATIVE | Recommended MySQL Driver             #
+					# mysqli       | MySQL DB.      | PARTIAL/NATIVE | Recommended MySQL Driver             #
 					#              |                |                | (requires mysqli extension)          #
 					###############|#########################################################################
-					# pgsql		   | PostgreSQL.    | NOT YET/NATIVE |                                      #
+					# pgsql        | PostgreSQL.    | NOT YET/NATIVE |                                      #
 					#########################################################################################
-					# sqlite	   | SQLite (file). | NOT YET/NATIVE | host field specifies the path to db. #
+					# sqlite       | SQLite (file). | NOT YET/NATIVE | host field specifies the path to db. #
 					###############|#########################################################################
-					# *edbl_driver | For non-native | PARTIAL/NON-	 | EDBL Drivers are stored in           #
+					# *edbl_driver | For non-native | PARTIAL/NON-   | EDBL Drivers are stored in           #
 					#              | databases.     | NATIVE         | lib/edbl/ name should be provided as #
-					#			   |                |                | the first part of the filename. (for #
-                    #              |                |                | db2.edbl.php just write db2 as type) #
+					#              |                |                | the first part of the filename. (for #
+					#              |                |                | db2.edbl.php just write db2 as type) #
 					###############|#########################################################################
-					# pdo		   | For non-native | NOT YET/NON-	 | Do not use PDO if there is a NATIVE  #
-					#			   | PDO database   | NATIVE		 | or EDBL driver available.            #
-					#			   | drivers.       |				 |                                      #
+					# pdo          | For non-native | NOT YET/NON-   | Do not use PDO if there is a NATIVE  #
+					#              | PDO database   | NATIVE         | or EDBL driver available.            #
+					#              | drivers.       |                |                                      #
 					###############|#########################################################################
 					#"pdo_url" => "", 
 					# NOTE: If you use type => "pdo" the following array keys will be omitted (host,user,passwd,etc) and you must write the pdo url
