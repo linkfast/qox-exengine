@@ -28,7 +28,7 @@ class ee_devguard {
 	function __construct() {
 		$this->ee =& ee_gi();
 		if (!function_exists('mcrypt_encrypt')){
-			$this->ee->errorExit("ExEngine DevGuard Error", "php mcrypt library is required, please install before using DevGuard.")
+			$this->ee->errorExit("ExEngine DevGuard Error", "php mcrypt library is required, please install before using DevGuard.");
 		}
 	}
 
