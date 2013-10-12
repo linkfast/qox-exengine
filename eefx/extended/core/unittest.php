@@ -164,24 +164,33 @@ class EEUnitTest_Suite {
 		$this->write("<b>ExEngine 7 Unit Testing Suite : Initialized</b>");
 	}	
 	
-	public final function addPackage($testCase) {
-		
-		$m = get_class_methods($testCase);
-		if (!in_array("utStartup",$m) || !in_array("utFinish",$m)) {
-			$this->write("<b>ExEngine 7 UTS</b><tab>Class (".get_class($testCase).") is not a valid package for Unit Testing Suite, some methods missing?.");
-		} else {			
+	public final function addPackage($testCase) {				
 			$found=0;	
 			foreach($this->TestCases as $tc) {
 				if ($tc == $testCase) {
 					$found = 1;	
-					$this->write("<b>ExEngine 7 UTS</b><tab>Package (Class ".get_class($testCase).") is already added, skipping.");
+					$this->write("<b>ExEngine 7 UTS</b><tab><yellow><b>WARNING</b></yellow><tab>Package (Class ".get_class($testCase).") is already added, skipping.");
 				}
 			}
-			if ($found==0) {
+			$m = get_class_methods($testCase);
+			$fc = 0;
+			foreach ($m as $item)
+			{
+				$pos = strpos($item, "test");
+			   	if ($pos !== false)
+			    {
+			    	if ($pos == 0)
+			       		$fc++;			    	
+			    }
+			}
+			if ($fc == 0)
+				$this->write("<b>ExEngine 7 UTS</b><tab><yellow><b>WARNING</b></yellow><tab>Package (Class ".get_class($testCase).") is not a valid package for Unit Testing Suite, test methods missing? (Package Skipped)");
+			else
+				if ($found==0) {
 					$this->TestCases[] = $testCase;
 					$this->write("<b>ExEngine 7 UTS</b><tab>Added Package (Class ".get_class($testCase).")");
 			}
-		}
+		
 	}
 	
 	public final function runTests(&$Results) {
@@ -192,7 +201,10 @@ class EEUnitTest_Suite {
 			if($this->fromCli)
 				$this->askFromCli();
 			$this->write("<br/><b>ExEngine 7 Unit Testing Suite</b>");
-			$this->write("<tab>Tests Started (".count($this->TestCases)." Packages)");
+			if (count($this->TestCases) != 0)
+				$this->write("<tab>Tests Started (".count($this->TestCases)." Packages)");
+			else
+				$this->write("<tab>No packages found, testing skipped.");
 			$TCCount=1;
 			
 			$global_timer = new CA_Timer();
@@ -209,14 +221,9 @@ class EEUnitTest_Suite {
 				}
 				$this->write("<br/><b>RUN UNIT TEST CASE</b> : Package ".get_class($tc)." (".$methods." Tests Methods) (Package #".$TCCount."/".count($this->TestCases).")");	
 				$this->ActualCase = get_class($tc) ;
-				//$RR = new EEUnitTest_Result("PACKAGE",get_class($tc));
-				//$RR->SubResults = array();				
-
 				$this->tc_timer = new CA_Timer();
 				$this->tc_timer->start();
-				//$tc->utStartup();
-				new EEUnitTest_Case();
-				//$this->TestCasesInst[] = &$tc->unitTestCase;			
+				new EEUnitTest_Case();	
 				$this->TestCasesInst[] =& eeunit_get_case_instance();
 				$tci =& eeunit_get_case_instance();
 				foreach ($funcs as $f) {
@@ -232,21 +239,11 @@ class EEUnitTest_Suite {
 					}
 				}
 				$this->tc_timer->stop();
-				//$Results[] = $tc->unitTestCase->Results;
-				/*
-				$RR->SubResults = $tc->unitTestCase->Results;
-				$RR->PassedMethods = $tc->unitTestCase->Asserts;
-				$RR->FailedMethods = $tc->unitTestCase->Failures;
-				$RR->UsedTime = $this->tc_timer->get(CA_Timer::MILLISECONDS);
-				*/
-
 				$tci->Results->UsedTime = $this->tc_timer->get(CA_Timer::MILLISECONDS);
-
 				$this->Results->PassedMethods += $tci->Results->PassedMethods;
 				$this->Results->FailedMethods += $tci->Results->FailedMethods;
 				$this->Results->PassedAsserts += $tci->Results->PassedAsserts;
 				$this->Results->FailedAsserts += $tci->Results->FailedAsserts;
-
 				$tci->Finish();
 				$this->Results->SubResults[] = $tci->Results;
 				$TCCount++;
@@ -266,29 +263,33 @@ class EEUnitTest_Suite {
 
 		$this->Total = $this->Results->PassedPackages + $this->Results->FailedPackages;
 		$this->write("<br/><b>GLOBAL SUMMARY:</b>");
-		if ($this->Total == $this->Asserts) {			
-			$this->write("<b><green>PASSED</green></b>");
-			$this->write("ASSERTS: ".$this->Results->PassedPackages." FAILURES: ".$this->Results->FailedPackages. " TOTAL: ".$this->Total." <b>ASSERTION RATE: ".number_format(($this->Asserts/$this->Total*100),2)."%</b>");
-			$this->write("TOTAL TIME: ".$time.'ms<br/>');
-			$this->Results->ResultInfo = "PASSED";
-		} else if ($this->Failures>0) {
-			$this->write("<b>Result: <red>FAILED</red></b>");
-			$this->write("ASSERTS: ".$this->Results->PassedPackages." FAILURES: ".$this->Results->FailedPackages. " TOTAL: ".$this->Total." <b>ASSERTION RATE: ".number_format(($this->Asserts/$this->Total*100),2)."%</b>");
-			$this->write("TOTAL TIME: ".$time.'ms<br/>');
-			$this->Results->ResultInfo = "FAILED";
-		}
-		if (!$this->fromCli) {
-			if (isset($_GET["summary"])) {
-				$RR = $this->Results;
-				include_once ( $this->ee->eeResPath().'unittest/summary.phtml' );
-			}
-			print $this->Tbot;
+		if ($this->Total == 0) {
+			$this->write("<b><green>NO TESTS MADE</green></b>");
 		} else {
-			if ($this->CliShowReportData) {
-				$this->write("<b>Result Report Data:</b><br/>Data is serialized and base64 encoded, can be loaded creating a EEUnitTest_ResultReader object and loading this data.");
-				$this->write(">>>>> DATA START >>>>>");
-				$this->write(base64_encode(serialize($this->Results)));
-				$this->write("<<<<<  DATA END  <<<<<");
+			if ($this->Total == $this->Asserts) {			
+				$this->write("<b><green>PASSED</green></b>");
+				$this->write("ASSERTS: ".$this->Results->PassedPackages." FAILURES: ".$this->Results->FailedPackages. " TOTAL: ".$this->Total." <b>ASSERTION RATE: ".number_format(($this->Asserts/$this->Total*100),2)."%</b>");
+				$this->write("TOTAL TIME: ".$time.'ms<br/>');
+				$this->Results->ResultInfo = "PASSED";
+			} else if ($this->Failures>0) {
+				$this->write("<b>Result: <red>FAILED</red></b>");
+				$this->write("ASSERTS: ".$this->Results->PassedPackages." FAILURES: ".$this->Results->FailedPackages. " TOTAL: ".$this->Total." <b>ASSERTION RATE: ".number_format(($this->Asserts/$this->Total*100),2)."%</b>");
+				$this->write("TOTAL TIME: ".$time.'ms<br/>');
+				$this->Results->ResultInfo = "FAILED";
+			}
+			if (!$this->fromCli) {
+				if (isset($_GET["summary"])) {
+					$RR = $this->Results;
+					include_once ( $this->ee->eeResPath().'unittest/summary.phtml' );
+				}
+				print $this->Tbot;
+			} else {
+				if ($this->CliShowReportData) {
+					$this->write("<b>Result Report Data:</b><br/>Data is serialized and base64 encoded, can be loaded creating a EEUnitTest_ResultReader object and loading this data.");
+					$this->write(">>>>> DATA START >>>>>");
+					$this->write(base64_encode(serialize($this->Results)));
+					$this->write("<<<<<  DATA END  <<<<<");
+				}
 			}
 		}
 	}

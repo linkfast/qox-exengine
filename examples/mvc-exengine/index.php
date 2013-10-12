@@ -5,5 +5,10 @@
 	$ee = new exengine(array("SpecialMode" => "MVCOnly"));
 	$mvc = new eemvc_index($ee,"start");
 	$mvc->SessionMode = true;
+	# devguard mode, uncomment to enable
+	/*
+	$mvc->dgEnabled = true;
+	$mvc->dgKey = "myapp";
+	*/
 	$mvc->start();
 ?>

@@ -2,7 +2,7 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 7.0.8.25
+@version 7.0.8.26
 
 @section LICENSE
 
@@ -31,6 +31,9 @@ ExEngine 7 Framework core, this file contains the EE7 main functions, and the ne
 
 function &ee_gi()
 {
+	if(!exengine::get_instance()) {
+		die('ExEngine not instanciated. Cannot continue.');
+	} else
 		return exengine::get_instance();
 }
 
@@ -56,16 +59,16 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 25;	
+	const V_REVIS = 26;	
 	
-	const REL_DATE = "28 SEP 2013";
+	const REL_DATE = "07 OCT 2013";
 	
 	const RELEASE = "alpha";
 	
 	const EE7WP = "http://www.aldealinkfast.com/oss/exengine7/";
 	
 	#New mode for avoiding passing the parent object to every object that uses EE.
-	private static $instance;
+	private static $instance = false;
 	
 	// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array) ( no operational yet =( )
 	const COMUPS_SERVER = "update.aldealinkfast.com"; /// Comups update server for update checking.
@@ -242,8 +245,7 @@ class exengine {
 				$this->libLoadRes("jquery");
 				$this->libLoadRes("eemvcil");
 				$this->aArray["SilentMode"] = true;
-			} else {
-			
+			} else {			
 				$this->libLoadRes("eedbm");			# Database Manager					(eedbm)
 				$this->libLoadRes("ee7info");		# EE7 Information Service Class 	(ee7info)
 				$this->libLoadRes("browser");		# Client Browser properties Class 	(browser)
@@ -253,11 +255,8 @@ class exengine {
 				$this->libLoadRes("mail");			# Internet Mail Class				(eemail)
 				$this->libLoadRes("gd");			# GD Image Manipulation				(gd)
 				$this->libLoadRes("eemvcil");		# EE ModelViewController I.Lib.		(eemvc_index,eemvc_model,eemvc_controller)
-				
-				# DEPRECATED LIBRARIES (SHOULD BE REMOVED SOON, TO ENABLE REMOVE THE COMMENT HASHTAG)
-				#$this->libLoadRes("ee6cl");		# ExEngine6 C.L.					(ee6clayer) (deprecated)
-				#$this->libLoadRes("eepf");			# ExEngine Portal Framework			(eepf) (deprecated)
 			}
+			if ($this->cArray["devguard"]) $this->libLoadRes("devguard"); # DevGuard Class (ee_devguard)
 		}
 	}
 	
@@ -772,7 +771,7 @@ class exengine {
 	
 	# Time Functions
 	 
-	final function  timeDiff( $start, $end )
+	final function timeDiff( $start, $end )
 	{
 		# @author J de Silva  <giddomains@gmail.com> @copyright Copyright 2005, J de Silva
 		
@@ -1009,7 +1008,7 @@ class exengine {
 	}
 	#For EE6's ForwardMode Compatibility
 	const REALVERSION = "7.0.8";
-	const BUILD = 25;
+	const BUILD = 26;
 }
 
 //Prevent from non-include access

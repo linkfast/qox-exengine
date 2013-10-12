@@ -3,7 +3,7 @@ ExEngine is copyright LinkFast Company.
 Author
 ------
 
-Main Programming : Giancarlo Chiappe Aguilar <giancarlo.chiappe@linkfastsa.com> A.K.A. DarkGiank
+Main Programming : Giancarlo Chiappe Aguilar <gchiappe@gmail.com> 
 
 
 If you want to contribute in the ExEngine development email me.

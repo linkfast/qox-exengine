@@ -1,0 +1,79 @@
+<?php
+	$httpP = $this->
+ee->libGetResPath("devguard","http");
+	$logoEE = $this->ee->miscGetResPath("http")."ee7_full.png";
+	/*
+	<html>
+<head>
+	<title>Application protected by ExEngine DevGuard</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu:regular,bold&subset=Latin">
+	<style>
+	body {	
+		margin: 0px;
+		font-size: 16px;
+		font-family: Ubuntu, sans-serif;			
+		background-color: #000;
+	}
+	#bg {
+		background-image: url(<?php echo $httpP; ?>lock.png);
+		background-size: 70px 70px;
+		opacity: 0.2;
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		z-index: -100000000;
+	}
+	#container {
+		display: table;
+		width: 100%;
+		height: 100%;
+	}
+	#cont2 {
+		display: table-cell;
+		vertical-align: middle;
+	}
+	#home {				
+		text-align: left;
+		padding: 6px;
+		width: 50%;
+		height: 250px;
+		margin: 20px auto 20px auto;
+		background-color: #E2E2E2;
+		border-top: 3px solid #999;
+		border-left: 3px solid #999;
+		border-right: 3px solid #999;
+		border-bottom: 3px solid #999;	
+		border-radius:10px;	
+	}
+</style>
+</head>
+<body>
+	<div id="bg"></div>
+	<div id="container">
+		<div id="cont2">
+			<div id="home">
+				<form action="<?php echo $_SERVER["REQUEST_URI"]; ?>" method="post" enctype="multipart/form-data">
+					<div align="center"><img src="<?php echo $logoEE; ?>" /></div>
+				<p>
+					This application is in development stage and its access is restricted to select users, if you need access contact application developers to get 
+				a copy of the key file.
+				</p>
+				<?php if ($invalid_key) { ?>
+				<p style="color: red; font-weight: bold">
+					<?php echo $invalid_key; ?></p>
+				<?php } ?>
+				<p style="text-align: center; font-weight: bold;">
+					Please select the project key to start a session:
+					<input type="file" name="upload_file">
+					<input type="submit" value="Authenticate"></p>
+
+			</form>
+		</div>
+	</div>
+</div>
+</body>
+</html>
+*/
+?>
+<html><head><title>Application protected by ExEngine DevGuard</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu:regular,bold&subset=Latin"><style>body {margin: 0px;font-size: 16px;font-family: Ubuntu, sans-serif;background-color: #000;}#bg {background-image: url(<?php echo $httpP; ?>lock.png);background-size: 70px 70px;opacity: 0.2;width: 100%;height: 100%;position: absolute;z-index: -100000000;}#container {display: table;width: 100%;height: 100%;}#cont2 {display: table-cell;vertical-align: middle;}#home {text-align: left;padding: 6px;width: 50%;height: 250px;margin: 20px auto 20px auto;background-color: #E2E2E2;border-top: 3px solid #999;border-left: 3px solid #999;border-right: 3px solid #999;border-bottom: 3px solid #999;border-radius:10px;}</style></head><body><div id="bg"></div><div id="container"><div id="cont2"><div id="home"><form action="<?php echo $_SERVER["REQUEST_URI"]; ?>" method="post" enctype="multipart/form-data"><div align="center"><img src="<?php echo $logoEE; ?>" /></div><p>This application is in development stage and its access is restricted to select users, if you need access contact application developers to get a copy of the key file.</p><?php if ($invalid_key) { ?><p style="color: red; font-weight: bold"><?php echo $invalid_key; ?></p><?php } ?><p style="text-align: center; font-weight: bold;">Please select the project key to start a session:<input type="file" name="upload_file"><input type="submit" value="Authenticate"></p></form></div></div></div></body></html>
