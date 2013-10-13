@@ -2,7 +2,7 @@
 /**
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.24
+@version 0.0.1.25
 
 @section LICENSE
 
@@ -36,7 +36,7 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.24"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.25"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -320,7 +320,7 @@ class eemvc_index {
 				$this->debug("Index: Loading default controller: ".$this->defcontroller);	
 				$output = $this->load_controller($this->defcontroller);
 			}else {
-				$this->ee->errorExit("ExEngine MVC","No default controller set.","eemvcil");
+				$this->ee->errorExit("MVC-ExEngine","No default controller set.","eemvcil");
 			}
 		}	 	 
 		
@@ -720,17 +720,22 @@ class eemvc_controller {
 		$m_file = $this->index->modelsFolder.$model_name.".php";
 		
 		if (file_exists($m_file)) {
-			include_once($m_file);
+			include_once($m_file);		
 			
+			$model_name = explode("/",$model_name);
+			$model_name = $model_name[(count($model_name)-1)];
+			$model_name = ucfirst($model_name);
+
 			if ($obj_name==null)
 				$obj_name = $model_name;
 			
-			$model_name = ucfirst($model_name);
-			
-			if ($create_obj)
-				$this->$obj_name = new $model_name();
-			
-			$this->debug("loadModel: ".$model_name.'-Done. ($this->'.$obj_name.')');
+			if ($create_obj) {
+				$this->$obj_name = new $model_name();			
+				$this->debug("loadModel: ".$model_name.' ('.$m_file.') Done. ($this->'.$obj_name.')');
+			}
+			else
+				$this->debug("loadModel: ".$model_name.' ('.$m_file.') Done.');
+
 		} else {
 			$this->debug("loadModel: ".$model_name.'-Not found');
 			if ($this->index->unitTest && defined('STDIN') && !$this->index->utSuite) {
@@ -742,7 +747,7 @@ class eemvc_controller {
 				exit;
 			}
 			else
-				$this->ee->errorExit("ExEngine MVC","Model not found.","eemvcil");
+				$this->ee->errorExit("MVC-ExEngine","Model not found.</br><b>Trace:</b><br/>Controller: ".get_class($this)."<br/>Function: ".$this->functionName,"ExEngine_MVC_Implementation_Library");
 		}		
 	}
 	
@@ -832,7 +837,7 @@ class eemvc_controller {
 				echo $output;
 			}				
 		} else {
-			$this->ee->errorExit("ExEngine MVC","View (".$view_file.") not found.","eemvcil");
+			$this->ee->errorExit("MVC-ExEngine","View (".$view_file.") not found.","eemvcil");
 		}
 	}
 }
