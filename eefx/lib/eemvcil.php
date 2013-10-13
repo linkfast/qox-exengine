@@ -2,7 +2,7 @@
 /**
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.23
+@version 0.0.1.24
 
 @section LICENSE
 
@@ -36,7 +36,7 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.23"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.24"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -897,7 +897,7 @@ class eemvc_model_dbo extends eemvc_model {
 	}
 
 	public function __toString() {
-		$obj = $this;
+		$obj = clone $this;
 		unset($obj->db);
 		unset($obj->r);
 		unset($obj->TABLEID);
@@ -1076,7 +1076,7 @@ class eemvc_model_dbo extends eemvc_model {
 	final function insert($SafeMode=true) {
 		$ik = $this->INDEXKEY;
 		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
-		if (isset($this->$ik)) {
+		if (isset($ik)) {
 			if (method_exists($this,'__befinsert')) {
 				$this->__befinsert();	
 			}
@@ -1098,7 +1098,7 @@ class eemvc_model_dbo extends eemvc_model {
 	final function update($SafeMode=true) {
 		$ik = $this->INDEXKEY;
 		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
-		if (isset($this->$ik)) {
+		if (isset($ik)) {
 			if (method_exists($this,'__befupdate')) {
 				$this->__befupdate();	
 			}
