@@ -2,7 +2,7 @@
 /**
 @file devguard.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.1
+@version 0.0.1.2
 
 @section LICENSE
 
@@ -33,13 +33,14 @@ class ee_devguard {
 	}
 
 	function guard($Server_Key_Name) {
-		if(session_id() == '') {
+
+		if(strlen(session_id()) == 0) {			
 			if (! eemvc_get_index_instance() ) {
 		    	session_start();
 			} else {
 				$index_obj = eemvc_get_index_instance();
-				if (!$index_obj->SessionMode) {
-					$this->ee->errorExit("ExEngine DevGuard Error", "Session support is required.");
+				if (!$index_obj->SessionMode || strlen(session_id()) == 0) {
+					$this->ee->errorExit("ExEngine DevGuard Error", "Session support in MVC-ExEngine is required.");
 				}
 			}
 		}
@@ -51,10 +52,11 @@ class ee_devguard {
 		}
 	}
 
-	private function loadGateway($Server_Key_Name) {
+	private function loadGateway($Server_Key_Name,$CustomGateway=false) {
+
 		$invalid_key = null;
 		//print $_FILES["upload_file"]['error'] ;
-		if (isset($_FILES["upload_file"]) && $_FILES["upload_file"]['error'] == 0) {
+		if (isset($_FILES["upload_file"]) && $_FILES["upload_file"]['error'] == 0) {			
 			$val = $this->guard_decrypt($Server_Key_Name);
 			if ($val) {
 				$_SESSION['DG_SA'] = true;
@@ -70,9 +72,18 @@ class ee_devguard {
 		}
 		if (isset($_FILES["upload_file"]) && $_FILES["upload_file"]['error'] == 4) {
 			$invalid_key = "No file send, please select a file.";
-		}
+		}		
 		$dgf = $this->ee->libGetResPath("devguard");
-		include_once( $dgf . 'gateway.phtml');
+		if (!$CustomGateway)
+			include_once( $dgf . 'gateway.phtml');
+		else
+			if (file_exists($dgf . $CustomGateway))
+				include_once( $dgf . $CustomGateway);
+			else
+				if (file_exists( $CustomGateway))
+					include_once($CustomGateway);
+				else
+					include_once( $dgf . 'gateway.phtml');
 		exit;
 	}
 

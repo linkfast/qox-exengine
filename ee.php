@@ -2,7 +2,7 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 7.0.8.26
+@version 7.0.8.27
 
 @section LICENSE
 
@@ -47,6 +47,8 @@ class exengine {
 	public $eeScriptPath; 	/// Full path to ee7.php file.
 	public $extendedLoaded; /// Extended Engines loaded Bool.
 	
+	public $appName = "default"; /// Set the application name, some libs/mixed/extendedengines needs this to be changed.
+
 	public $eePath;			/// ExEngine Path (automatic).
 	public $eeDir;			/// ExEngine Directory (Relative to $appPath).
 	public $appPath;		/// Application Path (automatic, overridable).
@@ -59,7 +61,7 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 26;	
+	const V_REVIS = 27;	
 	
 	const REL_DATE = "07 OCT 2013";
 	
@@ -138,11 +140,7 @@ class exengine {
 			#Check ForwardMode in CfgFile.
 			if ($this->cArray["forwardmode"]) {
 				$this->forwardMode=true;	
-			}			
-			
-			self::$instance =& $this;
-			
-			if (defined('STDIN')) { echo 'X-Powered by ExEngine 7 ('.$this->miscUName().")\n"; }
+			}		
 		}
 		
 		#Check for ExEngine MS (Multi-Site)
@@ -174,8 +172,21 @@ class exengine {
 		#Print ExEngine7 Slogan.
 		if (!$this->argsGet("SilentMode") && $this->argsGet("ShowSlogan")) {
 			$this->miscMessages("Slogan");	
-		}
+		}		
 		$this->libLoad();
+
+		self::$instance =& $this;	
+			
+		if (defined('STDIN')) { echo 'X-Powered by ExEngine 7 ('.$this->miscUName().")\n"; }
+
+		$this->initEnd();
+	}
+
+	private final function initEnd() {
+		#Check EE Storage Folder
+		if ($this->cArray["storage"] && $this->cArray["storage_check"]) {  
+			ee_storage::checkStorageFolder();
+		}
 	}
 	
 	# Config Checking
@@ -254,9 +265,12 @@ class exengine {
 				$this->libLoadRes("ifile");			# Internet Files Manipulation		(ifile)
 				$this->libLoadRes("mail");			# Internet Mail Class				(eemail)
 				$this->libLoadRes("gd");			# GD Image Manipulation				(gd)
-				$this->libLoadRes("eemvcil");		# EE ModelViewController I.Lib.		(eemvc_index,eemvc_model,eemvc_controller)
+				$this->libLoadRes("eemvcil");		# EE ModelViewController I.Lib.		(eemvc_index,eemvc_model,eemvc_model_dbo,eemvc_controller,eemvc_methods)
 			}
 			if ($this->cArray["devguard"]) $this->libLoadRes("devguard"); # DevGuard Class (ee_devguard)
+			if ($this->cArray["storage"]) { 
+				$this->libLoadRes("eestorage"); # Storage Class (ee_storage)
+			}
 		}
 	}
 	
@@ -1008,7 +1022,7 @@ class exengine {
 	}
 	#For EE6's ForwardMode Compatibility
 	const REALVERSION = "7.0.8";
-	const BUILD = 26;
+	const BUILD = 27;
 }
 
 //Prevent from non-include access
