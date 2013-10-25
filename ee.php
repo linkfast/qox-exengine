@@ -2,7 +2,7 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 7.0.8.27
+@version 7.0.8.28
 
 @section LICENSE
 
@@ -61,9 +61,9 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 27;	
+	const V_REVIS = 28;	
 	
-	const REL_DATE = "07 OCT 2013";
+	const REL_DATE = "25 OCT 2013";
 	
 	const RELEASE = "alpha";
 	
@@ -451,21 +451,33 @@ class exengine {
 						
 	}
 	
-	final function meGetResPath($engine,$mode="full") {
+final function meGetResPath($engine,$mode="full") {
 		if ($mode == "full") {
 			return $this->eePath."eefx/engines/resources/".$engine."/" ;
 		} elseif ($mode == "http") {
 			if ($this->strContains($this->configGetParam("http_path"),"http://")) {
 				return $this->configGetParam("http_path")."eefx/engines/resources/".$engine."/" ;
 			} else {
+				if (strlen($_SERVER['SERVER_NAME']) == 0)
+					$this->errorExit("ExEngine : MixedEngines : meGetResPath -> SERVER_NAME is not defined.");
 				return "http://" . $_SERVER['SERVER_NAME'] . $this->configGetParam("http_path")."eefx/engines/resources/".$engine."/" ;	
 			}
 		} elseif ($mode == "https") {
 			if ($this->strContains($this->configGetParam("https_path"),"https://")) {
 				return $this->configGetParam("https_path")."eefx/engines/resources/".$engine."/" ;
 			} else {
+				if (strlen($_SERVER['SERVER_NAME']) == 0)
+					$this->errorExit("ExEngine : MixedEngines : meGetResPath -> SERVER_NAME is not defined.");
 				return "https://" . $_SERVER['SERVER_NAME'] . $this->configGetParam("http_path")."eefx/engines/resources/".$engine."/" ;	
-			}			
+			}	
+		} elseif ($mode == "httpauto") {
+			if ($this->strContains($this->configGetParam("https_path"),"http://") || $this->strContains($this->configGetParam("https_path"),"https://") ) {
+				$this->errorExit("ExEngine : MixedEngines : meGetResPath httpauto mode is not supported in your configuration.<br/>");
+			} else {
+				if (strlen($_SERVER['SERVER_NAME']) == 0)
+					$this->errorExit("ExEngine : MixedEngines : meGetResPath -> SERVER_NAME is not defined.");
+				return "//" . $_SERVER['SERVER_NAME'] . $this->configGetParam("http_path")."eefx/engines/resources/".$engine."/" ;
+			}		
 		} else {
 			$this->errorExit("ExEngine 7 : MixedEngines : meGetResPath second argument is invalid.<br/>");
 		}
@@ -519,8 +531,36 @@ class exengine {
 			return false;
 	}
 	
-	final function eeResPath() {
-		return $this->eePath."eefx/extended/resources/";
+	final function eeResPath($mode="full") {
+		if ($mode == "full") {
+			return $this->eePath."eefx/extended/resources/" ;
+		} elseif ($mode == "http") {
+			if ($this->strContains($this->configGetParam("http_path"),"//")) {
+				return $this->configGetParam("http_path")."eefx/extended/resources/" ;
+			} else {
+				if (strlen($_SERVER['SERVER_NAME']) == 0)
+					$this->errorExit("ExEngine : ExtendedEngines : eeResPath -> SERVER_NAME is not defined.");
+				return "http://" . $_SERVER['SERVER_NAME'] . $this->configGetParam("http_path")."eefx/extended/resources/" ;	
+				}
+			} elseif ($mode == "https") {
+				if ($this->configGetParam("https_path")!= "auto" && ($this->strContains($this->configGetParam("https_path"),"//") )) {
+				return $this->configGetParam("https_path")."eefx/extended/resources/" ;
+			} else {
+				if (strlen($_SERVER['SERVER_NAME']) == 0)
+					$this->errorExit("ExEngine : ExtendedEngines : eeResPath -> SERVER_NAME is not defined.");
+				return "https://" . $_SERVER['SERVER_NAME'] . $this->configGetParam("http_path")."eefx/extended/resources/" ;	
+			}	
+		} elseif ($mode == "httpauto") {
+			if ($this->strContains($this->configGetParam("https_path"),"http://") || $this->strContains($this->configGetParam("https_path"),"https://") ) {
+				$this->errorExit("ExEngine : ExtendedEngines : eeResPath httpauto mode is not supported in your configuration.<br/>");
+			} else {
+				if (strlen($_SERVER['SERVER_NAME']) == 0)
+					$this->errorExit("ExEngine : ExtendedEngines : eeResPath -> SERVER_NAME is not defined.");
+				return "//" . $_SERVER['SERVER_NAME'] . $this->configGetParam("http_path")."eefx/extended/resources/" ;	
+			}			
+		} else {
+			$this->errorExit("ExEngine : ExtendedEngines : eeResPath argument is invalid.<br/>");
+		}
 	}
 	
 	#Log Functions
@@ -1022,7 +1062,7 @@ class exengine {
 	}
 	#For EE6's ForwardMode Compatibility
 	const REALVERSION = "7.0.8";
-	const BUILD = 27;
+	const BUILD = 28;
 }
 
 //Prevent from non-include access

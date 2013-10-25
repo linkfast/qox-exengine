@@ -2,7 +2,7 @@
 /**
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.26
+@version 0.0.1.27
 
 @section LICENSE
 
@@ -36,11 +36,11 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.26"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.27"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
-	private $defcontroller=null;
+	public $defcontroller=null;
 	
 	public $viewsFolder = "views/"; /// Name of the views folder, should be relative to the index file.
 	public $modelsFolder = "models/"; /// Name of the models folder, should be relative to the index file.
@@ -67,7 +67,7 @@ class eemvc_index {
 	public $viewsFolderHTTP;  /// HTTP path (URL) to the views folder, made for views rendering.
 	public $modelsFolderHTTP;  /// HTTP path (URL) to the models folder, made for views rendering.
 	public $controllersFolderHTTP;  /// HTTP path (URL) to the controllers folder, made for views rendering.
-	private $controllersFolderR=null;
+	public $controllersFolderR=null;
 	
 	public $sameControllerFolderHTTP;
 	
@@ -188,6 +188,7 @@ class eemvc_index {
 			$data["EEMVC_C"] = $this->controllersFolderHTTP;
 			$data["EEMVC_SC"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=".$view_file."&ERROR=NODYNAMIC&";
 			$data["EEMVC_SCF"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=".$view_file."&ERROR=NODYNAMIC&";
+			$data["EEMVC_SCFOLDER"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=".$view_file."&ERROR=NODYNAMIC&";
 			
 			$data["EEMVC_VS"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
 			
@@ -334,7 +335,7 @@ class eemvc_index {
 	
 }
 
-	 /// This function will call the controller, parse variables, session and render, the use of this function is totally automatic.
+/// This function will call the controller, parse variables, session and render, the use of this function is totally automatic.
 private final function load_controller($name) {
 
 	ob_start();			
@@ -345,6 +346,9 @@ private final function load_controller($name) {
 		$name = $this->defcontroller;	
 	
 	$ctl_folder = $this->controllersFolder;
+
+	
+
 	if ($this->controllersFolderR != null) {			
 		$this->controllersFolder = $this->controllersFolderR;
 	}
@@ -375,7 +379,7 @@ private final function load_controller($name) {
 			
 			
 			
-			$this->sameControllerFolderHTTP = $strx.str_replace($this->origControllerFolderName,"",$this->controllersFolder).$name."/";
+			$this->sameControllerFolderHTTP = $strx.str_replace($this->origControllerFolderName,"",$this->controllersFolder);
 			$this->debug("SCFH: ".$this->sameControllerFolderHTTP);
 			
 			include_once($this->controllersFolder.$namel);
@@ -389,12 +393,15 @@ private final function load_controller($name) {
 			}
 			
 			if (isset($this->urlParsedData[1]) && !empty($this->urlParsedData[1]) && !isset($this->urlParsedData[2])) { 
-				if (method_exists($name,$this->urlParsedData[1])) {						
+				if (method_exists($name,$this->urlParsedData[1])) {	
+
+					$ctrl->functionName = $this->urlParsedData[1];
+
 					if (method_exists($name,'__startup')) {
 						$ctrl->__startup();	
 					}						
 					
-					$ctrl->functionName = $this->urlParsedData[1];
+					
 					call_user_func(array($ctrl, $this->urlParsedData[1]));	
 					
 					
@@ -407,12 +414,13 @@ private final function load_controller($name) {
 			} elseif (isset($this->urlParsedData[1]) && !empty($this->urlParsedData[1]) && isset($this->urlParsedData[2])) {			
 				
 				if (method_exists($name,$this->urlParsedData[1])) {
-					
+
+					$ctrl->functionName = $this->urlParsedData[1];
+
 					if (method_exists($name,'__startup')) {
 						$ctrl->__startup();	
 					}
-					
-					$ctrl->functionName = $this->urlParsedData[1];
+										
 					call_user_func_array(array($ctrl, $this->urlParsedData[1]), array_slice($this->urlParsedData, 2)); 
 					
 					
@@ -427,11 +435,13 @@ private final function load_controller($name) {
 
 				if (method_exists($name,'index')) {
 
+					$ctrl->functionName = "index";
+
 					if (method_exists($name,'__startup')) {
 						$ctrl->__startup();	
 					}	
 					
-					$ctrl->functionName = "index";	
+						
 					$ctrl->index();				
 					
 					if (method_exists($name,'__atdestroy')) {
@@ -458,6 +468,7 @@ private final function load_controller($name) {
 				}
 				if (isset($this->urlParsedData[0]) && !empty($this->urlParsedData[0]) && !isset($this->urlParsedData[1])) {
 					if (method_exists($name,$this->urlParsedData[0])) {
+						$ctrl->functionName = $this->urlParsedData[0];
 						if (method_exists($name,'__startup')) {
 							$ctrl->__startup();	
 						}
@@ -472,6 +483,7 @@ private final function load_controller($name) {
 				} elseif (isset($this->urlParsedData[0]) && !empty($this->urlParsedData[0]) && isset($this->urlParsedData[1])) {			
 					
 					if (method_exists($name,$this->urlParsedData[0])) {
+						$ctrl->functionName = $this->urlParsedData[0];
 						if (method_exists($name,'__startup')) {
 							$ctrl->__startup();	
 						}
@@ -597,7 +609,7 @@ private final function load_controller($name) {
 		}
 		
 		final function c() {
-			return $this->cparent->index->controllersFolderHTTP;;
+			return $this->cparent->index->controllersFolderHTTP;
 		}
 		
 	/* TODO: REMOVE
@@ -615,11 +627,21 @@ private final function load_controller($name) {
 	*/
 	
 	final function sc() {		
-		return $this->cparent->index->sameControllerFolderHTTP;	
+		return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername."/";	
+	}
+
+	final function scfolder() {
+		return $this->cparent->index->sameControllerFolderHTTP;
 	}
 	
 	final function scf() {
-		return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->functionName."/";
+		if (strlen($this->cparent->functionName) > 0)
+			$addtrailing = "/";	
+		else $addtrailing = null;
+		if ($this->cparent->functionName == "index")
+		return $this->cparent->index->sameControllerFolderHTTP;
+			else
+		return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername."/".$this->cparent->functionName.$addtrailing;		
 	}
 	
 	final function vs() {
@@ -799,7 +821,8 @@ class eemvc_controller {
 			$data["EEMVC_SFTAGGED"] =  $this->index->controllersFolderHTTP."?EEMVC_SPECIAL=STATICTAGGED&FILE=";
 			
 			$data["EEMVC_C"] = $this->index->controllersFolderHTTP;
-			$data["EEMVC_SC"] = $this->index->sameControllerFolderHTTP;
+			$data["EEMVC_SCFOLDER"] = $this->index->sameControllerFolderHTTP;
+			$data["EEMVC_SC"] = $this->index->sameControllerFolderHTTP.$this->index->controllername."/";
 			$data["EEMVC_SCF"] = $this->index->sameControllerFolderHTTP.$this->functionName."/";
 			
 			$data["EEMVC_VS"] = $this->index->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
