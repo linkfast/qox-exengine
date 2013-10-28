@@ -2,7 +2,7 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 7.0.8.28
+@version 7.0.8.29
 
 @section LICENSE
 
@@ -61,9 +61,9 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 28;	
+	const V_REVIS = 29;	
 	
-	const REL_DATE = "25 OCT 2013";
+	const REL_DATE = "27 OCT 2013";
 	
 	const RELEASE = "alpha";
 	
@@ -1062,7 +1062,7 @@ final function meGetResPath($engine,$mode="full") {
 	}
 	#For EE6's ForwardMode Compatibility
 	const REALVERSION = "7.0.8";
-	const BUILD = 28;
+	const BUILD = 29;
 }
 
 //Prevent from non-include access

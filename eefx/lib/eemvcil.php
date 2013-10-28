@@ -1,8 +1,9 @@
 <?php
 /**
 @file eemvcil.php
-@author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.27
+@author Giancarlo Chiappe <gch@linkfastsa.com>
+<gchiappe@gmail.com>
+	@version 0.0.1.28
 
 @section LICENSE
 
@@ -36,7 +37,7 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.27"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.28"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -58,6 +59,7 @@ class eemvc_index {
 	public $jQueryUITheme="base"; /// Default EEMVC JQuery UI Theme.
 	public $jQueryVersion = null; /// Default EEMVC JQuery JS Lib Version.
 	public $jQueryUIVersion = null; /// Default EEMVC JQuery UI JS Lib Version.
+	public $jQueryObject=null;
 	
 	public $errorHandler=false; /// Set to the error handler controller name, that controller should be made using the error controller template.
 	
@@ -69,10 +71,14 @@ class eemvc_index {
 	public $controllersFolderHTTP;  /// HTTP path (URL) to the controllers folder, made for views rendering.
 	public $controllersFolderR=null;
 	
+	public $rewriteRulesEnabled = false; /// Only when using rewrite rules for clean url, Note for NGINX: works only in root directory of domain/subdomain .
+
 	public $sameControllerFolderHTTP;
 	
 	public $actualInputQuery;
 	public $unModUrlParsedData;
+
+	private $routes = array();
 	
 	private $origControllerFolderName;
 	
@@ -105,15 +111,23 @@ class eemvc_index {
 		$eeunit = &eeunit_get_instance();
 		if ($eeunit) {
 			$this->utSuite = &$eeunit;
-			$this->utSuite->write("<b>MVC-ExEngine</b><tab>ExEngine Unit Testing Suite Detected!");
+			$this->utSuite->write(" <b>MVC-ExEngine</b><tab>ExEngine Unit Testing Suite Detected!");
 		}
 		$this->debug("Unit Testing Mode");
 		if(defined('STDIN') && !$this->utSuite) {
 			echo 'MVC-ExEngine 7 -> Unit Testing Mode ENABLED'."\n";
 		} else {
-			$this->utSuite->write("<b>MVC-ExEngine</b><tab>Unit Testing Mode <green>ENABLED</green>");
+			$this->utSuite->write(" <b>MVC-ExEngine</b>
+		<tab>
+			Unit Testing Mode
+			<green>ENABLED</green>
+			");
 		}
 		$this->unitTest = true;
+	}
+
+	final function addRoute($Pattern,$Destination) {
+		$this->routes[$Pattern] = $Destination;
 	}
 	
 	final function prepareController($Controller) {
@@ -122,7 +136,10 @@ class eemvc_index {
 			if(defined('STDIN') && !$this->utSuite) {
 				echo 'MVC-ExEngine 7 -> Preparing controller '.ucfirst($Controller)." for unit testing.\n";
 			} else {
-				$this->utSuite->write("<b>MVC-ExEngine</b><tab>Preparing controller ".ucfirst($Controller)." for unit testing.");
+				$this->utSuite->write("
+			<b>MVC-ExEngine</b>
+			<tab>
+				Preparing controller ".ucfirst($Controller)." for unit testing.");
 			}
 			include_once($this->controllersFolder.$Controller.".php");
 			$Controller = ucfirst($Controller);
@@ -133,7 +150,10 @@ class eemvc_index {
 				echo 'MVC-ExEngine 7 -> Controller '.ucfirst($Controller).' Not Found. (Test Halted)'."\n";
 				exit;
 			} elseif ($this->utSuite) {
-				$this->utSuite->write("<b>MVC-ExEngine</b><tab>Controller ".ucfirst($Controller)." Not Found. (Test Halted)");
+				$this->utSuite->write("
+				<b>MVC-ExEngine</b>
+				<tab>
+					Controller ".ucfirst($Controller)." Not Found. (Test Halted)");
 				exit;
 			}
 			else
@@ -193,12 +213,15 @@ class eemvc_index {
 			$data["EEMVC_VS"] = $this->controllersFolderHTTP."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
 			
 			if ($this->jQueryEnabled) {
-				$jq = new jquery($this->ee);
-				$jqstr = $jq->load($this->jQueryVersion,true);			
-				$jqstr2 = $jq->load_ui($this->jQueryUITheme,$this->jQueryUIVersion,true);			
-				$jqstr3 = $jq->load_migrate(true);			
+				if (!$this->jQueryObject)
+					$this->jQueryObject = new jquery($this->ee);
+				$jqstr = $this->jQueryObject->load($this->jQueryVersion,true);			
+				$jqstr2 = $this->jQueryObject->load_ui($this->jQueryUITheme,$this->jQueryUIVersion,true);			
+				$jqstr3 = $this->jQueryObject->load_migrate(true);		
 			} else {
-				$jqstr = '<!-- MVC-EXENGINE: jQuery is not enabled. -->';
+				$jqstr = $jqstr2 = $jqstr3 = '
+					<!-- MVC-EXENGINE: jQuery is not enabled. -->
+					';
 
 			}
 			$data["EEMVC_JQUERY"]  = $jqstr; 
@@ -213,11 +236,13 @@ class eemvc_index {
 				if ((bool) @ini_get('short_open_tag') === FALSE)
 				{
 					$this->debug("loadView: Mode: ShortTags_Rewriter");
-					echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('<?=', '<?php echo ', file_get_contents($view_file))));
+					echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('
+					<?=', '<?php echo ', file_get_contents($view_file))));
 				}
 				else
 				{		
-					$this->debug("specialLoadViewStatic: Mode: Include");	
+					$this->
+					debug("specialLoadViewStatic: Mode: Include");	
 					include($view_file);
 				}
 			}
@@ -242,7 +267,7 @@ class eemvc_index {
 	}
 	
 	/// This function will start the MVC listener, should be called in the index file.
-	final function start() {	
+	final function start() {
 
 		if ($this->SessionMode===true) { session_start(); $this->debug("SessionMode=true"); } else {$this->debug("SessionMode=false");}	
 
@@ -250,9 +275,16 @@ class eemvc_index {
 			$dg = new ee_devguard();
 			$dg->guard($this->dgKey);
 		}
+
+		if (!$this->jQueryObject && $this->jQueryEnabled)
+			$this->jQueryObject = new jquery($this->ee);
 		
 		if (!$this->ee->argsGet("SilentMode")) {
-			print "<h1>MVC-ExEngine can not work with SilentMode argument set to FALSE. Please set it to TRUE.</h1>";
+			print "
+					<h1>
+						MVC-ExEngine can not work with SilentMode argument set to FALSE. Please set it to TRUE.
+					</h1>
+					";
 			exit();
 		}
 		
@@ -280,31 +312,39 @@ class eemvc_index {
 			}
 			
 		} else {	 
-			
-			if (!$this->ee->strContains($_SERVER['REQUEST_URI'],$this->indexname)) {
-				header("Location: ".$_SERVER['REQUEST_URI'].$this->indexname);
-				exit();
+			// !!
+			if (!$this->rewriteRulesEnabled) {
+				if (!$this->ee->strContains($_SERVER['REQUEST_URI'],$this->indexname)) {
+					header("Location: ".$_SERVER['REQUEST_URI'].$this->indexname);
+					exit();
+				}
 			}
 			
-			$this->debug("Index: MVC Started, waiting to controller name, CONTROLLER_NAME/.");
+			$this->debug("Index: MVC Started, waiting to controller name, CONTROLLER_NAME.");
 			$this->parseURL();				 
 			
-			
+		/*
+		
 			if ( ( ( empty($this->urlParsedData) && (substr($_SERVER['REQUEST_URI'],strlen($_SERVER['REQUEST_URI'])-1,1) != "/") )
-				||  
-				( count($this->urlParsedData) > 0 && end($this->urlParsedData) != null )  )
-				&& 
-				!$this->ee->strContains($_SERVER['REQUEST_URI'],"?",false) 
-				) {
-				header("Location: ". $_SERVER['REQUEST_URI']."/" );
-			exit();
-		} else if (!$this->ee->strContains($_SERVER['REQUEST_URI'],"/?",false) && substr($_SERVER['REQUEST_URI'],strlen($_SERVER['REQUEST_URI'])-1,1) != "/") {
-			header("Location: ". str_replace("?","/?",$_SERVER['REQUEST_URI']) );
-			exit();
-		}		 
+					||  
+					( count($this->urlParsedData) > 0 && end($this->urlParsedData) != null )  )
+					&& 
+					!$this->ee->strContains($_SERVER['REQUEST_URI'],"?",false) 
+					) {
+					//header("Location: ". $_SERVER['REQUEST_URI']."/" );
+					//exit();
+			} else if (!$this->ee->strContains($_SERVER['REQUEST_URI'],"/?",false) && substr($_SERVER['REQUEST_URI'],strlen($_SERVER['REQUEST_URI'])-1,1) != "/") {
+				//header("Location: ". str_replace("?","/?",$_SERVER['REQUEST_URI']) );
+				//exit();
+			}	
 		
+
+		print $_SERVER['REQUEST_URI'];
+		
+*/
 		$this->debug(print_r($this->urlParsedData,1));		
-		
+		// !!
+		/*
 		if (count($this->urlParsedData) > 0 && $this->ee->strContains($this->urlParsedData[count($this->urlParsedData)-1],"?") && !$this->ee->strContains($this->urlParsedData[count($this->urlParsedData)-1],"/?")) {
 			$this->debug("Index: Has GET Query and No '/'");
 			$ne = explode("?",$this->urlParsedData[count($this->urlParsedData)-1]);
@@ -312,210 +352,165 @@ class eemvc_index {
 			$this->urlParsedData[count($this->urlParsedData)-1] = $ne[0];
 			$this->debug("Index: New url array: " .print_r($this->urlParsedData,1));	
 		}
+		*/
 		
-		if (isset($this->urlParsedData[0]) && (!empty($this->urlParsedData[0]))) {
-			
-			$output = $this->load_controller($this->urlParsedData[0]);
+		if (isset($this->urlParsedData[0]) && (!empty($this->urlParsedData[0]))) {		
+
+			$output = $this->load_controller($this->urlParsedData[0],$this->urlParsedData[1]);
 		} else {
 			if ($this->defcontroller) {
-				$this->debug("Index: Loading default controller: ".$this->defcontroller);	
-				$output = $this->load_controller($this->defcontroller);
+				$this->debug("Index: Loading default controller: ".$this->defcontroller);				
+				$output = $this->load_controller($this->defcontroller,null);
 			}else {
 				$this->ee->errorExit("MVC-ExEngine","No default controller set.","eemvcil");
 			}
-		}	 	 
+		} 	 
 		
 		if (!$this->AlwaysSilent) {
 			$rpl = "<head>\n"."\t<!-- ".$this->ee->miscMessages("Slogan",1)." (MVC-ExEngine) -->";
 			if ($this->dgEnabled) $rpl .= $dg->guard_float_menu();
-			$output = str_replace("<head>",$rpl,$output);			
+				$output = str_replace("<head>",$rpl,$output);			
 		}		 
+
 		print $output; 
-	}
-	
+	}	
 }
 
 /// This function will call the controller, parse variables, session and render, the use of this function is totally automatic.
-private final function load_controller($name) {
-
-	ob_start();			
-	
+private final function load_controller($name,$next) {
 	if ($name != null)
 		$this->controllername = $name;
 	else
 		$name = $this->defcontroller;	
-	
 	$ctl_folder = $this->controllersFolder;
-
-	
-
 	if ($this->controllersFolderR != null) {			
 		$this->controllersFolder = $this->controllersFolderR;
-	}
-	
-	
-	if (is_dir($this->controllersFolder.$name) && (file_exists($this->controllersFolder.$name."/".$this->urlParsedData[1].".php") || file_exists($this->controllersFolder.$name."/".$this->defcontroller.".php"))) {
-		
-		if (file_exists($this->controllersFolder.$name."/".$this->urlParsedData[1].".php") && isset($this->urlParsedData[1]) && !empty($this->urlParsedData[1])) {
-			
-			$this->controllersFolder = $this->controllersFolder.$name."/";				 
-			$nc = $this->urlParsedData[1];
-			$this->urlParsedData = array_slice($this->urlParsedData, 1);
-			print $this->load_controller($nc);
-		} else {
-			
-			$this->controllersFolder = $this->controllersFolder.$name."/";				 				
-			$nc = $this->defcontroller;			 
-			print $this->load_controller($nc);
-		}
+	}	
+/*
+	print "1". "<br/>";	print "XF: " .$this->controllersFolder."&nbsp;&nbsp;&nbsp;"; print "NA: ". $name ."&nbsp;&nbsp;&nbsp;";	print "NE: ". $next . "<br/>";
+	print "TE: " . $this->controllersFolder.$name.".php" . "<br/>";
+*/
+	$proceed = false;
+	if (is_dir($this->controllersFolder.$name) && strlen($next)==0) {
+		//print "IS DIR && SEARCH FOR DEFCONTROLLER" . "<br/>";
+		$this->controllersFolder = $this->controllersFolder.$name . "/";
+		$this->urlParsedData = array_slice($this->urlParsedData, 1);
+		//print $this->controllersFolder . $this->defcontroller . " " . $this->urlParsedData[1] .  "<br/>";
+		$this->load_controller($this->defcontroller, $this->urlParsedData[1]);
+	} elseif (is_dir($this->controllersFolder.$name) && strlen($next)>0) {
+		//print "IS DIR && REPEAT FOR '$next'" . "<br/>";
+		$this->controllersFolder = $this->controllersFolder.$name . "/";
+		$this->urlParsedData = array_slice($this->urlParsedData, 1);
+		$this->load_controller($next, $this->urlParsedData[1]);
+	} elseif (file_exists($this->controllersFolder.$name.".php")) {
+		//print "CONTROLLER FOUND!";			
+		$proceed = true;
+	} elseif (!file_exists($this->controllersFolder.$name."php")) {
+		//print "FILE NOT EXISTS && CHECK IF METHOD EXISTS IN DEFCONTROLLER";
+		$proceed = true;
+		$checkifmethodexistsindefcontroller=true;
 	} else {
-		$namel = $name.".php";	
-		
-		if (file_exists($this->controllersFolder.$namel)) {
+		print "WHAT?";
+		exit;
+	}
+	if ($proceed) {
+		ob_start();
+		$namel = $name.".php";
+		if ($this->rewriteRulesEnabled) {
+				$strx = "//" . $_SERVER['HTTP_HOST']."/";		
+			} else 
+				$strx = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME']."/";		
+		$this->sameControllerFolderHTTP = $strx.str_replace($this->origControllerFolderName,"",$this->controllersFolder);
+		if (file_exists($this->controllersFolder.$namel)) {			
+			$this->debug("Index: Loading controller: ".$this->controllersFolder.$name);	
 			
-			$this->debug("Index: Loading controller: ".$this->controllersFolder.$name);
-			
-			$strx = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME']."/";
-			
-			
-			
-			$this->sameControllerFolderHTTP = $strx.str_replace($this->origControllerFolderName,"",$this->controllersFolder);
-			$this->debug("SCFH: ".$this->sameControllerFolderHTTP);
-			
-			include_once($this->controllersFolder.$namel);
-			
+			$this->debug("SCFH: ".$this->sameControllerFolderHTTP);	
+
+			include_once($this->controllersFolder.$namel);				
 			$name = ucfirst($name);
-			$ctrl = new $name($this->ee,$this);
-			
+			$ctrl = new $name($this->ee,$this);	
 			if (isset($ctrl->imSilent)) {
 				if ($ctrl->imSilent)
 					$this->AlwaysSilent = true; 
 			}
+
+			//print_r($_GET);
 			
-			if (isset($this->urlParsedData[1]) && !empty($this->urlParsedData[1]) && !isset($this->urlParsedData[2])) { 
-				if (method_exists($name,$this->urlParsedData[1])) {	
+			//print $next. "<br/>";
+			$mystring = $next;
+			$parts = explode("?", $mystring); 
+			$next = $parts[0];
+			//print $next;
 
-					$ctrl->functionName = $this->urlParsedData[1];
+			if (strlen($next) == 0) {			
+				$next = "index";
+			}
 
+			if(method_exists($name,$next)) {
+				$nslice = array_slice($this->urlParsedData, 1);
+				if (strlen($nslice[1]) == 0) {
+					$ctrl->functionName = $next;
 					if (method_exists($name,'__startup')) {
 						$ctrl->__startup();	
-					}						
-					
-					
-					call_user_func(array($ctrl, $this->urlParsedData[1]));	
-					
-					
+					}				
+					call_user_func(array($ctrl, $next));				
 					if (method_exists($name,'__atdestroy')) {
 						$ctrl->__atdestroy();	
 					}
 				} else {
-					$this->raiseError("e404cs",array($name,$this->urlParsedData[1]),$ctl_folder,true,__LINE__);	
-				}					 
-			} elseif (isset($this->urlParsedData[1]) && !empty($this->urlParsedData[1]) && isset($this->urlParsedData[2])) {			
-				
-				if (method_exists($name,$this->urlParsedData[1])) {
-
-					$ctrl->functionName = $this->urlParsedData[1];
-
-					if (method_exists($name,'__startup')) {
-						$ctrl->__startup();	
-					}
-										
-					call_user_func_array(array($ctrl, $this->urlParsedData[1]), array_slice($this->urlParsedData, 2)); 
-					
-					
-					if (method_exists($name,'__atdestroy')) {
-						$ctrl->__atdestroy();	
-					}
-				} else {
-					$this->raiseError("e404mnf",array("ErrorType" => "Method not found.", "Controller" => $this->controllersFolder.$name , "Method" => $this->urlParsedData[1]),$ctl_folder,true,__LINE__);
-				}
-				
-			} else {
-
-				if (method_exists($name,'index')) {
-
-					$ctrl->functionName = "index";
-
+					$ctrl->functionName = $next;
 					if (method_exists($name,'__startup')) {
 						$ctrl->__startup();	
 					}	
 					
-						
-					$ctrl->index();				
-					
+					call_user_func_array(array($ctrl, $next), array_slice($this->urlParsedData, 2)); 
 					if (method_exists($name,'__atdestroy')) {
-						$ctrl->__atdestroy();	
+						$ctrl->__atdestroy();
 					}
-
-				} else {
-					$this->raiseError("e404mnf",array("ErrorType" => "Method not found.", "Controller" => $name , "Method" => "index"),$ctl_folder,true,__LINE__);
-				}
-				
-			}
-		} elseif ($ctl_folder == $this->controllersFolder) {
-			
-			$strx = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME']."/";
-			$this->sameControllerFolderHTTP = $strx.str_replace($this->origControllerFolderName,"",$this->controllersFolder).$name."";
-			if (file_exists($this->controllersFolder.$this->defcontroller.".php")) {
-				include_once($this->controllersFolder.$this->defcontroller.".php");
-				$name = ucfirst($this->defcontroller);
-				$ctrl = new $name($this->ee,$this);
-				
-				if (isset($ctrl->imSilent)) {
-					if ($ctrl->imSilent)
-						$this->AlwaysSilent = true; 
-				}
-				if (isset($this->urlParsedData[0]) && !empty($this->urlParsedData[0]) && !isset($this->urlParsedData[1])) {
-					if (method_exists($name,$this->urlParsedData[0])) {
-						$ctrl->functionName = $this->urlParsedData[0];
-						if (method_exists($name,'__startup')) {
-							$ctrl->__startup();	
-						}
-						call_user_func(array($ctrl, $this->urlParsedData[0]));
-						
-						if (method_exists($name,'__atdestroy')) {
-							$ctrl->__atdestroy();	
-						}						
-					} else {
-						$this->raiseError("e404cs",array($name,$this->urlParsedData[0]),$ctl_folder,true,__LINE__);		
-					}				
-				} elseif (isset($this->urlParsedData[0]) && !empty($this->urlParsedData[0]) && isset($this->urlParsedData[1])) {			
-					
-					if (method_exists($name,$this->urlParsedData[0])) {
-						$ctrl->functionName = $this->urlParsedData[0];
-						if (method_exists($name,'__startup')) {
-							$ctrl->__startup();	
-						}
-
-						call_user_func_array(array($ctrl, $this->urlParsedData[0]), array_slice($this->urlParsedData, 1)); 
-						
-						if (method_exists($name,'__atdestroy')) {
-							$ctrl->__atdestroy();	
-						}
-						
-					} else {
-						$this->raiseError("e404cnf",array("ErrorType"=> "Controller not found","Controller" => $this->urlParsedData[0]),$ctl_folder,true,__LINE__);		
-					}					 
-				} else {
-					$this->raiseError("e404",array("Controller"=>$name),$ctl_folder,true,__LINE__);
 				}
 			} else {
-				$this->raiseError("e404ndc",array("Error1_Type"=> "Controller not found", "Error1_Msg" => "Controller \"".$this->urlParsedData[0]. "\" not found. ", "Error2_Type" => "Default Controller not found", "Error2_Msg"=>"No default controller \"$this->controllersFolder$this->defcontroller\" found."),$ctl_folder,true,__LINE__,__FILE__);
+				$this->raiseError("e404mnf",array("Error_Type"=> "Method not found", "Error_Msg"=>"Method \"".ucfirst($next). "\" not found in \"".$this->controllersFolder.ucfirst($name)."\"."),$ctl_folder,true,__LINE__,__FILE__);
 			}
-		} else {				 
-			$this->raiseError("e404",array($name),$ctl_folder,true,__LINE__);		  
 		}
-		
-	}
-	if ($this->controllersFolderR != null) {
-		$this->controllersFolderR = $this->controllersFolder;
-		$this->controllersFolder = $ctl_folder;
-	}
-	
-	$this->output = ob_get_contents();
-	ob_end_clean();
-	
+
+		if (file_exists($this->controllersFolder.$this->defcontroller.".php")) {			
+			include_once($this->controllersFolder.$this->defcontroller.".php");				
+			$name2 = ucfirst($this->defcontroller);			
+			$ctrl = new $name2($this->ee,$this);				
+			if (isset($ctrl->imSilent)) {
+				if ($ctrl->imSilent)
+					$this->AlwaysSilent = true; 
+			}
+			if ($checkifmethodexistsindefcontroller) {
+				if(method_exists($name2,$name)) {
+
+					if (strlen($next) == 0) {
+						$ctrl->functionName = $name;
+						if (method_exists($name2,'__startup')) {
+							$ctrl->__startup();	
+						}				
+						call_user_func(array($ctrl, $name));				
+						if (method_exists($name2,'__atdestroy')) {
+							$ctrl->__atdestroy();	
+						}
+					} else {
+						$ctrl->functionName = $name;
+						if (method_exists($name2,'__startup')) {
+							$ctrl->__startup();	
+						}						
+						call_user_func_array(array($ctrl, $name), array_slice($this->urlParsedData, 1)); 
+						if (method_exists($name2,'__atdestroy')) {
+							$ctrl->__atdestroy();
+						}
+					}
+				} else {
+					$this->raiseError("e404mnf",array("Error1_Type"=> "Controller not found", "Error1_Msg" => "Controller \"".ucfirst($this->urlParsedData[0]). "\" not found in \"".$this->controllersFolder."\". ", "Error2_Type" => "Method in default controller not found", "Error2_Msg"=>"Method \"".ucfirst($this->urlParsedData[0]). "\" not found in \"".$this->controllersFolder.ucfirst($this->defcontroller)."\"."),$ctl_folder,true,__LINE__,__FILE__);
+				}
+			}
+		}
+		$this->output = ob_get_contents();
+		ob_end_clean();
+	}	
 	return $this->output;		 
 }
 
@@ -535,7 +530,11 @@ private final function load_controller($name) {
 	 				call_user_func_array(array($ctrl, $error), $data);
 	 			} else {
 	 				if ($this->ee->cArray["debug"])
-	 					$this->ee->errorExit("MVC-ExEngine: Error ".$error,print_r($data,true)."<br/>"."Line Number: ".$linenumber."<br/>"."File: ".$file,null,$noexit);
+	 					$this->ee->errorExit("MVC-ExEngine: Error ".$error,print_r($data,true)."
+					<br/>
+					"."Line Number: ".$linenumber."
+					<br/>
+					"."File: ".$file,null,$noexit);
 	 				else {
 	 					$this->ee->errorExit("Application Error #".$error,"Powered by MVC-ExEngine",null,$noexit);
 	 				}
@@ -543,7 +542,11 @@ private final function load_controller($name) {
 	 		}
 	 	} else {
 	 		if ($this->ee->cArray["debug"])
-				$this->ee->errorExit("MVC-ExEngine: Error ".$error,print_r($data,true)."<br/>"."Line Number: ".$linenumber."<br/>"."File: ".$file,null,$noexit);
+				$this->ee->errorExit("MVC-ExEngine: Error ".$error,print_r($data,true)."
+					<br/>
+					"."Line Number: ".$linenumber."
+					<br/>
+					"."File: ".$file,null,$noexit);
 			else {
 				$this->ee->errorExit("Application Error #".$error,"Powered by MVC-ExEngine",null,$noexit);
 			}
@@ -551,37 +554,39 @@ private final function load_controller($name) {
 	 }
 	 
 	 /// This function will parse the URL.
-	 final private function parseURL() {
-	 	$ru = $_SERVER['REQUEST_URI'];
-	 	$sn = $_SERVER['SCRIPT_NAME'];
-	 	$data = str_replace($sn,"",$ru);
-	 	
-	 	$this->debug("Input Query: ".$data);
-	 	
-	 	$x = explode("/",$data);
-	 	
-	 	for ($i=0 ; $i<count($x) ; $i++) {
-	 		$x[$i] = urldecode($x[$i]);
-	 	}
-	 	
-	 	$this->actualInputQuery = $data;
-	 	$this->urlParsedData = array_slice($x,1);
-	 	$this->unModUrlParsedData = array_slice($x,1);
-	 	
+	 final private function parseURL() {	 	
+		$ru = $_SERVER['REQUEST_URI'];
+		$sn = $_SERVER['SCRIPT_NAME'];
+		$data = str_replace($sn,"",$ru);
+		if ($data[strlen($data)-1] == "/") {
+			$data = substr($data, 0, -1);
+		}		 	
+		$x = explode("/",$data);
+		for ($i=0 ; $i<count($x) ; $i++) {
+			$x[$i] = urldecode($x[$i]);
+		}
+		$actualInputQuery = $data;
+		$urlParsedData = array_slice($x,1);
+		if (strlen($urlParsedData[count($urlParsedData)-1]) == 0) {
+			unset ($urlParsedData[count($urlParsedData)-1]);
+		}
+		$this->actualInputQuery = $actualInputQuery;
+		$this->urlParsedData = $urlParsedData;
+		$this->unModUrlParsedData = $urlParsedData;	 	
 	 	$this->debug("Parsed Data: " . print_r($this->urlParsedData,true));
 	 }
 	 
 	 /// This function sets the static folder path.
-	 final function setStaticFolder() {
-	 	$str = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'].$this->staticFolder;		
+	 final function setStaticFolder() {	 	
+	 	$str = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'].$this->staticFolder;
 	 	$str = str_replace($this->indexname,"",$str);		
-	 	$this->staticFolderHTTP = $str;
-	 	
-	 	$str = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME']."/";		
-	 	$this->controllersFolderHTTP = $str;
-	 	
-	 	
-	 	
+	 	$this->staticFolderHTTP = $str;	 	
+	 	if ($this->rewriteRulesEnabled)
+	 		$str = "//" . $_SERVER['HTTP_HOST']. "/";
+	 	else
+	 		$str = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME']."/";	
+
+	 	$this->controllersFolderHTTP = $str;	 	
 	 	
 	 }
 	 
@@ -599,6 +604,7 @@ private final function load_controller($name) {
 	class eemvc_methods {
 		
 		var $cparent;	
+		var $jQueryObject;
 		
 		final function sf() {
 			return $this->cparent->index->staticFolderHTTP;;
@@ -619,7 +625,8 @@ private final function load_controller($name) {
 		$str_make = null;
 		$urldata = array_slice($urldata,0,($size-3));
 		$size = count($urldata);
-		for ($i = 0; $i < $size ; $i++) {
+		for ($i = 0; $i
+							< $size ; $i++) {
 			$str_make .= $urldata[$i].'/';	
 		}
 		return $str_make;
@@ -627,7 +634,8 @@ private final function load_controller($name) {
 	*/
 	
 	final function sc() {		
-		return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername."/";	
+		return $this->
+								cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername."/";	
 	}
 
 	final function scfolder() {
@@ -650,6 +658,7 @@ private final function load_controller($name) {
 	
 	final function __construct(&$parent) {
 		$this->cparent = &$parent;
+		$this->jQueryObject = &$this->cparent->index->jQueryObject;
 	}
 	
 	final function getSession($element) {
@@ -750,7 +759,10 @@ class eemvc_controller {
 			echo 'MVC-ExEngine 7 -> Preparing model '.ucfirst($model_name).' for unit testing.'."\n";
 		} else		
 		if ($this->index->utSuite)
-			$this->index->utSuite->write("<b>MVC-ExEngine</b><tab>Preparing model ".ucfirst($model_name)." for unit testing.");
+			$this->index->utSuite->write("
+								<b>MVC-ExEngine</b>
+								<tab>
+									Preparing model ".ucfirst($model_name)." for unit testing.");
 		
 		$m_file = $this->index->modelsFolder.$model_name.".php";
 		
@@ -778,11 +790,20 @@ class eemvc_controller {
 				exit;
 			} else
 			if ($this->index->utSuite) {
-				$this->index->utSuite->write("<b>MVC-ExEngine</b><tab>Model ".$model_name." not found. (Test Halted).");
+				$this->index->utSuite->write("
+									<b>MVC-ExEngine</b>
+									<tab>
+										Model ".$model_name." not found. (Test Halted).");
 				exit;
 			}
 			else
-				$this->ee->errorExit("MVC-ExEngine","Model not found.</br><b>Trace:</b><br/>Controller: ".get_class($this)."<br/>Function: ".$this->functionName,"ExEngine_MVC_Implementation_Library");
+				$this->ee->errorExit("MVC-ExEngine","Model not found.
+									</br>
+									<b>Trace:</b>
+									<br/>
+									Controller: ".get_class($this)."
+									<br/>
+									Function: ".$this->functionName,"ExEngine_MVC_Implementation_Library");
 		}		
 	}
 	
@@ -843,11 +864,13 @@ class eemvc_controller {
 				if ((bool) @ini_get('short_open_tag') === FALSE)
 				{
 					$this->debug("loadView: Mode: ShortTags_Rewriter");
-					echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('<?=', '<?php echo ', file_get_contents($view_file))));
+					echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('
+									<?=', '<?php echo ', file_get_contents($view_file))));
 				}
 				else
 				{		
-					$this->debug("loadView: Mode: Include");	
+					$this->
+									debug("loadView: Mode: Include");	
 					include($view_file);
 				}
 			}
@@ -930,7 +953,9 @@ class eemvc_model_dbo extends eemvc_model {
 		unset($vars["INDEXKEY"]);		
 		if (isset ($this->EXCLUDEVARS) ) {
 			unset($vars["EXCLUDEVARS"]);
-			for ($c = 0; $c < count($this->EXCLUDEVARS); $c++) {
+			for ($c = 0; $c
+									< count($this->
+										EXCLUDEVARS); $c++) {
 				unset($vars[$this->EXCLUDEVARS[$c]]);	
 			}
 		}		
@@ -967,8 +992,10 @@ class eemvc_model_dbo extends eemvc_model {
 			$data = $this->db->fetchArray($q,$SafeMode,MYSQLI_ASSOC);
 			unset($data[$this->INDEXKEY]);
 			$keys = @array_keys($data);
-			for ($c = 0; $c < count($keys); $c++) {
-				$this->$keys[$c] = $data[$keys[$c]];	
+			for ($c = 0; $c
+										< count($keys); $c++) {
+				$this->
+											$keys[$c] = $data[$keys[$c]];	
 			}
 			
 			if (method_exists($this,'__aftload')) {
@@ -998,8 +1025,10 @@ class eemvc_model_dbo extends eemvc_model {
 					$v->__befload();
 				}							
 				$keys = @array_keys($row);
-				for ($c = 0; $c < count($keys); $c++) {
-					$v->$keys[$c] = $row[$keys[$c]];	
+				for ($c = 0; $c
+											< count($keys); $c++) {
+					$v->
+												$keys[$c] = $row[$keys[$c]];	
 				}	
 				if (method_exists($v,'__aftload')) {
 					$v->__aftload();
@@ -1030,8 +1059,10 @@ class eemvc_model_dbo extends eemvc_model {
 					$v->__befload();
 				}							
 				$keys = @array_keys($row);
-				for ($c = 0; $c < count($keys); $c++) {
-					$v->$keys[$c] = $row[$keys[$c]];	
+				for ($c = 0; $c
+												< count($keys); $c++) {
+					$v->
+													$keys[$c] = $row[$keys[$c]];	
 				}	
 				if (method_exists($v,'__aftload')) {
 					$v->__aftload();
@@ -1075,8 +1106,10 @@ class eemvc_model_dbo extends eemvc_model {
 		$data = $this->db->fetchArray($q,$SafeMode,MYSQLI_ASSOC);
 		unset($data[$this->INDEXKEY]);
 		$keys = @array_keys($data);
-		for ($c = 0; $c < count($keys); $c++) {
-			$this->$keys[$c] = $data[$keys[$c]];	
+		for ($c = 0; $c
+													< count($keys); $c++) {
+			$this->
+														$keys[$c] = $data[$keys[$c]];	
 		}
 		
 		if (method_exists($this,'__aftload')) {
@@ -1101,8 +1134,10 @@ class eemvc_model_dbo extends eemvc_model {
 					$v->__befload();
 				}				
 				$keys = @array_keys($row);
-				for ($c = 0; $c < count($keys); $c++) {
-					$v->$keys[$c] = $row[$keys[$c]];	
+				for ($c = 0; $c
+														< count($keys); $c++) {
+					$v->
+															$keys[$c] = $row[$keys[$c]];	
 				}	
 				if (method_exists($v,'__aftload')) {
 					$v->__aftload();

@@ -232,8 +232,12 @@ class EEUnitTest_Suite {
 						$this->write("<tab><b>Testing: ".str_replace("test","",$f)."</b> (Method ".($c+1)."/".$methods.")");			
 						$this->ActualMethod = str_replace("test","",$f);
 
-						$tc->$f();
-
+						try {
+						    $tc->$f();
+						} catch (Exception $e) {
+						    $this->write("<red><b>Exception occurred in ".$this->ActualMethod."</b></red>: " .  $e->getMessage());
+						}
+						
 						$c++;
 						
 					}
@@ -424,9 +428,9 @@ class EEUnitTest_Function {
 		$this->testCase->Results->SubResults[] = $this->Results;
 	}
 	
-	public final function assertEquals($Expected, $Result, $Title="assertEquals") {
+	public final function assertEquals($Expected, $Result, $Title=null) {
 		$this->c++;
-		$r = new EEUnitTest_Result("ASSERT",$Title);
+		$r = new EEUnitTest_Result("ASSERT","assertEquals " . $Title);
 		$r->MethodDesc = $this->FunctionName;
 		$r->MethodName = $this->eeu->ActualMethod;
 		if ($Expected == $Result) {			
@@ -437,15 +441,54 @@ class EEUnitTest_Function {
 			$r->ResultInfo = "FAILURE";
 		}
 		$this->Results->SubResults[] = $r;
-		$this->eeu->write("<tab><tab>Test #".$this->c . "<tab>".$Title." : ".
+		$this->eeu->write("<tab><tab>Test #".$this->c . "<tab> assertEquals ".$Title." : ".
 		($r->ResultInfo == "PASSED" ? "<green>PASSED</green>" : "<red>FAILED</red>") );
 	}	
-	public final function assertTrue($Condition, $Title = "assertTrue") {
+	public final function assertTrue($Condition, $Title = null) {
 		$this->c++;
-		$r = new EEUnitTest_Result("ASSERT",$Title);
+		$r = new EEUnitTest_Result("ASSERT","assertTrue " . $Title);
 		$r->MethodDesc = $this->FunctionName;
 		$r->MethodName = $this->eeu->ActualMethod;
 		if ($Condition) {
+			$this->Asserts++;
+			$r->ResultInfo = "PASSED";
+		} else {
+			$this->Failures++;
+			$r->ResultInfo = "FAILURE";
+		}
+		$this->Results->SubResults[] = $r;
+		$this->eeu->write("<tab><tab>Test #".$this->c . "<tab> assertTrue: ".$Title." : ".
+		($r->ResultInfo == "PASSED" ? "<green>PASSED</green>" : "<red>FAILED</red>") );
+	}
+	public final function assertArrayHasKey($Array, $Key, $Title = null) {
+		$this->c++;
+		$r = new EEUnitTest_Result("ASSERT","assertArrayHasKey " . $Title);
+		$r->MethodDesc = $this->FunctionName;
+		$r->MethodName = $this->eeu->ActualMethod;
+		if (!is_array($Array))
+			$this->write("<b>assertArrayHasKey</b>: Invalid argument, first argument must be an array.");
+		if (is_array($Array) && array_key_exists($Key, $Array)) {
+			$this->Asserts++;
+			$r->ResultInfo = "PASSED";
+		} else {
+			$this->Failures++;
+			$r->ResultInfo = "FAILURE";
+		}
+		$this->Results->SubResults[] = $r;
+		$this->eeu->write("<tab><tab>Test #".$this->c . "<tab> assertArrayHasKey ".$Title." : ".
+		($r->ResultInfo == "PASSED" ? "<green>PASSED</green>" : "<red>FAILED</red>") );
+	}
+		public final function assertInstanceOf($ClassName, $Object, $Title = null) {
+		$this->c++;
+		$Title = "assertInstanceOf " . $Title;
+		$r = new EEUnitTest_Result("ASSERT", $Title);
+		$r->MethodDesc = $this->FunctionName;
+		$r->MethodName = $this->eeu->ActualMethod;
+
+		if (!is_object($Object))
+			$this->write("<b>assertInstanceOf</b>: Invalid argument, second argument must be a object.");
+
+		if (eval ('return $Object instanceof '.$ClassName.';')) {
 			$this->Asserts++;
 			$r->ResultInfo = "PASSED";
 		} else {
