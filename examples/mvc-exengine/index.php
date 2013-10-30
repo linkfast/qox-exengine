@@ -3,7 +3,7 @@
 	ini_set("display_errors", 1); 
 	include_once( '../../ee.php' );
 	$ee = new exengine(array("SpecialMode" => "MVCOnly"));
-	$mvc = new eemvc_index($ee,"start");
+	$mvc = new eemvc_index("start");
 	$mvc->SessionMode = true;
 	# devguard mode, uncomment to enable
 	/*

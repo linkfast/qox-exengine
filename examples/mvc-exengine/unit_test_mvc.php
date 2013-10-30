@@ -8,7 +8,7 @@ $ee->eeLoad("unittest");
 
 $ut = new EEUnitTest_Suite();
 
-$mvc = new eemvc_index($ee,"start");
+$mvc = new eemvc_index("start");
 $mvc->prepareUnitTesting(); // prepare MVC lib for UnitTesting (no url parsing, etc.)
 
 $ctl = $mvc->prepareController("start");
