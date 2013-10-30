@@ -3,7 +3,7 @@
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com>
 <gchiappe@gmail.com>
-	@version 0.0.1.28
+	@version 0.0.1.29
 
 @section LICENSE
 
@@ -37,7 +37,7 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.28"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.29"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -449,22 +449,27 @@ private final function load_controller($name,$next) {
 			if(method_exists($name,$next)) {
 				$nslice = array_slice($this->urlParsedData, 1);
 				if (strlen($nslice[1]) == 0) {
-					$ctrl->functionName = $next;
+					
 					if (method_exists($name,'__startup')) {
+						$ctrl->functionName = "__startup";
 						$ctrl->__startup();	
-					}				
+					}	
+					$ctrl->functionName = $next;			
 					call_user_func(array($ctrl, $next));				
 					if (method_exists($name,'__atdestroy')) {
+						$ctrl->functionName = "__atdestroy";
 						$ctrl->__atdestroy();	
 					}
 				} else {
-					$ctrl->functionName = $next;
+					
 					if (method_exists($name,'__startup')) {
+						$ctrl->functionName = "__startup";
 						$ctrl->__startup();	
 					}	
-					
+					$ctrl->functionName = $next;
 					call_user_func_array(array($ctrl, $next), array_slice($this->urlParsedData, 2)); 
 					if (method_exists($name,'__atdestroy')) {
+						$ctrl->functionName = "__atdestroy";
 						$ctrl->__atdestroy();
 					}
 				}
@@ -484,22 +489,26 @@ private final function load_controller($name,$next) {
 			if ($checkifmethodexistsindefcontroller) {
 				if(method_exists($name2,$name)) {
 
-					if (strlen($next) == 0) {
-						$ctrl->functionName = $name;
+					if (strlen($next) == 0) {						
 						if (method_exists($name2,'__startup')) {
+							$ctrl->functionName = "__startup";
 							$ctrl->__startup();	
-						}				
+						}		
+						$ctrl->functionName = $name;		
 						call_user_func(array($ctrl, $name));				
 						if (method_exists($name2,'__atdestroy')) {
+							$ctrl->functionName = "__atdestroy";
 							$ctrl->__atdestroy();	
 						}
-					} else {
-						$ctrl->functionName = $name;
+					} else {						
 						if (method_exists($name2,'__startup')) {
+							$ctrl->functionName = "__startup";
 							$ctrl->__startup();	
-						}						
+						}		
+						$ctrl->functionName = $name;				
 						call_user_func_array(array($ctrl, $name), array_slice($this->urlParsedData, 1)); 
 						if (method_exists($name2,'__atdestroy')) {
+							$ctrl->functionName = "__atdestroy";
 							$ctrl->__atdestroy();
 						}
 					}
@@ -737,7 +746,10 @@ class eemvc_controller {
 		
 		$this->r = new eemvc_methods($this);
 		if (method_exists($this,'__atconstruct')) {
+			$fn = $this->functionName;
+			$this->functionName = "__atconstruct";
 			$this->__atconstruct();	
+			$this->functionName = $fn;
 		}
 	}	
 	
@@ -797,7 +809,7 @@ class eemvc_controller {
 				exit;
 			}
 			else
-				$this->ee->errorExit("MVC-ExEngine","Model not found.
+				$this->ee->errorExit("MVC-ExEngine","Model not found. ( ".$model_name." )
 									</br>
 									<b>Trace:</b>
 									<br/>
