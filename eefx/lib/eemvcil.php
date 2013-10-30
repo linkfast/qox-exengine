@@ -3,7 +3,7 @@
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com>
 <gchiappe@gmail.com>
-	@version 0.0.1.30
+	@version 0.0.1.31
 
 @section LICENSE
 
@@ -37,7 +37,7 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.30"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.31"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -413,14 +413,11 @@ private final function load_controller($name,$next) {
 		$this->controllername = $name;
 	else
 		$this->controllername = $this->defcontroller;
-
 	$ctl_folder = $this->controllersFolder;
 	if ($this->controllersFolderR != null) {			
 		$this->controllersFolder = $this->controllersFolderR;
 	}
-
 	if (substr($this->controllersFolder, -1) != "/") $this->controllersFolder = $this->controllersFolder. "/";
-
 	if (!$this->ee->strContains($name,"/?")) {
 		$name = str_replace("/?","?",$name);
 	}
@@ -430,15 +427,11 @@ private final function load_controller($name,$next) {
 	$mystring = $name;
 	$parts = explode("?", $mystring); 
 	$name = $parts[0];
-
 	$mystring = $next;
 	$parts = explode("?", $mystring); 
 	$next = $parts[0];
-
-
 	//print "1". "<br/>";	print "XF: " .$this->controllersFolder."&nbsp;&nbsp;&nbsp;"; print "NAME: ". $name ."&nbsp;&nbsp;&nbsp;";	print "NE: ". $next . "<br/>";
 	//print "TE: " . $this->controllersFolder.$name.".php" . "<br/>";
-	
 	$proceed = false;
 	if (is_dir($this->controllersFolder.$name) && strlen($next)==0) {
 		//print "IS DIR && SEARCH FOR DEFCONTROLLER" . "<br/>";
@@ -466,17 +459,27 @@ private final function load_controller($name,$next) {
 	if ($proceed) {
 		ob_start();
 		$namel = $name.".php";
+		/*
 		if ($this->rewriteRulesEnabled) {
-				$strx = "//" . $_SERVER['HTTP_HOST']."/";		
-			} else 
-				$strx = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME']."/";		
+			$strx = "//" . $_SERVER['HTTP_HOST'];		
+		} else 
+			$strx = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];	
+		*/
+		if ($this->rewriteRulesEnabled) {
+	 		if (substr($_SERVER['HTTP_HOST'], -1) == "/")
+	 			$srv = substr($_SERVER['HTTP_HOST'], 0, -1);
+	 		else
+	 			$srv = $_SERVER['HTTP_HOST'];
+
+	 		$strx = "//" . $srv;
+	 	}	 		
+	 	else
+	 		$strx = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];	
+	 	$this->controllersFolderHTTP = $strx;
 		$this->sameControllerFolderHTTP = $strx.str_replace($this->origControllerFolderName,"",$this->controllersFolder);
 		if (file_exists($this->controllersFolder.$namel)) {	
-
-			$this->debug("eemvcil.php:". __LINE__ . ": Index: Loading controller: ".$this->controllersFolder.$name);	
-			
-			$this->debug("eemvcil.php:". __LINE__ . ": SCFH: ".$this->sameControllerFolderHTTP);	
-
+			$this->debug("eemvcil.php:". __LINE__ . ": Index: Loading controller: ".$this->controllersFolder.$name);			
+			$this->debug("eemvcil.php:". __LINE__ . ": SCFH: ".$this->sameControllerFolderHTTP);
 			include_once($this->controllersFolder.$namel);
 			$no = $name;				
 			$name = ucfirst($name);
@@ -518,9 +521,7 @@ private final function load_controller($name,$next) {
 				$this->raiseError("e404mnf",array("Error_Type"=> "Method not found", "Error_Msg"=>"Method \"".ucfirst($next). "\" not found in \"".$this->controllersFolder.ucfirst($name)."\"."),$ctl_folder,true,__LINE__,__FILE__);
 			}
 		}
-
 		if (file_exists($this->controllersFolder.$this->defcontroller.".php")) {
-
 			include_once($this->controllersFolder.$this->defcontroller.".php");				
 			$name2 = ucfirst($this->defcontroller);			
 			$ctrl = new $name2($this->ee,$this);				
@@ -531,8 +532,7 @@ private final function load_controller($name,$next) {
 			if ($checkifmethodexistsindefcontroller) {
 				if(method_exists($name2,$name)) {
 					$this->controllername = $this->defcontroller;
-					if (strlen($next) == 0) {	
-											
+					if (strlen($next) == 0) {												
 						if (method_exists($name2,'__startup')) {
 							$ctrl->functionName = "__startup";
 							$ctrl->__startup();	
@@ -565,84 +565,73 @@ private final function load_controller($name,$next) {
 	}	
 	return $this->output;		 
 }
-
-	 private $ctl_folder; /// System Variable for the controllers folder.
-	 
-	 /// This function will raise an error to the user, if is defined by the developer, it will call the error controller, if not it will raise a default exengine 7 errorExit.
-	 final private function raiseError($error,$data,$controllersfolder=null,$noexit=false,$linenumber=__LINE__,$file=__FILE__) {
-	 	if ($controllersfolder == null )
-	 		$controllersfolder = $this->controllersFolder;	 	
-	 	if ($this->errorHandler) {
-	 		if (file_exists($controllersfolder.$this->errorHandler.".php")) {
-	 			include_once($controllersfolder.$this->errorHandler.".php");
-	 			$name = ucfirst($this->errorHandler);
-	 			$ctrl = new $name($this->ee,$this);
-	 			
-	 			if (method_exists($name,$error)) {
-	 				call_user_func_array(array($ctrl, $error), $data);
-	 			} else {
-	 				if ($this->ee->cArray["debug"])
-	 					$this->ee->errorExit("MVC-ExEngine: Error ".$error,print_r($data,true)."
-					<br/>
-					"."Line Number: ".$linenumber."
-					<br/>
-					"."File: ".$file,null,$noexit);
-	 				else {
-	 					$this->ee->errorExit("Application Error #".$error,"Powered by MVC-ExEngine",null,$noexit);
-	 				}
-	 			}				
-	 		}
-	 	} else {
-	 		if ($this->ee->cArray["debug"])
-				$this->ee->errorExit("MVC-ExEngine: Error ".$error,print_r($data,true)."
-					<br/>
-					"."Line Number: ".$linenumber."
-					<br/>
-					"."File: ".$file,null,$noexit);
-			else {
-				$this->ee->errorExit("Application Error #".$error,"Powered by MVC-ExEngine",null,$noexit);
-			}
-	 	}
-	 }
-	 
-	 /// This function will parse the URL.
-	 final private function parseURL() {	 	
-		$ru = $_SERVER['REQUEST_URI'];
-		$sn = $_SERVER['SCRIPT_NAME'];
-
-		//print $ru ."<br/>";
-		if (!$this->rewriteRulesEnabled) {
-			if (!$this->ee->strContains($ru,$this->indexname)) {
-				$ru = $ru.$this->indexname;
-			}
+private $ctl_folder; /// System Variable for the controllers folder.
+/// This function will raise an error to the user, if is defined by the developer, it will call the error controller, if not it will raise a default exengine 7 errorExit.
+final private function raiseError($error,$data,$controllersfolder=null,$noexit=false,$linenumber=__LINE__,$file=__FILE__) {
+ 	if ($controllersfolder == null )
+ 		$controllersfolder = $this->controllersFolder;	 	
+ 	if ($this->errorHandler) {
+ 		if (file_exists($controllersfolder.$this->errorHandler.".php")) {
+ 			include_once($controllersfolder.$this->errorHandler.".php");
+ 			$name = ucfirst($this->errorHandler);
+ 			$ctrl = new $name($this->ee,$this);
+ 			
+ 			if (method_exists($name,$error)) {
+ 				call_user_func_array(array($ctrl, $error), $data);
+ 			} else {
+ 				if ($this->ee->cArray["debug"])
+ 					$this->ee->errorExit("MVC-ExEngine: Error ".$error,print_r($data,true)."
+				<br/>
+				"."Line Number: ".$linenumber."
+				<br/>
+				"."File: ".$file,null,$noexit);
+ 				else {
+ 					$this->ee->errorExit("Application Error #".$error,"Powered by MVC-ExEngine",null,$noexit);
+ 				}
+ 			}				
+ 		}
+ 	} else
+ 		if ($this->ee->cArray["debug"])
+			$this->ee->errorExit("MVC-ExEngine: Error ".$error,print_r($data,true)."
+				<br/>
+				"."Line Number: ".$linenumber."
+				<br/>
+				"."File: ".$file,null,$noexit);
+		else
+			$this->ee->errorExit("Application Error #".$error,"Powered by MVC-ExEngine",null,$noexit);
+ }
+ 
+ /// This function will parse the URL.
+ final private function parseURL() {	 	
+	$ru = $_SERVER['REQUEST_URI'];
+	$sn = $_SERVER['SCRIPT_NAME'];
+	//print $ru ."<br/>";
+	if (!$this->rewriteRulesEnabled) {
+		if (!$this->ee->strContains($ru,$this->indexname)) {
+			$ru = $ru.$this->indexname;
 		}
-
-		//print $ru . "<br/>";
-		//print $sn . "<br/>";
-
-		$data = str_replace($sn,"",$ru);
-
-		//print $data . "<br/>";
-		if ($data[strlen($data)-1] == "/") {
-			$data = substr($data, 0, -1);
-		}		 	
-		$x = explode("/",$data);
-		for ($i=0 ; $i<count($x) ; $i++) {
-			$x[$i] = urldecode($x[$i]);
-		}
-		$actualInputQuery = $data;
-		$urlParsedData = array_slice($x,1);
-		if (strlen($urlParsedData[count($urlParsedData)-1]) == 0) {
-			unset ($urlParsedData[count($urlParsedData)-1]);
-		}
-		$this->actualInputQuery = $actualInputQuery;
-		$this->urlParsedData = $urlParsedData;
-		$this->unModUrlParsedData = $urlParsedData;	 	
-
-
-
-	 	$this->debug("eemvcil.php:". __LINE__ . ": Parsed Data: " . print_r($this->urlParsedData,true));
-	 }
+	}
+	//print $ru . "<br/>";
+	//print $sn . "<br/>";
+	$data = str_replace($sn,"",$ru);
+	//print $data . "<br/>";
+	if ($data[strlen($data)-1] == "/") {
+		$data = substr($data, 0, -1);
+	}		 	
+	$x = explode("/",$data);
+	for ($i=0 ; $i<count($x) ; $i++) {
+		$x[$i] = urldecode($x[$i]);
+	}
+	$actualInputQuery = $data;
+	$urlParsedData = array_slice($x,1);
+	if (strlen($urlParsedData[count($urlParsedData)-1]) == 0) {
+		unset ($urlParsedData[count($urlParsedData)-1]);
+	}
+	$this->actualInputQuery = $actualInputQuery;
+	$this->urlParsedData = $urlParsedData;
+	$this->unModUrlParsedData = $urlParsedData;	 	
+	$this->debug("eemvcil.php:". __LINE__ . ": Parsed Data: " . print_r($this->urlParsedData,true));
+}
 	 
 	 /// This function sets the static folder path.
 	 final function setStaticFolder() {	 	
