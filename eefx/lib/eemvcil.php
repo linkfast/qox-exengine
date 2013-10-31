@@ -3,7 +3,7 @@
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com>
 <gchiappe@gmail.com>
-	@version 0.0.1.31
+	@version 0.0.1.32
 
 @section LICENSE
 
@@ -37,7 +37,7 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.31"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.32"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -775,7 +775,13 @@ final private function raiseError($error,$data,$controllersfolder=null,$noexit=f
 	}
 	
 	final function post($element) {
-		return @$_POST[$element];	
+		//support for json_post (angularJS)
+		$data2 = @json_decode(file_get_contents('php://input'));
+		if ($data2 instanceof stdClass) {
+			$pd = get_object_vars($data2);
+			return @$pd[$element];
+		} else
+			return @$_POST[$element];	
 	}
 	
 	final function file($pname) {
