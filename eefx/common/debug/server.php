@@ -1,13 +1,7 @@
 <?
-/*
-session_start();
-include_once("../../../ee.php");
-$ee = new exengine(array("SilentMode"=>true));
-*/
 if (isset($_POST['cmd'])) {
 	$c = $_POST['cmd'];
 }
-
 if ($c == "getApps") {
 	if (isset($_SESSION["exengine-debugger-apps"])) {
 		$apps = $_SESSION["exengine-debugger-apps"];
@@ -20,20 +14,17 @@ if ($c == "getApps") {
 	}
 	print json_encode($res);	
 }
-
 if ($c == "cleanAll") {
 	$cleaned = $ee->debugCleanAll();
 	print json_encode(array("result"=>$cleaned));
 	
 	$ee->debugThis("Debug App Server","All data cleaned.");
 }
-
 if ($c == "getMessages") {
 	$inApp = $_POST['gApp'];
 	$mess = $_SESSION[$inApp];
 	if (is_array($mess)) {
 		$mess = array_reverse($mess);
-		$mess = implode("(*)",$mess);
 		$ee->debugThis("Debug App Server","Messages for $inApp served.");
 	}
 	if ($mess == null) {

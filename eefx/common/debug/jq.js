@@ -1,4 +1,4 @@
-// ExEngine 7 / Debugger Javascript 1.0.1
+// ExEngine / Debugger Javascript 1.0.2
 /*
 	This file is part of ExEngine7.
 
@@ -59,7 +59,7 @@ function getMessages() {
 		$.post(self+"?aserver=true",
 			   {cmd:"getMessages",gApp:selectedApp},
 			   function(data){
-				   mess = data.result.split("(*)");
+				   mess = data.result;
 				   $("#messages-app").html("");
 					for (i=0;i<mess.length;i++) {
 						pre = $("#messages-app").html();

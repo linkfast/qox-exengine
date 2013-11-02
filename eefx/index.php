@@ -1,7 +1,7 @@
 <?php
 /*
  This file is part of ExEngine.
- Copyright © LinkFast Company
+ Copyright © QOX Corporation
 
  ExEngine is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser Gereral Public Licence as published by the Free Software Foundation; either version 2 of the Licence, or (at your opinion) any later version.
 
