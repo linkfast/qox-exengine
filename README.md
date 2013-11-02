@@ -15,6 +15,7 @@ Quick Start MVC Application
 3. Copy all files to that folder (download as zip or submodule it).
 4. Create an index.php file that will serve all calls in the root of your app.
 5. Copy this code into that file, and modify paths if necessary.
+
 ```php
 	<?php
 		include_once("libs/ee/ee.php");
@@ -27,6 +28,7 @@ Quick Start MVC Application
 6. Create these folders: models, views, controllers and static in the root of your app.
 7. Create a new Controller to test the install, create a file called "start.php" inside the controllers folder.
 8. Copy this code into start.php:
+
 ```php
 	<?php
 		class Start extends eemvc_controller {
@@ -39,6 +41,7 @@ Quick Start MVC Application
 	?>
 ```
 9. Edit "libs/ee/eefx/cfg.php" and set correctly the path to the ExEngine install, modify the following line:
+
 ```php
 	[...]
 		"http_path" => "/myapp/libs/ee/"
@@ -61,6 +64,7 @@ Quick Start Application
 2. Create a folder for libraries (ie. libs) and inside it create a folder for ExEngine, (ie. ee).
 3. Copy all files to that folder (download as zip or submodule it).
 4. Edit "libs/ee/eefx/cfg.php" and set correctly the path to the ExEngine install, modify the following line:
+
 ```php
 	[...]
 		"http_path" => "/myapp/libs/ee/"
@@ -68,6 +72,7 @@ Quick Start Application
 ```
 You can also modify the default database array in order to use ExEngine Database Manager.
 5. Start using ExEngine in your application files:
+
 ```php
 	<?php
 		include_once("libs/ee/ee.php");
@@ -85,7 +90,7 @@ You can also modify the default database array in order to use ExEngine Database
 
 To-Do
 =====
-	- Documentation
+- Documentation
 
 How To Install
 ==============
