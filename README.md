@@ -1,18 +1,18 @@
-ExEngine
-========
+QOX ExEngine Application Framework
+==================================
 
-ExEngine PHP Open Source Framework
+ExEngine PHP Opensource Framework
 
 Git nightly repository.
 
-Homepage: (under development http://oss.qox-corp.com/exengine)
+Homepage: (under development http://aldea.linkfastsa.com/proyectos/exengine/)
  
 Quick Start MVC Application
 ===========================
 
 1. Create a folder for you app.
-2. Create a folder for libraries (ie. libs) and inside it create a folder for ExEngine7, (ie. ee).
-3. Copy all files to that folder (download as zip or clone).
+2. Create a folder for libraries (ie. libs) and inside it create a folder for ExEngine, (ie. ee).
+3. Copy all files to that folder (download as zip or submodule it).
 4. Create an index.php file that will serve all calls in the root of your app.
 5. Copy this code into that file, and modify paths if necessary.
 
@@ -49,14 +49,42 @@ Quick Start MVC Application
 10. Access your app through a web browser. (i.e. http://localhost/myapp/) .
 
 Note: The access to controllers is this way:
-	http://localhost/myapp/index.php/CONTROLLER_NAME/FUNCTION_NAME/PARAMETER1/PARAMETER2/?GET1=VAL&GET2=VAL
-	
-	FUNCTION_NAME is a function inside the controller class.
-	PARAMETER1, PARAMETER2... are the parameter or parameters of the function (if has parameters), the first one will be the first one of the function too.
-	GET1, etc. are the standard GET method values.
+http://localhost/myapp/index.php/CONTROLLER_NAME/FUNCTION_NAME/PARAMETER1/PARAMETER2/?GET1=VAL&GET2=VAL
 
-	You can also pass POST values to a Function inside a Controller.
+FUNCTION_NAME is a function inside the controller class.
+PARAMETER1, PARAMETER2... are the parameter or parameters of the function (if has parameters), the first one will be the first one of the function too.
+GET1, etc. are the standard GET method values.
+
+You can also pass POST values to a Function inside a Controller.
 	
+Quick Start Application
+=======================
+1. Create a folder for you app.
+2. Create a folder for libraries (ie. libs) and inside it create a folder for ExEngine, (ie. ee).
+3. Copy all files to that folder (download as zip or submodule it).
+4. Edit "libs/ee/eefx/cfg.php" and set correctly the path to the ExEngine install, modify the following line:
+	```php
+	[...]
+		"http_path" => "/myapp/libs/ee/"
+	[...]
+	```
+	You can also modify the default database array in order to use ExEngine Database Manager.
+5. Start using ExEngine in your application files:
+```php
+	<?php
+		include_once("libs/ee/ee.php");
+		$ee = new exengine();
+		
+		$str1 = "hello world";
+		$str2 = "world";
+
+		if ($ee->strContains($str1,$str2))
+			echo $str2 . ' is in ' . $str1 ;
+		else
+			echo 'What?';
+	?>
+```
+
 To-Do
 =====
 	- Documentation
@@ -71,8 +99,8 @@ Remember that when changing version numbers (or revision) may be minor or mayor 
 
 The release of this product is under the GPL license, so its use is at your own risk. No warranties provided.
 
-ExEngine Homepage: (under development http://oss.qox-corp.com/exengine)
+ExEngine Homepage: (under development http://aldea.linkfastsa.com/proyectos/exengine/)
 
-ExEngine 7 Wiki  : (under development http://oss.qox-corp.com/wikis/ee)
+ExEngine 7 Wiki  : (under development http://aldea.linkfastsa.com/proyectos/exengine/wiki/)
 
-(C) 2013 QOX Corporation (qox-corp.com)
+(C) 2013 LinkFast Company (http://www.linkfastsa.com/)
