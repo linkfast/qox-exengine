@@ -1,6 +1,5 @@
 QOX ExEngine Application Framework
 ==================================
-
 ExEngine PHP Opensource Framework
 
 Git nightly repository.
@@ -9,12 +8,11 @@ Homepage: (under development http://oss.qox-corp.com/exengine)
  
 Quick Start MVC Application
 ===========================
-
-1. Create a folder for you app.
-2. Create a folder for libraries (ie. libs) and inside it create a folder for ExEngine, (ie. ee).
-3. Copy all files to that folder (download as zip or submodule it).
-4. Create an index.php file that will serve all calls in the root of your app.
-5. Copy this code into that file, and modify paths if necessary.
+- Create a folder for you app.
+- Create a folder for libraries (ie. libs) and inside it create a folder for ExEngine, (ie. ee).
+- Copy all files to that folder (download as zip or submodule it).
+- Create an index.php file that will serve all calls in the root of your app.
+- Copy this code into that file, and modify paths if necessary.
 
 ```php
 	<?php
@@ -25,9 +23,9 @@ Quick Start MVC Application
 		$mvc->start();
 	?>
 ```
-6. Create these folders: models, views, controllers and static in the root of your app.
-7. Create a new Controller to test the install, create a file called "start.php" inside the controllers folder.
-8. Copy this code into start.php:
+- Create these folders: models, views, controllers and static in the root of your app.
+- Create a new Controller to test the install, create a file called "start.php" inside the controllers folder.
+- Copy this code into start.php:
 
 ```php
 	<?php
@@ -40,14 +38,14 @@ Quick Start MVC Application
 		}
 	?>
 ```
-9. Edit "libs/ee/eefx/cfg.php" and set correctly the path to the ExEngine install, modify the following line:
+- Edit "libs/ee/eefx/cfg.php" and set correctly the path to the ExEngine install, modify the following line:
 
 ```php
 	[...]
 		"http_path" => "/myapp/libs/ee/"
 	[...]
 ```
-10. Access your app through a web browser. (i.e. http://localhost/myapp/) .
+- Access your app through a web browser. (i.e. http://localhost/myapp/) .
 
 Note: The access to controllers is this way:
 http://localhost/myapp/index.php/CONTROLLER_NAME/FUNCTION_NAME/PARAMETER1/PARAMETER2/?GET1=VAL&GET2=VAL
@@ -60,10 +58,10 @@ You can also pass POST values to a Function inside a Controller.
 	
 Quick Start Application
 =======================
-1. Create a folder for you app.
-2. Create a folder for libraries (ie. libs) and inside it create a folder for ExEngine, (ie. ee).
-3. Copy all files to that folder (download as zip or submodule it).
-4. Edit "libs/ee/eefx/cfg.php" and set correctly the path to the ExEngine install, modify the following line:
+- Create a folder for you app.
+- Create a folder for libraries (ie. libs) and inside it create a folder for ExEngine, (ie. ee).
+- Copy all files to that folder (download as zip or submodule it).
+- Edit "libs/ee/eefx/cfg.php" and set correctly the path to the ExEngine install, modify the following line:
 
 ```php
 	[...]
@@ -71,7 +69,7 @@ Quick Start Application
 	[...]
 ```
 You can also modify the default database array in order to use ExEngine Database Manager.
-5. Start using ExEngine in your application files:
+- Start using ExEngine in your application files:
 
 ```php
 	<?php
@@ -94,7 +92,6 @@ To-Do
 
 How To Install
 ==============
-
 If not using Git Tools, just click ZIP icon at the top of the page to get the latest nightly release.
 Remember that EE7 is an alpha product, but the releases contains minimal bugs, and is ready to development builds of your project.
 
