@@ -5,7 +5,7 @@ ExEngine PHP Opensource Framework
 
 Git nightly repository.
 
-Homepage: (under development http://aldea.linkfastsa.com/proyectos/exengine/)
+Homepage: (under development http://oss.qox-corp.com/exengine)
  
 Quick Start MVC Application
 ===========================
@@ -41,11 +41,11 @@ Quick Start MVC Application
 	?>
 ```
 9. Edit "libs/ee/eefx/cfg.php" and set correctly the path to the ExEngine install, modify the following line:
-	```php
+```php
 	[...]
 		"http_path" => "/myapp/libs/ee/"
 	[...]
-	```
+```
 10. Access your app through a web browser. (i.e. http://localhost/myapp/) .
 
 Note: The access to controllers is this way:
@@ -63,11 +63,11 @@ Quick Start Application
 2. Create a folder for libraries (ie. libs) and inside it create a folder for ExEngine, (ie. ee).
 3. Copy all files to that folder (download as zip or submodule it).
 4. Edit "libs/ee/eefx/cfg.php" and set correctly the path to the ExEngine install, modify the following line:
-	```php
+```php
 	[...]
 		"http_path" => "/myapp/libs/ee/"
 	[...]
-	```
+```
 	You can also modify the default database array in order to use ExEngine Database Manager.
 5. Start using ExEngine in your application files:
 ```php
@@ -99,8 +99,8 @@ Remember that when changing version numbers (or revision) may be minor or mayor 
 
 The release of this product is under the GPL license, so its use is at your own risk. No warranties provided.
 
-ExEngine Homepage: (under development http://aldea.linkfastsa.com/proyectos/exengine/)
+ExEngine Homepage: (under development  http://oss.qox-corp.com/exengine)
 
-ExEngine 7 Wiki  : (under development http://aldea.linkfastsa.com/proyectos/exengine/wiki/)
+ExEngine 7 Wiki  : (under development  http://oss.qox-corp.com/wikis/ee)
 
-(C) 2013 LinkFast Company (http://www.linkfastsa.com/)
+(C) 2013 QOX Corporation - qox-corp.com
