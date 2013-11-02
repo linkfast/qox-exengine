@@ -3,7 +3,7 @@
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com>
 <gchiappe@gmail.com>
-	@version 0.0.1.32
+	@version 0.0.1.33
 
 @section LICENSE
 
@@ -37,7 +37,7 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.32"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.33"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -1063,6 +1063,17 @@ class eemvc_model_dbo extends eemvc_model {
 		return $vars;
 	}
 
+	public function __toArray() {
+		$obj = clone $this;
+		unset($obj->db);
+		unset($obj->r);
+		unset($obj->TABLEID);
+		unset($obj->INDEXKEY);
+		if (isset($obj->EXCLUDEVARS))
+			unset($obj->EXCLUDEVARS);
+		return get_object_vars($obj);
+	}
+
 	public function __toString() {
 		$obj = clone $this;
 		unset($obj->db);
@@ -1207,12 +1218,9 @@ class eemvc_model_dbo extends eemvc_model {
 		$data = $this->db->fetchArray($q,$SafeMode,MYSQLI_ASSOC);
 		unset($data[$this->INDEXKEY]);
 		$keys = @array_keys($data);
-		for ($c = 0; $c
-													< count($keys); $c++) {
-			$this->
-														$keys[$c] = $data[$keys[$c]];	
-		}
-		
+		for ($c = 0; $c < count($keys); $c++) {
+			$this->$keys[$c] = $data[$keys[$c]];	
+		}		
 		if (method_exists($this,'__aftload')) {
 			return $this->__aftload();	
 		} else

@@ -112,8 +112,8 @@ a:active {
 			<tr>
 				<td colspan="2" align="center" bgcolor="#333333"><p>&nbsp;</p>
 					<p>
-						<a href="javascript:cleanDebug();">Clean All</a> | <a
-							href="javascript:refreshApps();">Refresh Apps</a> | <span
+						<a href="javascript:cleanDebug();">Clean All</a> | <a 
+							href="javascript:refreshApps();">Refresh Apps</a> | <span 
 							class="notAvailable">Help</span>
 					</p>
 					<p>&nbsp;</p></td>
@@ -134,8 +134,8 @@ a:active {
 					<p class="notAvailable">Export</p>
 					<p class="notAvailable">Print</p>
 					<p>
-						<a href="javascript:changeFontSize('messages-app','2');">A</a> / <span
-							style="font-size: 10px"><a
+						<a href="javascript:changeFontSize('messages-app','2');">A</a> / <span 
+							style="font-size: 10px"><a 
 							href="javascript:changeFontSize('messages-app','-2');">A</a> </span>
 					</p></td>
 				<td colspan="2" bgcolor="#666666"><div id="messages-app"
@@ -152,7 +152,7 @@ a:active {
 			</tr>
 		</table>
 		<p style="color: #000;">
-			LinkFast<strong>ExEngine/<? print $ee->miscGetVersion(); ?> </strong>
+			QOX<strong>ExEngine/<? print $ee->miscGetVersion(); ?> </strong>
 		</p>
 	</div>
 </body>

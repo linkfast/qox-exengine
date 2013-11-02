@@ -29,7 +29,7 @@ $version = $ee->miscGetVersion()." ".exengine::RELEASE;
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>ExCommander 7</title>
+<title>QOX ExEngine Commander</title>
 <?
 $ac2->init();
 $ac2->visualWeb_init();
@@ -82,13 +82,13 @@ function comm_genCleanUrl() {
 
 <body>
 <div align="center">
-  <p><img src="ee7_th.png" width="223" height="159" alt="ExEngine 7 Logo" /><br/>
+  <p><img src="ee7_th.png" alt="QOX ExEngine Logo" /><br/>
   </p>
   <table width="70%" border="0" cellspacing="0" cellpadding="0">
     <tr>
       <td><h1><strong>Welcome</strong>! </h1>
-        <p>ExCommander 7 is a easy to use administration utility, you can install ExtendedEngines, MixedEngines, access to ExEngine 7 Command Line interpreter and some more tools. If you are a ExEngine 6 developer this is something like ExEngine6's Tool-Kit.        </p>
-        <h2>Please enter EE7-Commander Password</h2>
+        <p>ExCommander is a easy to use administration utility, you can install ExtendedEngines, MixedEngines, access to ExEngine Command Line interpreter and some more tools. If you are a ExEngine 6 developer this is something like ExEngine6's Tool-Kit.        </p>
+        <h2>Please enter EE-Commander Password</h2>
         <div align="center">
         <table width="70%" border="0" cellspacing="0" cellpadding="0">
           <tr>
@@ -128,10 +128,10 @@ function comm_genCleanUrl() {
       <p>&nbsp;</p></td>
     </tr>
     <tr>
-      <td align="center" class="vw_Small">ExEngine Commander 7 (1.0.0.0) | AjaxCore2 VisualWeb Powered</td>
+      <td align="center" class="vw_Small">ExEngine Commander (1.0.0.0) | AjaxCore2 VisualWeb Powered</td>
     </tr>
   </table>
-  <p>LinkFast<strong>ExEngine/<? print $version; ?> </strong></p>
+  <p>QOX<strong>ExEngine/<? print $version; ?> </strong></p>
 </div>
 </body>
 </html>

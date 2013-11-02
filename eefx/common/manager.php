@@ -45,7 +45,7 @@ if (isset($_POST['comm_passw'])) {
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>ExEngine 7 Extension Manager</title>
+<title>QOX ExEngine Extension Manager</title>
 <?
 $ac2->init();
 $ac2->visualWeb_init();
@@ -60,15 +60,15 @@ function comm_postPw() {
 
 <body>
 <div align="center">
-  <p><img src="ee7_th.png" width="223" height="159" alt="ExEngine 7 Logo" /><br/>
+  <p><img src="ee7_th.png" alt="QOX ExEngine Logo" /><br/>
   </p>
   <table width="70%" border="0" cellspacing="0" cellpadding="0">
     <tr>
       <td>
       <? if (!isset($_SESSION['EE7COMMANDER_AUTH']) || !$_SESSION['EE7COMMANDER_AUTH']) { ?>
     <h1><strong>Welcome</strong>! </h1>
-    <p>ExEngine Extension manager is a MixedEngine and plugin manager for ExEngine 7, please use EE7-Commander Password to enter.</p>
-    <h2>Please enter EE7-Commander Password</h2>
+    <p>ExEngine Extension manager is a MixedEngine and plugin manager for ExEngine, please use EE-Commander Password to enter.</p>
+    <h2>Please enter EE-Commander Password</h2>
     <div align="center">
     <table width="70%" border="0" cellspacing="0" cellpadding="0">
       <tr>
@@ -83,7 +83,7 @@ function comm_postPw() {
     </table>
     </div>
     <? } else { ?>
-      <h2>ExEngine 7 Extension Manager</h2>
+      <h2>ExEngine Extension Manager</h2>
       <p align="center">Home | Manage Extensions | Configuration | <a href="?logout">Logout ExCommander7</a></p>
       <p>&nbsp;</p>
       <p>&nbsp;</p>
@@ -92,10 +92,10 @@ function comm_postPw() {
       </td>
     </tr>
     <tr>
-      <td align="center" class="vw_Small">ExEngine Commander 7 (1.0.0.0) | AjaxCore2 VisualWeb Powered</td>
+      <td align="center" class="vw_Small">ExEngine Commander (1.0.0.0) | AjaxCore2 VisualWeb Powered</td>
     </tr>
   </table>
-  <p>LinkFast<strong><strong>ExEngine</strong>/<? print $ee->miscGetVersion(); ?> </strong></p>
+  <p>QOX<strong><strong>ExEngine</strong>/<? print $ee->miscGetVersion(); ?> </strong></p>
 </div>
 </body>
 </html>

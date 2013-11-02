@@ -13,7 +13,7 @@ $loc_https = "https://".$locee_http;
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>ExEngine 7 Setup</title>
+<title>ExEngine Setup</title>
 <style type="text/css">
 <!--
 body,td,th {
@@ -275,7 +275,7 @@ a:active {
       <td align="right">&nbsp;</td>
     </tr>
   </table>
-  <p><strong>ExEngine/<? print $ee->miscGetVersion()." ".exengine::RELEASE; ?> </strong></p>
+  <p>QOX<strong>ExEngine/<? print $ee->miscGetVersion()." ".exengine::RELEASE; ?> </strong></p>
 </div>
 </body>
 </html>

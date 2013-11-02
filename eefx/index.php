@@ -49,8 +49,8 @@ body {
 <body>
 	<div align="center">
 		<p>&nbsp;</p>
-		<p> <a href="http://wiki.aldealinkfast.com/exengine/" target="_blank"><img src="common/ee7_full.png" alt="ExEngine 7" width="413"
-				height="117" border="0" /></a><br /> LinkFast<strong>ExEngine/<? print $version ; ?>
+		<p> <a href="http://wiki.aldealinkfast.com/exengine/" target="_blank"><img src="common/ee7_full.png" alt="ExEngine 7" border="0" /></a><br />
+		 QOX<strong>ExEngine/<? print $version ; ?>
 			</strong>
 			<?php if ($ee->cArray["debug"]) { ?>
 			<span style="color: #F00; font-weight: bold;">(debug-mode enabled)</span>

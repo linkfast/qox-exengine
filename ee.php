@@ -1,8 +1,8 @@
 <?php
 /**
 @file ee.php
-@author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 7.0.8.33
+@author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@gmail.com>
+@version 7.0.8.34
 
 @section LICENSE
 
@@ -18,14 +18,15 @@ if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 
 @section DESCRIPTION
 
-ExEngine 7 Core
+ExEngine Core
 
-ExEngine 7 Framework core, this file contains the EE7 main functions, and the needed ones to load any module that extend the framework functionality.
+ExEngine Framework core, this file contains the EE7 main functions, and the needed ones to load any module that extend the framework functionality.
 */
 
-// LinkFast ExEngine 7
+// QOX ExEngine
 // Copyright © 1999-2008 DarkGiank Software
 // Copyright © 2009-2013 LinkFast Company
+// Copyright © 2013 QOX Corporation (qox-corp.com)
 //
 // Based on DGS ExEngine by Giancarlo Chiappe Aguilar
 
@@ -55,25 +56,27 @@ class exengine {
 	
 	public $forwardMode = false; 	/// ExEngine 6 ForwardMode controller.
 	public $ee6version = "6.4.3.2";	/// ExEngine 6 ForwardMode Version
+
+	public $is64bit=false; /// Check for 64-bit execution, useful when using very big integers.
 	
 	public $msEnabled = false; /// Multi-Site (MuS) Mode (Like- ExEngine 6 MU)	
 	
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 33;	
+	const V_REVIS = 34;	
 	
-	const REL_DATE = "30 OCT 2013";
+	const REL_DATE = "01 NOV 2013";
 	
 	const RELEASE = "alpha";
 	
-	const EE7WP = "http://www.aldealinkfast.com/oss/exengine7/";
+	const EE7WP = "http://opensource.qox-corp.com/exengine";
 	
 	#New mode for avoiding passing the parent object to every object that uses EE.
 	private static $instance = false;
 	
 	// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array) ( no operational yet =( )
-	const COMUPS_SERVER = "update.aldealinkfast.com"; /// Comups update server for update checking.
+	const COMUPS_SERVER = "update-1.qox-corp.com"; /// Comups update server for update checking.
 	const COMUPS_PKG	= "exengine7"; /// Comups package name for version checking.
 	
 	public static function &get_instance()
@@ -176,6 +179,14 @@ class exengine {
 		$this->libLoad();
 
 		self::$instance =& $this;	
+
+		#Check 64-bit System
+		if (strlen(PHP_INT_MAX)>=19) {
+			$this->is64bit = true;
+		} else {
+			$this->is64bit = false;			
+			$this->errorWarning("ExEngine is running in a 32-bit enviroment, 64-bit is recommended for very big integer support.");
+		}
 			
 		if (defined('STDIN')) { echo 'X-Powered by ExEngine 7 ('.$this->miscUName().")\n"; }
 
@@ -332,7 +343,7 @@ class exengine {
 			if ($this->argsGet("VisualError")) {
 				if (!defined('STDIN')) {
 					if ($wikiPage) {
-						$mess .= '<br/><br/> <a href="http://aldea.linkfastsa.com/proyectos/exengine/wiki/index.php?title='.$wikiPage.'">More information...</a>';	
+						$mess .= '<br/><br/> <a href="http://oss.qox-corp.com/wikis/ee/index.php?title='.$wikiPage.'">More information...</a>';	
 					}
 					print "<h2>".$title."</h2><br/>".$mess;
 					if ($this->argsGet("HaltOnError"))
@@ -342,7 +353,7 @@ class exengine {
 						}
 				} else {
 					if ($wikiPage)
-						$mess .= ' More Info at: http://aldea.linkfastsa.com/proyectos/exengine/wiki/index.php?title='.$wikiPage;
+						$mess .= ' More Info at: http://oss.qox-corp.com/wikis/ee/index.php?title='.$wikiPage;
 					echo $title.' -> '. $mess . "\n";
 					if (!$noexit) {
 						print "ExEngine Core halted.\n";
@@ -384,7 +395,7 @@ class exengine {
 	
 	final function errorLib($libName) {
 		if (!class_exists($libName)) {
-			$this->errorExit("ExEngine Library Error [XC03]","Enable Library load to use some EE7 functions, like 'meLoad'.<br/><a href=\"http://aldea.linkfastsa.com/proyectos/exengine/wiki/index.php?title=Library_(English)#Provides\" target=\"_blank\">More info</a>.");
+			$this->errorExit("ExEngine Library Error [XC03]","Enable Library load to use some EE7 functions, like 'meLoad'.<br/><a href=\"http://oss.qox-corp.com/wikis/ee/index.php?title=Library_(English)#Provides\" target=\"_blank\">More info</a>.");
 		}
 	}
 	
@@ -1062,7 +1073,7 @@ final function meGetResPath($engine,$mode="full") {
 	}
 	#For EE6's ForwardMode Compatibility
 	const REALVERSION = "7.0.8";
-	const BUILD = 33;
+	const BUILD = 34;
 }
 
 //Prevent from non-include access

@@ -1,6 +1,16 @@
 # Example location parts of a working Nginx, PHP-FPM and ExEngine 7-MVC, also compatible with standard PHP scripts.
 # Copy into the server section of your enabled site, modify if necessary.
 # ExEngine 7-MVC + NGINX .START.
+
+	# This will enable rewrite engine for ExEngine clean URIs (without index.php), only works from root of the domain or subdomain.
+	# Uncomment to enable.
+	#if (!-e $request_filename)
+	#{
+	#	rewrite ^/(.*)$ /index.php?/$1 last;
+	#	break;
+	#}
+	#rewrite engine .end.
+
         location ~ ^(?P<script_name>.+\.php)$ {
                 try_files $script_name =404;
 		

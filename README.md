@@ -1,11 +1,11 @@
-ExEngine 7
-==========
+ExEngine
+========
 
-ExEngine 7 PHP Open Source Framework
+ExEngine PHP Open Source Framework
 
 Git nightly repository.
 
-Homepage: (under development http://aldea.linkfastsa.com/proyectos/exengine/)
+Homepage: (under development http://oss.qox-corp.com/exengine)
  
 Quick Start MVC Application
 ===========================
@@ -71,8 +71,8 @@ Remember that when changing version numbers (or revision) may be minor or mayor 
 
 The release of this product is under the GPL license, so its use is at your own risk. No warranties provided.
 
-ExEngine Homepage: (under development http://aldea.linkfastsa.com/proyectos/exengine/)
+ExEngine Homepage: (under development http://oss.qox-corp.com/exengine)
 
-ExEngine 7 Wiki  : (under development http://aldea.linkfastsa.com/proyectos/exengine/wiki/)
+ExEngine 7 Wiki  : (under development http://oss.qox-corp.com/wikis/ee)
 
-(C) 2013 LinkFast Company (http://www.linkfastsa.com/)
+(C) 2013 QOX Corporation (qox-corp.com)
