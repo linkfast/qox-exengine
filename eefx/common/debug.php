@@ -1,5 +1,5 @@
 <?php
-// ExEngine 7 / Debugger 1.1.1 BETA
+// ExEngine 7 / Debugger 1.1.2 BETA
 /*
  This file is part of ExEngine7.
 
@@ -95,13 +95,13 @@ a:active {
 
 <body>
 	<p align="center">
-		<img src="<? print $ee->miscGetResPath($mode="http")."ee7_th.png"; ?>" />
+		<img src="<? print $ee->miscGetResPath($mode="http")."ee7_full.png"; ?>" />
 	</p>
 	<div align="center">
 		<table width="95%" border="0" cellspacing="0" cellpadding="0">
 			<tr>
 				<td colspan="3"><h1>
-						<span style="color: #000;">ExEngine 7 Debugger (Beta)</span>
+						<span style="color: #000;">ExEngine Debugger (Beta)</span>
 					</h1></td>
 			</tr>
 			<tr>

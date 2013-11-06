@@ -3,7 +3,7 @@
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com>
 <gchiappe@gmail.com>
-	@version 0.0.1.33
+	@version 0.0.1.34
 
 @section LICENSE
 
@@ -37,7 +37,7 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.33"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.34"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -480,6 +480,7 @@ private final function load_controller($name,$next) {
 		if (file_exists($this->controllersFolder.$namel)) {	
 			$this->debug("eemvcil.php:". __LINE__ . ": Index: Loading controller: ".$this->controllersFolder.$name);			
 			$this->debug("eemvcil.php:". __LINE__ . ": SCFH: ".$this->sameControllerFolderHTTP);
+			
 			include_once($this->controllersFolder.$namel);
 			$no = $name;				
 			$name = ucfirst($name);
@@ -521,7 +522,7 @@ private final function load_controller($name,$next) {
 				$this->raiseError("e404mnf",array("Error_Type"=> "Method not found", "Error_Msg"=>"Method \"".ucfirst($next). "\" not found in \"".$this->controllersFolder.ucfirst($name)."\"."),$ctl_folder,true,__LINE__,__FILE__);
 			}
 		}
-		if (file_exists($this->controllersFolder.$this->defcontroller.".php")) {
+		if (!file_exists($this->controllersFolder.$namel) && file_exists($this->controllersFolder.$this->defcontroller.".php")) {
 			include_once($this->controllersFolder.$this->defcontroller.".php");				
 			$name2 = ucfirst($this->defcontroller);			
 			$ctrl = new $name2($this->ee,$this);				
