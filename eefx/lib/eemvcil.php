@@ -3,7 +3,7 @@
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com>
 <gchiappe@gmail.com>
-	@version 0.0.1.34
+	@version 0.0.1.35
 
 @section LICENSE
 
@@ -37,7 +37,7 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.34"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.35"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -228,7 +228,7 @@ class eemvc_index {
 			$x[0] = null;
 			if (!$this->rewriteRulesEnabled) {
 				$x = $_SERVER['REQUEST_URI'];		
-				$x = explode("index.php",$x);
+				$x = explode($this->indexname,$x);
 			}
 			$data["EEMVC_HOME"] = "//" . $_SERVER['HTTP_HOST']. $x[0];
 			$data["EEMVC_SC"] = $this->controllersFolderHTTP .$tra."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=".$view_file."&ERROR=NODYNAMIC&";
@@ -702,7 +702,7 @@ final private function raiseError($error,$data,$controllersfolder=null,$noexit=f
 		$x[0] = null;
 		if (!$this->cparent->index->rewriteRulesEnabled) {
 			$x = $_SERVER['REQUEST_URI'];		
-			$x = explode("index.php",$x);
+			$x = explode($this->cparent->index->indexname,$x);
 		}
 		return "//" . $_SERVER['HTTP_HOST']. $x[0];
 	}
@@ -940,7 +940,7 @@ class eemvc_controller {
 			$x[0] = null;
 			if (!$this->index->rewriteRulesEnabled) {
 				$x = $_SERVER['REQUEST_URI'];		
-				$x = explode("index.php",$x);
+				$x = explode($this->index->indexname,$x);
 			}
 
 			$data["EEMVC_HOME"] = "//" . $_SERVER['HTTP_HOST'] . $x[0];
