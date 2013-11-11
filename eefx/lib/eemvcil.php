@@ -3,7 +3,7 @@
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com>
 <gchiappe@gmail.com>
-	@version 0.0.1.35
+	@version 0.0.1.36
 
 @section LICENSE
 
@@ -37,7 +37,7 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.35"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.36"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -146,7 +146,8 @@ class eemvc_index {
 	
 	final function prepareController($Controller) {
 		$Controller = strtolower($Controller);
-		if (file_exists($this->controllersFolder.$Controller.".php")) {
+
+		if (file_exists($this->controllersFolder.'/'.$Controller.".php")) {
 			if(defined('STDIN') && !$this->utSuite) {
 				echo 'MVC-ExEngine 7 -> Preparing controller '.ucfirst($Controller)." for unit testing.\n";
 			} else {
@@ -155,7 +156,7 @@ class eemvc_index {
 			<tab>
 				Preparing controller ".ucfirst($Controller)." for unit testing.");
 			}
-			include_once($this->controllersFolder.$Controller.".php");
+			include_once($this->controllersFolder.'/'.$Controller.".php");
 			$Controller = ucfirst($Controller);
 			$Controller = new $Controller($this->ee,$this);		
 			return $Controller;	
@@ -175,10 +176,12 @@ class eemvc_index {
 		}
 	}
 	
-	final function prepareModel(eemvc_controller $controller, $model) {	
-		$controller->loadModel($model,null,false);
-		$model = ucfirst($model);
-		$modelx = new $model();
+	final function prepareModel(eemvc_controller $controller, $model_name) {	
+		$controller->loadModel($model_name,null,false);		
+		$model_name = explode("/",$model_name);
+		$model_name = $model_name[(count($model_name)-1)];
+		$model_name = ucfirst($model_name);
+		$modelx = new $model_name();
 		return $modelx;
 	}
 	#ExEngine UnitTesting
