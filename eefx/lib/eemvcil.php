@@ -3,7 +3,7 @@
 @file eemvcil.php
 @author Giancarlo Chiappe <gch@linkfastsa.com>
 <gchiappe@gmail.com>
-	@version 0.0.1.36
+	@version 0.0.1.37
 
 @section LICENSE
 
@@ -37,7 +37,7 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.36"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.37"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
@@ -197,7 +197,7 @@ class eemvc_index {
 			$view_fileo = $filename;
 		}
 		else
-			$view_fileo = $this->viewsFolder.$filename;	
+			$view_fileo = $this->viewsFolder."/".$filename;	
 		
 		$view_file = $view_fileo;	
 		
@@ -207,6 +207,10 @@ class eemvc_index {
 		
 		if (!file_exists($view_file)) {
 			$view_file = $view_fileo.".html";
+		}
+
+		if (!file_exists($view_file)) {
+			$view_file = $view_fileo.".phtml";
 		}
 
 		if (file_exists($view_file)) {
