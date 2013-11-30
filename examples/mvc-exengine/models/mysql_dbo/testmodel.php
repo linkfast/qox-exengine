@@ -1,5 +1,5 @@
 <?php
-class Testmodel extends eemvc_model_dbo {
+class Testmodel extends eemvc_model_dbo_mysql {
 
 	// Column names as variables (var $ColumnName;...)
 	var $id;
