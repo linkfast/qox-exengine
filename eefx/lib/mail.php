@@ -21,7 +21,7 @@
 class eemail {
 	
 	const APP = "ExEngine Internet Mail Class";
-	const VERSION = "0.0.2.1";
+	const VERSION = "0.0.2.2";
 	
 	private $ee;
 	
@@ -50,8 +50,12 @@ class eemail {
 	
 	public $LastError=null;
 	
-	function __construct($parent) {
-		$this->ee = &$parent;	
+	function __construct($parent=null) {
+		if ($parent != null)
+			$this->ee = &$parent;	
+		else
+			$this->ee = &ee_gi();
+
 	}
 	
 	function addAttachment($Location) {
@@ -203,6 +207,74 @@ class eemail {
 	function send() {
 		return mail($this->To, $this->Subject, $this->Message);
 	}
+
+	function send_swiftmailer_smtp() {
+		if (function_exists('mb_internal_encoding') && ((int) ini_get('mbstring.func_overload')) & 2)
+		{
+		  $mbEncoding = mb_internal_encoding();
+		  mb_internal_encoding('ASCII');
+		}
+
+		if (!$this->ee->eeLoad('swiftmailer/5.0.3/lib/swift_required'))
+			$this->ee->errorExit("eemail","SwiftMailer is not installed, please install it (in eefx/extended/core/swiftmailer/5.0.3/) before using send_swiftmailer_smtp.","ExEngine_Mailer");
+
+		$transport = Swift_SmtpTransport::newInstance($this->SMTP_Cfg_Array['host'], $this->SMTP_Cfg_Array['port'])
+			->setUsername($this->SMTP_Cfg_Array['user'])
+			->setPassword($this->SMTP_Cfg_Array['password']);
+
+		if ($this->SMTP_Cfg_Array['encryption'] != 'none')
+			$transport->setEncryption($this->SMTP_Cfg_Array['encryption']);
+
+		$mailer = Swift_Mailer::newInstance($transport);
+		$message = Swift_Message::newInstance()
+		  ->setSubject($this->Subject)		  
+		  ->setBody($this->Message,'text/html');
+		if (isset($this->FromName))
+			$message->setFrom(array($this->FromOnlyAddress => $this->FromName));
+		else
+			$message->setFrom($this->FromOnlyAddress);
+		if (isset($this->ToName)) 
+			$message->setTo(array($this->To => $this->ToName));
+		else
+			$message->setTo(array($this->To));
+		if (isset($this->CC)) {
+			if (is_array($this->CC)) {
+				foreach ($this->CC as $cc_mail) {
+					$message->AddCC($cc_mail);
+				}
+			} else
+				$message->AddCC($this->CC);
+		}
+		if (isset($this->BCC)) {
+			if (is_array($this->BCC)) {
+				foreach ($this->BCC as $bcc_mail) {
+					$message->AddBCC($bcc_mail);
+				}
+			} else
+				$message->AddBCC($this->BCC);
+		}
+		if ($this->AttCount >0) {
+			for ($c=0;$c < $this->AttCount;$c++) {
+				$message->attach(Swift_Attachment::fromPath($this->Attachements[$c]["location"]));	
+			}
+		}
+		if (isset($this->MessageTextOnly))
+			$message->addPart($this->MessageTextOnly);
+		//$message->setPriority(2);
+
+		$failures = array();
+		$result = $mailer->send($message,$failures);
+
+		if (isset($mbEncoding))
+		{
+		  mb_internal_encoding($mbEncoding);
+		}
+
+		if (!$result) {
+			$this->LastError = $failures;
+			return false;
+		} return true;
+	}
 	
 	function send_phpmailer_smtp() {
 		
@@ -217,7 +289,7 @@ class eemail {
 		$mail->Host = $si['host'];  // Specify main and backup server
 		$mail->Port = $si['port'];
 		$mail->SMTPAuth = $si['auth'];                               // Enable SMTP authentication
-		$mail->Username = $si['username'];                            // SMTP username
+		$mail->Username = $si['user'];                            // SMTP username
 		$mail->Password =  $si['password'];  
 		if ($si['encryption'] != "none") {                         // SMTP password
 			$mail->SMTPSecure = $si['encryption'];                            // Enable encryption, 'ssl' also accepted

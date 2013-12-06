@@ -107,18 +107,20 @@ class eemvc_model_dbo_mongodb extends eemvc_model {
 					);
 				}
 				$data = $db->findOne($find_array);
-				if ($this->INDEXKEY == '_mongo_id') {
-					$this->$ik = @$data["_id"]->__toString();				
-				}
-				unset($data["_id"]);
-				$keys = @array_keys($data);
-				for ($c = 0; $c	< count($keys); $c++) {
-					$this->$keys[$c] = $data[$keys[$c]];	
-				}
-				if (method_exists($this,'__aftload')) {
-					return $this->__aftload();	
-				} else
-				return true;
+				if ($data != null) {
+					if ($this->INDEXKEY == '_mongo_id') {
+						$this->$ik = @$data["_id"]->__toString();				
+					}
+					unset($data["_id"]);
+					$keys = @array_keys($data);
+					for ($c = 0; $c	< count($keys); $c++) {
+						$this->$keys[$c] = $data[$keys[$c]];	
+					}
+					if (method_exists($this,'__aftload')) {
+						return $this->__aftload();	
+					} else
+					return true;
+				} else return false;
 			} catch (Exception $e) {
 				return false;
 			}		
@@ -211,18 +213,21 @@ class eemvc_model_dbo_mongodb extends eemvc_model {
 				$db = $m->selectCollection($this->MONGODB,$this->TABLEID);
 				$find_array = $this->getProperties(true);
 				$data = $db->findOne($find_array);
-				if ($this->INDEXKEY == '_mongo_id') {
-					$this->$ik = @$data["_id"]->__toString();				
-				}
-				unset($data["_id"]);
-				$keys = @array_keys($data);
-				for ($c = 0; $c	< count($keys); $c++) {
-					$this->$keys[$c] = $data[$keys[$c]];	
-				}
-				if (method_exists($this,'__aftload')) {
-					return $this->__aftload();	
-				} else
-				return true;
+
+				if ($data != null) {
+					if ($this->INDEXKEY == '_mongo_id') {
+						$this->$ik = @$data["_id"]->__toString();				
+					}
+					unset($data["_id"]);
+					$keys = @array_keys($data);
+					for ($c = 0; $c	< count($keys); $c++) {
+						$this->$keys[$c] = $data[$keys[$c]];	
+					}
+					if (method_exists($this,'__aftload')) {
+						return $this->__aftload();	
+					} else
+					return true;
+				} else return false;
 			} catch (Exception $e) {
 				return false;
 			}		

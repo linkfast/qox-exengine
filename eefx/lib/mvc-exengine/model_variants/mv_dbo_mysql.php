@@ -24,11 +24,25 @@ ExEngine MVC Implementation Library
 */
 
 // Legacy Support.
-class eemvc_model_dbo extends eemvc_model_dbo_mysql {
-	
-}
+class eemvc_model_dbo extends eemvc_model_dbo_mysql { }
 
 class eemvc_model_dbo_mysql extends eemvc_model {
+
+	function __construct() {
+		parent::__construct();
+		if (!$this->checkMySQL())
+			$this->ee->errorExit("MVC-ExEngine",
+				"This DBO is designed to work with MySQL (or MariaDB).","ExEngine_MVC_Implementation_Library");
+	}
+
+	private function checkMySQL() {
+		$this->loadDb();
+		$dbType = $this->db->type;
+		if ($dbType != "mysqli")
+			return false;
+		else
+			return true;
+	}
 	
 	private function getProperties() {
 		$vars = get_object_vars($this);		

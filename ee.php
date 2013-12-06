@@ -2,7 +2,7 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>
-@version 7.0.8.36
+@version 7.0.8.38
 
 @section LICENSE
 
@@ -64,9 +64,9 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 36;	
+	const V_REVIS = 38;	
 	
-	const REL_DATE = "30 NOV 2013";
+	const REL_DATE = "05 DEC 2013";
 	
 	const RELEASE = "alpha";
 	
@@ -265,10 +265,11 @@ class exengine {
 			if ($this->argsGet("SpecialMode") == "MVCOnly") {
 				$this->libLoadRes("eedbm");
 				$this->libLoadRes("jquery");
-				$this->libLoadRes("eemvcil");
+				$this->libLoadRes("eemvcil"); #MVC-ExEngine contains drivers for NoSQL DBs.
 				$this->aArray["SilentMode"] = true;
 			} else {			
 				$this->libLoadRes("eedbm");			# Database Manager					(eedbm)
+				$this->libLoadRes("eendbm");		# NoSQL Database Manager			(eendbm)
 				$this->libLoadRes("ee7info");		# EE7 Information Service Class 	(ee7info)
 				$this->libLoadRes("browser");		# Client Browser properties Class 	(browser)
 				$this->libLoadRes("log");			# Loging Class						(eelog)			
@@ -276,7 +277,7 @@ class exengine {
 				$this->libLoadRes("ifile");			# Internet Files Manipulation		(ifile)
 				$this->libLoadRes("mail");			# Internet Mail Class				(eemail)
 				$this->libLoadRes("gd");			# GD Image Manipulation				(gd)
-				$this->libLoadRes("eemvcil");		# EE ModelViewController I.Lib.		(eemvc_index,eemvc_model,eemvc_model_dbo,eemvc_controller,eemvc_methods)
+				$this->libLoadRes("eemvcil");		# EE ModelViewController I.Lib.		(eemvc_index,eemvc_model,eemvc_model_dbo (& DBO variants),eemvc_controller,eemvc_methods)
 			}
 			if ($this->cArray["devguard"]) $this->libLoadRes("devguard"); # DevGuard Class (ee_devguard)
 			if ($this->cArray["storage"]) { 
@@ -308,7 +309,7 @@ class exengine {
 		}
 	}
 	
-	private final function libLoadRes($file) {
+	final function libLoadRes($file) {
 		if (!$this->libIsLoaded($file)) {
 			if (file_exists($this->eePath."eefx/lib/".$file.".php")) {
 				$this->libsLoaded[] = $file;
@@ -524,7 +525,7 @@ final function meGetResPath($engine,$mode="full") {
 			} else
 				$load++;
 			}
-			if ($err > 0) { return $err; } else if ($load > 0) { return true; }
+			if ($err > 0) { return (-1)*$err; } else if ($load > 0) { return true; }
 		}
 	}
 	
@@ -1073,7 +1074,7 @@ final function meGetResPath($engine,$mode="full") {
 	}
 	#For EE6's ForwardMode Compatibility
 	const REALVERSION = "7.0.8";
-	const BUILD = 35;
+	const BUILD = 38;
 }
 
 //Prevent from non-include access
