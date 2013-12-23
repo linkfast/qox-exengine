@@ -38,7 +38,7 @@ class eemvc_model_dbo_mongodb extends eemvc_model {
 		return class_exists("MongoClient");
 	}
 
-	private function getProperties($DeleteNulls=false) {
+	private function getProperties($DeleteNulls=false,$DeleteDefaults=false) {
 		$vars = get_object_vars($this);		
 		unset($vars["db"]);
 		unset($vars["r"]);
@@ -55,6 +55,23 @@ class eemvc_model_dbo_mongodb extends eemvc_model {
 			foreach (array_keys($vars) as $key) {
 				if (!isset($vars[$key]))
 					unset($vars[$key]);
+			}
+		}
+		if ($DeleteDefaults) {
+			$cn = get_class($this);
+			$Com = new $cn();
+			$com_vars = get_object_vars($Com);		
+			unset($com_vars["db"]);
+			unset($com_vars["r"]);
+			unset($com_vars["MONGODB"]);
+			unset($com_vars["TABLEID"]);
+			unset($com_vars["INDEXKEY"]);		
+			foreach (array_keys($vars) as $key) {
+				if (isset($vars[$key])) {
+					if ($vars[$key] == $com_vars[$key]) {
+						unset($vars[$key]);
+					}
+				}
 			}
 		}
 		return $vars;
@@ -160,8 +177,48 @@ class eemvc_model_dbo_mongodb extends eemvc_model {
 		} else return false;
 		return $re;
 	}
-
+*/
 	function load_all($WhereArray=null,$SafeMode=true) {
+		if (!isset($this->MONGODB)) return false;
+		if (!isset($this->INDEXKEY)) $this->INDEXKEY = "_mongo_id";				
+		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		$ClassName = get_class($this);	
+		$m = new MongoClient();
+		$db = $m->selectCollection($this->MONGODB,$this->TABLEID);
+		if ($WhereArray!=null && is_array($WhereArray)) {
+			if (isset($WhereArray['_id']) && !(get_class($WhereArray['_id']) == "MongoId" )) {
+				$WhereArray['_id'] = new MongoId($WhereArray['_id']);
+			}
+			$mongoResult = $db->find($WhereArray);	
+		} else {
+			$mongoResult = $db->find();
+		}
+		$RC = 0;
+		$Results = null;
+		foreach ($mongoResult as $key => $obj) {
+		    $obj['_mongo_id'] = @$obj['_id']->__toString();
+		    unset($obj['_id']);
+		    $TObj = new $ClassName();
+		    if (method_exists($TObj,'__befload')) {
+				$TObj->__befload();
+			}
+			$ObjKeys = @array_keys($obj);
+			for ($c = 0; $c< count($ObjKeys); $c++) {
+				$TObj->$ObjKeys[$c] = $obj[$ObjKeys[$c]];
+			}
+			if (method_exists($TObj,'__aftload')) {
+				$TObj->__aftload();
+			}
+			$Results[$RC] = clone $TObj;
+			$RC++;
+		}
+		if ($RC > 0)
+			return $Results;
+		else
+			return false;
+		/*
+
+
 		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
 		$cn = get_class($this);	
 		$this->loadDb();
@@ -180,10 +237,8 @@ class eemvc_model_dbo_mongodb extends eemvc_model {
 					$v->__befload();
 				}							
 				$keys = @array_keys($row);
-				for ($c = 0; $c
-												< count($keys); $c++) {
-					$v->
-													$keys[$c] = $row[$keys[$c]];	
+				for ($c = 0; $c< count($keys); $c++) {
+					$v->$keys[$c] = $row[$keys[$c]];	
 				}	
 				if (method_exists($v,'__aftload')) {
 					$v->__aftload();
@@ -193,13 +248,14 @@ class eemvc_model_dbo_mongodb extends eemvc_model {
 			}
 		} else return false;
 		return $re;
+		*/
 	}
-	*/
+	
 	function debug($message) {
 		$this->ee->debugThis("eemvc-dbo-mongodb-".get_class($this),$message);
 	}
 
-	function load_values($SafeMode=true) {		
+	function load_values($SafeMode=true,$DeleteDefaults=false) {		
 		if (!isset($this->MONGODB)) return false;	
 		if (!isset($this->INDEXKEY)) $this->INDEXKEY = "_mongo_id";		
 		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
@@ -211,13 +267,17 @@ class eemvc_model_dbo_mongodb extends eemvc_model {
 			try {				
 				$m = new MongoClient();
 				$db = $m->selectCollection($this->MONGODB,$this->TABLEID);
-				$find_array = $this->getProperties(true);
+				$find_array = $this->getProperties(true,$DeleteDefaults);
+				//$this->debug(print_r($find_array,true));
 				$data = $db->findOne($find_array);
 
 				if ($data != null) {
 					if ($this->INDEXKEY == '_mongo_id') {
-						$this->$ik = @$data["_id"]->__toString();				
+						$this->$ik = @$data["_id"]->__toString();	
 					}
+
+					$this->debug(print_r($data,true));
+
 					unset($data["_id"]);
 					$keys = @array_keys($data);
 					for ($c = 0; $c	< count($keys); $c++) {
@@ -229,6 +289,7 @@ class eemvc_model_dbo_mongodb extends eemvc_model {
 					return true;
 				} else return false;
 			} catch (Exception $e) {
+				$this->debug(print_r($e,true));
 				return false;
 			}		
 		} else return false;
@@ -296,27 +357,44 @@ class eemvc_model_dbo_mongodb extends eemvc_model {
 		} else 
 			return false;	
 	}
-	/*
+	
 	final function update($SafeMode=true) {
-		$ik = $this->INDEXKEY;
+		if (!isset($this->MONGODB)) return false;
+		if (!isset($this->INDEXKEY)) $this->INDEXKEY = "_mongo_id";	
 		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		$ik = $this->INDEXKEY;
+
 		if (isset($ik)) {
 			if (method_exists($this,'__befupdate')) {
 				$this->__befupdate();	
 			}
-			$this->loadDb();
-			$this->db->open();		
-			$uarr = $this->getProperties();
-			unset($uarr[$ik]);
-			$warr = array( $ik => $this->$ik );	
-			$res = $this->db->updateArray($this->TABLEID,$uarr,$warr,$SafeMode);		
-			if (method_exists($this,'__aftupdate')) {
-				return $this->__aftupdate($r);	
-			} else
-			return $r;
+			try {
+				$m = new MongoClient();
+				$db = $m->selectCollection($this->MONGODB,$this->TABLEID);
+				$iarr = $this->getProperties(true);
+
+				if($this->INDEXKEY == "_mongo_id") {
+					$iarr["_id"] = new MongoId($this->$ik);
+					unset($iarr["_mongo_id"]);
+				}
+
+				//$this->debug(print_r($iarr,true));
+				$result = $db->save($iarr,array("w" => 1));
+
+				if ($result["ok"] == 1) {
+					if (method_exists($this,'__aftinsert')) {
+						$this->__aftupdate();	
+					}
+					return true;
+				} else
+					return false;
+			} catch (Exception $e) {
+				$this->debug(print_r($e,true));
+				return false;
+			}
 		} else return false;
 	}
-	*/
+	
 	final function delete() {
 		if (!isset($this->MONGODB)) return false;
 		if (!isset($this->INDEXKEY)) $this->INDEXKEY = "_mongo_id";		

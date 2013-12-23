@@ -14,10 +14,10 @@ class timeplay_lang {
 		JUN = "Junio",
 		JUL = "Julio",
 		AUG = "Agosto",
-		SEP = "Septiembre",
+		SEP = "Setiembre",
 		OCT = "Octubre",
 		NOV = "Noviembre",
-		DEC = "Dicciembre",
+		DEC = "Diciembre",
 		
 		MON = "Lunes",
 		TUE = "Martes",
