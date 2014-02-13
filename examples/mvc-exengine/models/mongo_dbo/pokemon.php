@@ -1,6 +1,6 @@
 <?php
 
-class pokemon extends eemvc_model_dbo_mongodb {
+class Pokemon extends eemvc_model_dbo_mongodb {
 	var $_mongo_id; // create this var to use the mongodb [$id] object.
 
 	// some vars...

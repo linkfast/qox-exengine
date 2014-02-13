@@ -6,9 +6,10 @@ class timeplay
 	private $ee;
 	const CNAME = "timeplay";
 	const NAME = "TimePlay Class";
-	const VERSION = "0.0.1.3";
-	const DATE = "30/06/2013";
-	const RQEE7 = "7.0.0.7";
+	const AUTHOR = "Giancarlo Chiappe Aguilar <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>";
+	const VERSION = "0.0.1.4";
+	const DATE = "05/02/2014";
+	const RQEE7 = "7.0.8.35";
 	
 	private $langSet = "es";
 	private $cntSet = "pe";
@@ -16,19 +17,23 @@ class timeplay
 	private $langArray;
 	private $resPath;
 	
-	function __construct(&$ee,$lang=null,$country=null) {	
+	function __construct($ee=null,$lang=null,$country=null) {	
 		
-		$this->ee = &$ee;
+		if ($ee == null)		
+			$this->ee = &ee_gi();	
+		else
+			$this->ee = &$ee;
+
 		if (isset($lang))
 			$this->langSet = $lang;
 		if (isset($country))
 			$this->cntSet = $country;
 		
-		$this->resPath = $ee->meGetResPath("timeplay");
+		$this->resPath = $this->ee->meGetResPath("timeplay");
 		include_once($this->resPath."lang.".$this->langSet.".php");
 		include_once($this->resPath."reg.".$this->cntSet.".php");
 		
-		$ee->debugThis("timeplay","Object Created: lang: $this->langSet, country: $this->cntSet");
+		$this->ee->debugThis("timeplay","Object Created: lang: $this->langSet, country: $this->cntSet");
 	}
 	
 	function getTimeDate($format,$timestamp=false) {
@@ -43,13 +48,13 @@ class timeplay
 		return str_replace($avail,$repla,$format);		
 	}
 	
-	function getDateRegional($style="full") {
+	function getDateRegional($style="full",$timestamp=false) {
 		switch ($style) {
 			case "full":
-				return $this->getTimeDate(timeplay_reg::DATE_FORMAT_FULL);
+				return $this->getTimeDate(timeplay_reg::DATE_FORMAT_FULL,$timestamp);
 				break;
 			case "small":
-				return $this->getTimeDate(timeplay_reg::DATE_FORMAT_SMALL);
+				return $this->getTimeDate(timeplay_reg::DATE_FORMAT_SMALL,$timestamp);
 				break;
 		}
 	}

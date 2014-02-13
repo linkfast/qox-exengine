@@ -127,7 +127,8 @@ class eemvc_controller {
 	
 	final function loadView($filename,$data=null,$return=false,$dynamic=true,$checkmime=false) {	
 		
-		$view_fileo = $this->index->viewsFolder."/".$filename;	
+		$view_fileo = $this->index->viewsFolder."/".$filename;
+		//print $view_fileo;	
 		
 		$view_file = $view_fileo;	
 		
@@ -150,7 +151,7 @@ class eemvc_controller {
 			$this->debug("eemvcil.php:". __LINE__ . ": specialLoadViewStatic: File Mime Type: ".$mime_type);
 		}
 		
-		if (file_exists($view_file)) {
+		if (file_exists($view_file) && !is_dir($view_file)) {
 			
 			$this->debug("eemvcil.php:". __LINE__ . ": loadView: Loading: ".$view_file);
 
@@ -198,6 +199,7 @@ class eemvc_controller {
 				else
 				{		
 					$this->debug("eemvcil.php:". __LINE__ . ": loadView: Mode: Include");	
+
 					include($view_file);
 				}
 			}

@@ -16,9 +16,8 @@
 	#devguard floating close session button.
 	$dg->guard_float_menu();
 ?>
-
 </head>
 <body>
 	<h1>ExEngine DevGuard Protected Page/Application</h1>
 </body>
-</html>
+</html>s

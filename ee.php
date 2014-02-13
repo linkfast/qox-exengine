@@ -2,7 +2,7 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>
-@version 7.0.8.38
+@version 7.0.8.39
 
 @section LICENSE
 
@@ -26,7 +26,7 @@ ExEngine Framework core, this file contains the EE7 main functions, and the need
 // QOX ExEngine
 // Copyright © 1999-2008 DarkGiank Software
 // Copyright © 2009-2013 LinkFast Company
-// Copyright © 2013 QOX Corporation (qox-corp.com)
+// Copyright © 2013-2014 QOX Corporation (qox-corp.com)
 //
 // Based on DGS ExEngine by Giancarlo Chiappe Aguilar
 
@@ -64,9 +64,9 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 38;	
+	const V_REVIS = 39;	
 	
-	const REL_DATE = "05 DEC 2013";
+	const REL_DATE = "10 JAN 2014";
 	
 	const RELEASE = "alpha";
 	
@@ -1074,7 +1074,7 @@ final function meGetResPath($engine,$mode="full") {
 	}
 	#For EE6's ForwardMode Compatibility
 	const REALVERSION = "7.0.8";
-	const BUILD = 38;
+	const BUILD = 39;
 }
 
 //Prevent from non-include access

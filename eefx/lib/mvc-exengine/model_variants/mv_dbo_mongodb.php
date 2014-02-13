@@ -2,7 +2,7 @@
 /**
 @file mv_dbo_mongodb.php
 @author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>
-@version 0.0.0.2 alpha
+@version 0.0.0.4 alpha
 
 @section LICENSE
 
@@ -178,7 +178,28 @@ class eemvc_model_dbo_mongodb extends eemvc_model {
 		return $re;
 	}
 */
-	function load_all($WhereArray=null,$SafeMode=true) {
+	function count_all($WhereArray=null) {
+		if (!isset($this->MONGODB)) return false;
+		if (!isset($this->INDEXKEY)) $this->INDEXKEY = "_mongo_id";		
+		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		$ClassName = get_class($this);	
+		$m = new MongoClient();
+		$db = $m->selectCollection($this->MONGODB,$this->TABLEID);
+		if ($WhereArray!=null && is_array($WhereArray)) {
+			if (isset($WhereArray['_id']) && !(get_class($WhereArray['_id']) == "MongoId" )) {
+				$WhereArray['_id'] = new MongoId($WhereArray['_id']);
+			}
+			$mongoResult = $db->count($WhereArray);	
+		} else {
+			$mongoResult = $db->count();
+		}
+		if ($mongoResult > 0)
+			return $mongoResult;
+		else
+			return 0;
+	}
+
+	function load_all($WhereArray=null,$SafeMode=true,$SortArray=null) {
 		if (!isset($this->MONGODB)) return false;
 		if (!isset($this->INDEXKEY)) $this->INDEXKEY = "_mongo_id";				
 		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
@@ -189,10 +210,18 @@ class eemvc_model_dbo_mongodb extends eemvc_model {
 			if (isset($WhereArray['_id']) && !(get_class($WhereArray['_id']) == "MongoId" )) {
 				$WhereArray['_id'] = new MongoId($WhereArray['_id']);
 			}
-			$mongoResult = $db->find($WhereArray);	
+			if ($SortArray!=null)
+				$mongoResult = $db->find($WhereArray)->sort($SortArray);	
+			 else 
+				$mongoResult = $db->find($WhereArray);	
 		} else {
-			$mongoResult = $db->find();
+			if ($SortArray!=null)
+				$mongoResult = $db->find()->sort($SortArray);
+			else
+				$mongoResult = $db->find();
 		}
+		
+
 		$RC = 0;
 		$Results = null;
 		foreach ($mongoResult as $key => $obj) {

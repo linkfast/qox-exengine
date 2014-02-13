@@ -1,5 +1,6 @@
 <?php
-	class Inicio extends eemvc_controller {
+	// Controller class name (Capitalized) must the same as the filename (lowercase).
+	class Start extends eemvc_controller {
 	
 		function index() {
 			$this->loadView("helloworld.html");

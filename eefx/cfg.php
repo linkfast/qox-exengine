@@ -1,7 +1,7 @@
 <?php
 /**
 @file cfg.php
-@author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
+@author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>
 @version 0.0.0.6
 
 @section LICENSE
@@ -58,7 +58,8 @@ array(
 	"GIFD_ValidImages" => array("image/jpeg", "image/gif", "image/png")
 );
 
-#Default database array :
+#Default database array for ExEngine Database Manager:
+#If you are using direct connections (driver or PDO) feel free to keep using them, but if you are going to use MVC-ExEngine Database Objects you must set this for MySQL (and PgSQL, SQLite, EDBL in the future).
 $ee_ddb = 
 array(
 	"type" => "mysqli", 

@@ -18,7 +18,7 @@ This example will use SwiftMailer as the recommended method to send emails.
 
 NOTE: You need to install SwiftMailer in the /eefx/extended/core/swiftmailer/5.0.3/
 
-Verion 5.0.3 is supported, other versions may fail.
+Version 5.0.3 is supported, other versions (older) may fail.
 
 */
 
@@ -29,7 +29,7 @@ include_once( "../../ee.php" ); // load exengine.
 
 $ee = new exengine(array("SilentMode"=>true)); // initiate exengine.
 
-//if not loaded Mailer Class you can load anywhere
+//if is not loaded Mailer Class (in MVCOnly mode for example) you can load anytime
 // $ee->libLoadRes("mail");
 
 $mail = new eemail();
@@ -51,7 +51,7 @@ $mail->Message = "<b> I Love PHP Coding ! </b>"; //html body (it can also be pla
 //$mail->MessageTextOnly = "HTML is not supported by your email client."; // alternate plain text body.
 
 // Add attachment (you add more if you want)
-//$mail->addAttachment("/path/to/attachment.zip");
+//$mail->addAttachment("/path/to/attachment.ext");
 
 if (!$mail->send_swiftmailer_smtp())
 	print $mail->LastError; // print last error if sending fails.

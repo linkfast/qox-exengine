@@ -1,4 +1,6 @@
 <?php
+// unit testing can also be run in the CLI, to run this script cd to this folder and run: php unit_test_mvc.php
+
 error_reporting(E_ALL ^ E_NOTICE); 
 ini_set("display_errors", 1); 
 include_once( '../../ee/ee.php' );

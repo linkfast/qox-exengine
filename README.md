@@ -88,7 +88,8 @@ You can also modify the default database array in order to use ExEngine Database
 
 To-Do
 =====
-- Documentation
+- Documentation (Wiki)
+- Homepage
 
 How To Install
 ==============
@@ -103,4 +104,4 @@ ExEngine Homepage: (under development  http://oss.qox-corp.com/exengine)
 
 ExEngine 7 Wiki  : (under development  http://oss.qox-corp.com/wikis/ee)
 
-(C) 2013 QOX Corporation - qox-corp.com
+(C) 2014 QOX Corporation - qox-corp.com

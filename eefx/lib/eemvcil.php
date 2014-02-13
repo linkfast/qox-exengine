@@ -29,3 +29,7 @@ include_once('mvc-exengine/mvcee_index.php');
 include_once('mvc-exengine/mvcee_controller.php');
 include_once('mvc-exengine/mvcee_methods.php');
 include_once('mvc-exengine/mvcee_model.php');
+
+# Add your custom DBO´s includes here:
+
+# include_once('mvc-exengine/model_variants/custom/mydbo.php');

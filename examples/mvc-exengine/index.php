@@ -12,7 +12,7 @@
 	#enable session support, by default is false.
 	//$mvc->SessionMode = true;
 
-	# devguard mode, uncomment to enable
+	# devguard mode, uncomment to enable (you must create a devguard key before using this)
 	/*
 	$mvc->dgEnabled = true;
 	$mvc->dgKey = "myapp";

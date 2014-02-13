@@ -35,12 +35,13 @@ function &eemvc_get_index_instance() {
 
 class eemvc_index {
 	
-	const VERSION = "0.0.1.37"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.39"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
 	public $defcontroller=null;
 	
+	public $showDefaultView=true;
 	public $viewsFolder = "views"; /// Name of the views folder, should be relative to the index file.
 	public $modelsFolder = "models"; /// Name of the models folder, should be relative to the index file.
 	public $controllersFolder = "controllers" ; /// Name of the controllers folder, should be relative to the index file.
@@ -517,6 +518,8 @@ private final function load_controller($name,$next) {
 						$ctrl->__startup();	
 					}	
 					$ctrl->functionName = $next;
+					//print_r(array_slice($this->urlParsedData, 2));	
+					//print 'index: ' . 2;
 					call_user_func_array(array($ctrl, $next), array_slice($this->urlParsedData, 2)); 
 					if (method_exists($name,'__atdestroy')) {
 						$ctrl->functionName = "__atdestroy";
@@ -527,7 +530,7 @@ private final function load_controller($name,$next) {
 				$this->raiseError("e404mnf",array("Error_Type"=> "Method not found", "Error_Msg"=>"Method \"".ucfirst($next). "\" not found in \"".$this->controllersFolder.ucfirst($name)."\"."),$ctl_folder,true,__LINE__,__FILE__);
 			}
 		}
-		if (!file_exists($this->controllersFolder.$namel) && file_exists($this->controllersFolder.$this->defcontroller.".php")) {
+		if (!file_exists($this->controllersFolder.$namel) && file_exists($this->controllersFolder.$this->defcontroller.".php")) {			
 			include_once($this->controllersFolder.$this->defcontroller.".php");				
 			$name2 = ucfirst($this->defcontroller);			
 			$ctrl = new $name2($this->ee,$this);				
@@ -536,6 +539,7 @@ private final function load_controller($name,$next) {
 					$this->AlwaysSilent = true; 
 			}
 			if ($checkifmethodexistsindefcontroller) {
+
 				if(method_exists($name2,$name)) {
 					$this->controllername = $this->defcontroller;
 					if (strlen($next) == 0) {												
@@ -554,7 +558,9 @@ private final function load_controller($name,$next) {
 							$ctrl->functionName = "__startup";
 							$ctrl->__startup();	
 						}						
-						$ctrl->functionName = $name;				
+						$ctrl->functionName = $name;	
+						//print_r(array_slice($this->urlParsedData, 1));
+						//print 'index: ' . 1;
 						call_user_func_array(array($ctrl, $name), array_slice($this->urlParsedData, 1)); 
 						if (method_exists($name2,'__atdestroy')) {
 							$ctrl->functionName = "__atdestroy";
@@ -564,8 +570,16 @@ private final function load_controller($name,$next) {
 				} else {
 					$this->raiseError("e404mnf",array("Error1_Type"=> "Controller not found", "Error1_Msg" => "Controller \"".ucfirst($this->urlParsedData[0]). "\" not found in \"".$this->controllersFolder."\". ", "Error2_Type" => "Method in default controller not found", "Error2_Msg"=>"Method \"".ucfirst($this->urlParsedData[0]). "\" not found in \"".$this->controllersFolder.ucfirst($this->defcontroller)."\"."),$ctl_folder,true,__LINE__,__FILE__);
 				}
+			} else {
+
 			}
+		} elseif (!file_exists($this->controllersFolder.$namel) && !file_exists($this->controllersFolder.$this->defcontroller.".php")) {
+			if (!$this->showDefaultView)
+				$this->raiseError("e404mnf",array("Error1_Type"=> "Default controller not found", "Error1_Msg" => "Controller \"".ucfirst($this->defcontroller). "\" not found in \"".$this->controllersFolder."\". ", "Error2_Type" => "Method in default controller not found", "Error2_Msg"=>"Method \"".ucfirst("index"). "\" not found in \"".$this->controllersFolder.ucfirst($this->defcontroller)."\"."),$ctl_folder,true,__LINE__,__FILE__);
+			else
+				include_once($this->ee->libGetResPath("mvc-ee","full")."default_view.php");
 		}
+
 		$this->output = ob_get_contents();
 		ob_end_clean();
 	}	
@@ -634,6 +648,14 @@ final private function raiseError($error,$data,$controllersfolder=null,$noexit=f
 		unset ($urlParsedData[count($urlParsedData)-1]);
 	}
 	$this->actualInputQuery = $actualInputQuery;
+
+	//print $urlParsedData[count($urlParsedData)-1] . '<br/>';
+
+	if (strpos( $urlParsedData[count($urlParsedData)-1], '?') !== false)
+		$urlParsedData[count($urlParsedData)-1] = substr($urlParsedData[count($urlParsedData)-1], 0, strpos( $urlParsedData[count($urlParsedData)-1], '?'));
+
+	//print $urlParsedData[count($urlParsedData)-1];
+
 	$this->urlParsedData = $urlParsedData;
 	$this->unModUrlParsedData = $urlParsedData;	 	
 	$this->debug("eemvcil.php:". __LINE__ . ": Parsed Data: " . print_r($this->urlParsedData,true));
