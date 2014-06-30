@@ -19,7 +19,7 @@
 var lG = loc + "debug_loading.gif";
 var iA = loc + "debug/icon.accept.png";
 var selectedApp;
-var autoRefreshTime = 10000;
+var autoRefreshTime = 5000;
 
 $(function() {			
 			refreshApps();
@@ -63,7 +63,7 @@ function getMessages() {
 				   $("#messages-app").html("");
 					for (i=0;i<mess.length;i++) {
 						pre = $("#messages-app").html();
-						$("#messages-app").html(pre  + mess[i].replace("[**]","&nbsp;&nbsp;&nbsp;&nbsp;<b>") +"</b><br/>");
+						$("#messages-app").html(pre  + mess[i].date + "&nbsp;&nbsp;&nbsp;&nbsp;<b>" + mess[i].msg + "</b><br/>");
 						
 					}
 					ready();

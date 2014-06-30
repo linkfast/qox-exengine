@@ -14,9 +14,8 @@ include_once("../ee.php");
 $ee = new exengine();
 $jq = new jquery($ee);
 
-if ($ee->cArray["debug"]) {
-	$cIp = $_SERVER['REMOTE_ADDR'];
-	$ee->debugThis("ExEngine Index","Accessed from $cIp | Debug mode should be disabled before publishing!.");
+if ($ee->cArray["debug"]) {	
+	$ee->debugThis("ExEngine Index","Debug mode should be disabled before publishing!.");
 	$version = $ee->miscGetVersion()." ".exengine::RELEASE;
 } else $version = exengine::V_MAJOR."-".exengine::RELEASE;
 
@@ -30,7 +29,7 @@ $jq->load();
 $jq->load_ui("redmond");
 ?>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>ExEngine 7 FX</title>
+<title>ExEngine FX</title>
 <style type="text/css">
 <!--
 body,td,th {
@@ -49,7 +48,7 @@ body {
 <body>
 	<div align="center">
 		<p>&nbsp;</p>
-		<p> <a href="http://wiki.aldealinkfast.com/exengine/" target="_blank"><img src="common/ee7_full.png" alt="ExEngine 7" border="0" /></a><br />
+		<p> <a href="https://github.com/QOXCorp/exengine" target="_blank"><img src="common/ee7_full.png" alt="QOXExEngine" border="0" /></a><br />
 		 QOX<strong>ExEngine/<? print $version ; ?>
 			</strong>
 			<?php if ($ee->cArray["debug"]) { ?>
@@ -85,10 +84,11 @@ body {
 		<div>
 		<? if ($ee->cArray["debug"]) { ?>
 			<p>
-				<span style="color: #333; font-weight: bold; font-size: 16px;">MENU:</span><br />
-				<a href="common/excommander.php">EXENGINE COMMANDER</a><br /> <a
-					href="common/debug.php">DEBUGGER</a><br /> <a
-					href="common/manager.php">EXTENSION MANAGER</a>
+				<span style="color: #333; font-weight: bold; font-size: 16px;">DEBUG MODE TOOLS:</span><br />
+				<a href="common/excommander.php">EXENGINE COMMANDER</a><br /> 
+				<a href="common/debug.php">DEBUGGER</a><br />
+                <a href="common/eema.php">MESSAGE AGENT (formerly Debugger 2.0)</a><br />
+                <a href="common/manager.php">EXTENSION MANAGER</a>
 			</p>
 			<p>Note: Menu will be hidden when debug-mode is disabled.</p>
 			<? } ?>

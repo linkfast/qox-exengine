@@ -33,21 +33,30 @@ function &eemvc_get_index_instance() {
 	return eemvc_index::get_instance();
 }
 
+class eemvc_session {
+	var $Enabled = false;
+	var $Name = 'MVC-EXENGINE_SESSIONID';
+	var $Lifetime = 0;
+	var $Path = '/';
+	var $Domain = null;
+}
+
 class eemvc_index {
 	
-	const VERSION = "0.0.1.39"; /// Version of EE MVC Implementation library.
+	const VERSION = "0.0.1.43"; /// Version of EE MVC Implementation library.
 
 	private $ee; /// This is the connector to the main ExEngine object.
 	public $controllername; /// Name of the Controller in use.
 	public $defcontroller=null;
 	
 	public $showDefaultView=true;
+    
 	public $viewsFolder = "views"; /// Name of the views folder, should be relative to the index file.
 	public $modelsFolder = "models"; /// Name of the models folder, should be relative to the index file.
 	public $controllersFolder = "controllers" ; /// Name of the controllers folder, should be relative to the index file.
 	public $staticFolder = "static"; /// Name of the static folder, should be relative to the index file.
 	public $indexname = "index.php"; /// Name of the index file, normally this should not be changed.
-	public $SessionMode=false; /// Set to true if you are going to use sessions, remember that "session_start()" does not work with EEMVC.
+
 	public $AlwaysSilent=false; /// Set to true if you do not want to show warnings or slogans to the rendered pages, this is a global variable, you can set silent to a specific controller by setting the $this->imSilent variable to true.
 	
 	public $dgEnabled = false; /// Enable EE's DevGuard for the project.
@@ -74,6 +83,8 @@ class eemvc_index {
 	public $trailingSlashLegacy = false;
 
 	public $sameControllerFolderHTTP;
+
+	public $ma; /// EE Message Agent.
 	
 	public $actualInputQuery;
 	public $unModUrlParsedData;
@@ -81,6 +92,8 @@ class eemvc_index {
 	private $routes = array();
 	
 	private $origControllerFolderName;
+
+	private $SessionEnabled = false;
 	
 	private static $inst;
 	/// Connection static function.
@@ -92,28 +105,55 @@ class eemvc_index {
 			return false;
 	}
 
-	/// Default constructor for the index listener.
-	final function __construct($defaultcontroller=null,&$parent=null) {
+	/**
+	 * @param string 		$DefaultControllerName
+	 * @param eemvc_session $SessionMode
+	 * @param exengine 		$parent DEPRECATED
+	 */
+	final function __construct($DefaultControllerName=null, $SessionMode = false, $parent=null) {
+
+		if (ee_gi() instanceof exengine) {
+			$this->ee = &ee_gi();
+		} else {
+			print "<h1>MVC-ExEngine</h1> Instance of ExEngine is spected (7.0.8.39+).";
+			exit();
+		}
+
 		if ($parent!=null)
 			if ($parent instanceof exengine) {
-				$this->ee = &$parent; #for script compatibility
-				$this->debug("eemvcil.php:". __LINE__ . ": Old Index model being used, please update to newer model.");
-			} else {
-				print "<h1>MVC-ExEngine</h1> Instance of ExEngine is spected.";
-				exit;
+				$this->ee->errorExit('MVC-ExEngine','Passing exengine object as argument is deprecated.');
 			}
-		else
-			$this->ee = &ee_gi(); # ee7 new model.
+
+		if ($SessionMode instanceof eemvc_session) {
+			if ($SessionMode->Enabled) {
+				$this->ee->sessionCreator($SessionMode->Name,$SessionMode->Lifetime,$SessionMode->Path,$SessionMode->Domain);
+				$this->SessionEnabled = true;
+			}
+		} else {
+			if ($SessionMode) {
+				$this->ee->sessionCreator('MVC-EXENGINE_SESSIONID',0,'/');
+				$this->SessionEnabled = true;
+			}
+		}
+
+		if ($this->SessionEnabled)
+			$this->ma = new eema("eemvci","MVC-EE Index.");
+
+
 
 		if (strlen($_SERVER['HTTP_HOST'])==0)
-			$this->ee->errorExit("MVC-ExEngine","HTTP_HOST is not defined, check php configuration.");
+			$this->ee->errorExit("MVC-ExEngine","HTTP_HOST is not defined, check your PHP or HTTP Server configuration.");
 
 		$this->debug("eemvcil.php:". __LINE__ . ": MVC Initialized.");			
-		if ($defaultcontroller==null) {
+		if ($DefaultControllerName==null) {
 			$this->debug("eemvcil.php:". __LINE__ . ": Index: No default controller set.");	
 		} else
-		$this->defcontroller = $defaultcontroller;
+		$this->defcontroller = $DefaultControllerName;
 		self::$inst = &$this;
+	}
+
+	final function isSessionEnabled() {
+		return $this->SessionEnabled;
 	}
 	
 	# ExEngine UnitTesting
@@ -296,11 +336,13 @@ class eemvc_index {
 			$this->ee->errorExit("MVC-ExEngine","View (".$view_file.") not found.","eemvcil");
 		}	
 	}
-	
+
 	/// This function will start the MVC listener, should be called in the index file.
 	final function start() {
 
-		if ($this->SessionMode===true) { session_start(); $this->debug("eemvcil.php:". __LINE__ . ": SessionMode=true"); } else {$this->debug("eemvcil.php:". __LINE__ . ": SessionMode=false");}	
+		if ($this->SessionMode) {
+			$this->ee->errorExit('MVC-ExEngine','mvcee_index::SessionMode property is deprecated, please set the session options at construct time.');
+		}
 
 		if ($this->dgEnabled) {
 			$dg = new ee_devguard();
@@ -401,12 +443,16 @@ class eemvc_index {
 		} 	 
 		*/
 
-		$output = $this->load_controller($this->urlParsedData[0],$this->urlParsedData[1]);
+        
+        $output = $this->load_controller($this->urlParsedData[0],$this->urlParsedData[1]);
 		
 		if (!$this->AlwaysSilent) {
-			$rpl = "<head>\n"."\t<!-- ".$this->ee->miscMessages("Slogan",1)." (MVC-ExEngine) -->";
-			if ($this->dgEnabled) $rpl .= $dg->guard_float_menu();
-				$output = str_replace("<head>",$rpl,$output);			
+			$rpl = "<head>\n<meta charset=\"utf-8\">\n"."\t<!-- ".$this->ee->miscMessages("Slogan",1)." (MVC-ExEngine) -->";
+			if ($this->dgEnabled) 
+				$rpl .= "\n\t" . 
+				str_replace("\n", "\n\t", $dg->guard_float_menu(true));
+
+			$output = str_replace("<head>",$rpl,$output);			
 		}		 
 
 		print $output; 
@@ -590,21 +636,25 @@ private $ctl_folder; /// System Variable for the controllers folder.
 final private function raiseError($error,$data,$controllersfolder=null,$noexit=false,$linenumber=__LINE__,$file=__FILE__) {
  	if ($controllersfolder == null )
  		$controllersfolder = $this->controllersFolder;	 	
- 	if ($this->errorHandler) {
- 		if (file_exists($controllersfolder.$this->errorHandler.".php")) {
- 			include_once($controllersfolder.$this->errorHandler.".php");
+ 	if ($this->errorHandler) {        
+ 		if (file_exists($controllersfolder."/".$this->errorHandler.".php")) {            
+ 			include_once($controllersfolder."/".$this->errorHandler.".php");
  			$name = ucfirst($this->errorHandler);
- 			$ctrl = new $name($this->ee,$this);
- 			
+ 			$ctrl = new $name($this->ee,$this); 			
  			if (method_exists($name,$error)) {
- 				call_user_func_array(array($ctrl, $error), $data);
- 			} else {
+                $allData = array(
+                    "data" => $data,
+                    "linenumber" => $linenumber,
+                    "file" => $file);
+ 				call_user_func_array(array($ctrl, $error), $allData);
+ 			} else {                
  				if ($this->ee->cArray["debug"])
  					$this->ee->errorExit("MVC-ExEngine: Error ".$error,print_r($data,true)."
 				<br/>
 				"."Line Number: ".$linenumber."
 				<br/>
-				"."File: ".$file,null,$noexit);
+				"."File: ".$file."<br/><br/>
+                <strong>Note: Error handler is set & found but no $error function is set</strong>.",null,$noexit);
  				else {
  					$this->ee->errorExit("Application Error #".$error,"Powered by MVC-ExEngine",null,$noexit);
  				}
@@ -635,7 +685,7 @@ final private function raiseError($error,$data,$controllersfolder=null,$noexit=f
 	//print $sn . "<br/>";
 	$data = str_replace($sn,"",$ru);
 	//print $data . "<br/>";
-	if ($data[strlen($data)-1] == "/") {
+	if (isset($data[strlen($data)-1]) && $data[strlen($data)-1] == "/") {
 		$data = substr($data, 0, -1);
 	}		 	
 	$x = explode("/",$data);
@@ -644,14 +694,14 @@ final private function raiseError($error,$data,$controllersfolder=null,$noexit=f
 	}
 	$actualInputQuery = $data;
 	$urlParsedData = array_slice($x,1);
-	if (strlen($urlParsedData[count($urlParsedData)-1]) == 0) {
+	if (isset($urlParsedData[count($urlParsedData)-1]) && strlen($urlParsedData[count($urlParsedData)-1]) == 0) {
 		unset ($urlParsedData[count($urlParsedData)-1]);
 	}
 	$this->actualInputQuery = $actualInputQuery;
 
 	//print $urlParsedData[count($urlParsedData)-1] . '<br/>';
 
-	if (strpos( $urlParsedData[count($urlParsedData)-1], '?') !== false)
+	if (isset($urlParsedData[count($urlParsedData)-1]) && strpos( $urlParsedData[count($urlParsedData)-1], '?') !== false)
 		$urlParsedData[count($urlParsedData)-1] = substr($urlParsedData[count($urlParsedData)-1], 0, strpos( $urlParsedData[count($urlParsedData)-1], '?'));
 
 	//print $urlParsedData[count($urlParsedData)-1];
@@ -684,7 +734,8 @@ final private function raiseError($error,$data,$controllersfolder=null,$noexit=f
 	 
 	 /// Shortcut to the ExEngine Debugger (Session or remote) for the index class.
 	 final function debug($message) {
-	 	$this->ee->debugThis("eemvcil",$message);
+		 if ($this->SessionEnabled)
+	 		$this->ma->d($message);
 	 }
 	 
 	 /// Shortcut to the ExEngine Debugger for the actual controller.

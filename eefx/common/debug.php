@@ -26,8 +26,8 @@ if (!isset($cd)) {
 }
 
 if (isset($_GET['aserver']) && $_GET['aserver']=="true") {
-	include_once($ee->miscGetResPath("full")."debug/server.php");
-	exit();
+    include_once($ee->miscGetResPath("full")."debug/server.php");
+    exit();
 }
 
 $jq = new jquery($ee);
@@ -90,12 +90,12 @@ a:active {
 	var loc = '<? print $ee->miscGetResPath("http"); ?>';
 </script>
 <script language="javascript" type="text/javascript"
-	src="<? print $ee->miscGetResPath($mode="http"); ?>debug/jq.js"></script>
+	src="<? print $ee->miscGetResPath("http"); ?>debug/jq.js"></script>
 </head>
 
 <body>
 	<p align="center">
-		<img src="<? print $ee->miscGetResPath($mode="http")."ee7_full.png"; ?>" />
+		<img src="<? print $ee->miscGetResPath("http")."ee7_full.png"; ?>" />
 	</p>
 	<div align="center">
 		<table width="95%" border="0" cellspacing="0" cellpadding="0">

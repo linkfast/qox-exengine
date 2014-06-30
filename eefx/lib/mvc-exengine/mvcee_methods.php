@@ -17,13 +17,16 @@ if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 
 @section DESCRIPTION
 
-ExEngine 7 / Libs / MVC-ExEngine / Methods Class (Resources)
+ExEngine / Libs / MVC-ExEngine / Methods Class (Resources)
 
 ExEngine MVC Implementation Library
 
 */
 
+/* Accessible from all controllers, models and views in the object $this->r */
 class eemvc_methods {
+    
+        const VERSION = "0.0.1.3";
 		
 		var $cparent;	
 		var $jQueryObject;
@@ -86,30 +89,32 @@ class eemvc_methods {
 	final function vs() {
 		return $this->cparent->index->controllersFolderHTTP.$this->tra."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";	
 	}
-	
+
+	private $ee;
 	final function __construct(&$parent) {
 		$this->cparent = &$parent;
 		$this->jQueryObject = &$this->cparent->index->jQueryObject;
 		$this->tra = null;
+		$this->ee = &ee_gi();
 		if ($this->cparent->index->trailingSlashLegacy) {
 			$this->tra = "/";
 		}
 	}
 	
 	final function getSession($element) {
-		if ($this->cparent->index->SessionMode)			
+		if ($this->cparent->index->isSessionEnabled())
 			return @$_SESSION[$element];
 		else {
-			$this->cparent->debug("eemvcil.php:". __LINE__ . ": Cannot get a session variable, SessionMode is set to false.");
+			$this->ee->errorExit("MVC-ExEngine","Cannot get a session variable, session support is not enabled.");
 			return null;	
 		}			
 	}
 	
 	final function setSession($element,$value) {
-		if ($this->cparent->index->SessionMode)
+		if ($this->cparent->index->isSessionEnabled())
 			$_SESSION[$element] = $value;	
 		else {
-			$this->cparent->debug("eemvcil.php:". __LINE__ . ": Cannot get a session variable, SessionMode is set to false.");
+			$this->ee->errorExit("MVC-ExEngine","Cannot set a session variable, session support is not enabled.");
 			return null;	
 		}
 	}
@@ -128,19 +133,55 @@ class eemvc_methods {
 		unset($_SESSION[$element]);	
 	}
 
-	final function get($element) {
-		return @$_GET[$element];	
+	final function get() {
+		$numargs = func_num_args();
+		$arg_list = func_get_args();
+
+		$pd = $_GET;
+
+		if ($numargs >= 2) {
+			$return = new stdClass();
+			for ($i = 0; $i < $numargs; $i++) {
+				$return->$arg_list[$i] = $pd[$arg_list[$i]];
+			}
+			return $return;
+		}else {
+			return @$pd[$arg_list[0]];
+		}
 	}
 	
-	final function post($element) {
-		//support for json_post (angularJS)
+	final function post() {
+		$numargs = func_num_args();
+		$arg_list = func_get_args();
+
 		$data2 = @json_decode(file_get_contents('php://input'));
 		if ($data2 instanceof stdClass) {
 			$pd = get_object_vars($data2);
-			return @$pd[$element];
-		} else
-			return @$_POST[$element];	
+		} else {
+			$pd = $_POST;
+		}
+
+		if ($numargs >= 2) {
+			$return = new stdClass();
+			for ($i = 0; $i < $numargs; $i++) {
+				$return->$arg_list[$i] = $pd[$arg_list[$i]];
+			}
+			return $return;
+		}else {
+			return @$pd[$arg_list[0]];
+		}
 	}
+    
+    final function query($b64=false) {
+        $qs = $_SERVER['QUERY_STRING'];
+        if (!$this->cparent->ee->strContains($qs, '?')) {
+            $qs = preg_replace('/&/', '?', $qs, 1);
+        }
+        if ($b64)
+            return base64_encode($qs);
+        else
+            return $qs;
+    }
 	
 	final function file($pname) {
 		return @$_FILES[$pname];	

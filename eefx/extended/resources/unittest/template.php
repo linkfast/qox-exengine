@@ -5,11 +5,13 @@ $this->Ttop = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "h
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu:regular,bold&subset=Latin">
 <style>body { font-family: Ubuntu, sans-serif; }</style>
-<title>QOX ExEngine Unit Testing</title>
+<title>ExEngine 7 Unit Testing</title>
 </head>
+
 <body>
-<p><img src="'.$this->ee->miscGetResPath('http').'ee7_full_openlogo_jpg.jpg" /></p>
-<p><b>MENU</b><br/> <a href="'.$_SERVER["SCRIPT_NAME"].'">Run Tests</a><br/><a href="'.$_SERVER["SCRIPT_NAME"].'?summary">Run Tests and Show Summary</a></p>
+<h2>ExEngine 7 Unit Testing</h2>
+<p>Menu: <a href="javascript:location.reload(true);">Rerun Tests</a></p>
 <b>Console Output:</b><br/>';
+
 $this->Tbot = '</body>
 </html>';

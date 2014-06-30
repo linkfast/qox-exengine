@@ -31,6 +31,10 @@ if ($c == "getMessages") {
 		$mess = "No Messages for $inApp.";	
 		$ee->debugThis("Debug App Server","No Messages for $inApp.");
 	}
+    for ($l = 0; $l < count($mess) ; $l++) {        
+        if (isset($mess[$l]["msg"]))
+            $mess[$l]["msg"] = @nl2br($mess[$l]["msg"]);        
+    }
 	$res = array("result"=>$mess);
 	print json_encode($res);
 }

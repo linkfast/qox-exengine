@@ -1,0 +1,140 @@
+<?php
+/**
+ * QOX ExEngine Message Agent
+ * Programa: Giancarlo Chiappe Aguilar
+ * Fecha/Hora: 25/04/14 03:59 PM
+ * (C) 2014 Todos los derechos reservados.
+ *
+ * Frontend V. 1.0.0.1
+ */
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="ExEngine Message Agent (Frontend)">
+    <meta name="author" content="QOX Corporation">
+    <!-- <link rel="shortcut icon" href="../../assets/ico/favicon.ico"> -->
+
+    <title><?php if ($eemaLegacyMode) { ?>QOX ExEngine Debugger (Frontend)<?php } else { ?>QOX ExEngine Message Agent (Frontend)<?php } ?></title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="<?php print $httpResPath; ?>themes/bootstrap.flatly.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="<?php print $httpResPath; ?>plugins/dashboard/dashboard.css" rel="stylesheet">
+
+    <link href="<?php print $httpResPathFA; ?>css/font-awesome.min.css" rel="stylesheet">
+
+
+    <link href="<?php print $httpCommonPath; ?>eema/eema.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+	<style>
+		@font-face {
+			font-family: 'ethno';
+			src: url('<?php print $httpResPathFonts; ?>ethnocentric_italic.otf');
+		}
+		.EELogo {
+			font-family: ethno;
+		}
+		.navbar-brand:hover {
+			color: #FFF !important;
+		}
+	</style>
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand">
+                <img src="<?php print $httpCommonPath; ?>qox_q.png" style="max-height: 32px; margin-top: -6px;" title="QOX Corporation">&nbsp;
+                <?php if ($eemaLegacyMode) { ?> <span class="EELogo">ExEngine</span><small>Debugger</small> <?php } else { ?><span class="EELogo">ExEngine</span> <small>Message Agent</small><?php } ?>
+            </a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <?php if (!$eemaLegacyMode) { ?>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="?">Dashboard</a></li>
+                <li><a href="?page=settings">Settings</a></li>
+                <!-- <li><a href="#"></a></li> -->
+                <li><a href="?page=help">Help</a></li>
+            </ul>
+            <?php } ?>
+            <!--
+            <form class="navbar-form navbar-right">
+                <input type="text" class="form-control" placeholder="Search...">
+            </form>-->
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="<?php if (!$eemaLegacyMode) { ?>col-sm-3 col-md-2<?php } ?> sidebar" id="eema-sidebar" <?php if ($eemaLegacyMode) { ?>style="width: 1px !important; padding:  0px !important;"<?php } ?>>
+            <?php if (!$eemaLegacyMode) { ?>
+            <ul class="nav nav-sidebar">
+
+                <li <?php if (!isset($_GET['page'])) { ?>class="active"<?php } ?>><a href="?">Message Agent Client</a></li>
+                <li <?php if (isset($_GET['page']) && $_GET['page'] == 'legacy-client') { ?>class="active"<?php } ?>><a href="?page=legacy-client">Debugger Legacy Client</a></li>
+
+                <!--
+                <li><a href="#">Analytics</a></li>
+                <li><a href="#">Export</a></li> -->
+            </ul>
+            <?php } ?>
+            <!--
+            <ul class="nav nav-sidebar">
+                <li><a href="">Nav item</a></li>
+                <li><a href="">Nav item again</a></li>
+                <li><a href="">One more nav</a></li>
+                <li><a href="">Another nav item</a></li>
+                <li><a href="">More navigation</a></li>
+            </ul>
+            <ul class="nav nav-sidebar">
+                <li><a href="">Nav item again</a></li>
+                <li><a href="">One more nav</a></li>
+                <li><a href="">Another nav item</a></li>
+            </ul>
+            -->
+        </div>
+
+        <div class="<?php if (!$eemaLegacyMode) { ?>col-sm-offset-3 col-md-offset-2 col-md-10 col-sm-9<?php } else { ?>col-md-12 col-sm-12<?php } ?> main">
+            <?php include_once($emaInc); ?>
+        </div>
+    </div>
+</div>
+
+<?php $jq->load(); ?>
+<script src="<?php print $httpResPathUS; ?>underscore-min.js"></script>
+<script src="<?php print $httpResPath; ?>basic/js/bootstrap.min.js"></script>
+<script src="<?php print $httpResPath; ?>plugins/holder/docs.min.js"></script>
+<script>
+    var viewportHeight = null;
+    var eema_self = '<?php print $ee->miscPhpSelfNoPath(); ?>';
+    var eema_loc = '<?php print $ee->miscGetResPath("http"); ?>';
+	<?php if ($CreateSession) { ?>
+    var eema_server = eema_self + '?server_mode=true';
+	<?php } else { ?>
+	var eema_server = eema_self + '?server_mode=true&NoNewSession=true';
+	<?php } ?>
+</script>
+<script src="<?php print $httpCommonPath; ?>eema/eema.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 /**
 @file devguard.php
 @author Giancarlo Chiappe <gch@linkfastsa.com> <gchiappe@gmail.com>
-@version 0.0.1.2
+@version 0.0.1.4
 
 @section LICENSE
 
@@ -23,13 +23,18 @@ ExEngine 7 / Libs / ExEngine Development Stage Guard (devguard)
 */
 
 class ee_devguard {
+	const VERSION = "0.0.1.4";
 	private $ee;
 	var $password = "default";
+	var $lang = "en";
 	function __construct() {
 		$this->ee =& ee_gi();
 		if (!function_exists('mcrypt_encrypt')){
 			$this->ee->errorExit("ExEngine DevGuard Error", "php mcrypt library is required, please install before using DevGuard.");
 		}
+		if (isset($this->ee->cArray["devguard_default_language"])) {
+		    $this->lang = $this->ee->cArray["devguard_default_language"];
+        }
 	}
 
 	function guard($Server_Key_Name) {
@@ -53,6 +58,20 @@ class ee_devguard {
 	}
 
 	private function loadGateway($Server_Key_Name,$CustomGateway=false) {
+	    $dgf = $this->ee->libGetResPath("devguard");
+	    $langFile = $dgf . "lang/" . $this->lang . ".php";
+	    if (file_exists($langFile)) {
+	        include_once($langFile);
+        } else {
+            $DG_L["gateway_title"] = "Application protected by QOX ExEngine DevGuard";
+            $DG_L["welcome_text"] = 'This application is in <span style="font-weight: 500;">development stage</span> and its access is restricted to select users, if you need access contact application developers to get a copy of the key file.';
+            $DG_L["select_key"] = "Please select the project key to start a session";
+            $DG_L["auth_button"] = "AUTHENTICATE";
+            $DG_L["wrong_file"] = "Invalid or wrong file provided, please select the correct key file.";
+            $DG_L["no_key_sent"] = "No file send, please select a file.";
+            
+            $DG_L["click_close"] = "Click here to close QOX ExEngine DevGuard session.";
+        }
 
 		$invalid_key = null;
 		//print $_FILES["upload_file"]['error'] ;
@@ -67,13 +86,13 @@ class ee_devguard {
 				header("Location: ".$sU);
 				exit();
 			} else {
-				$invalid_key = "Invalid or wrong file provided, please select the correct key file.";
+				$invalid_key = $DG_L["wrong_file"];
 			}
 		}
 		if (isset($_FILES["upload_file"]) && $_FILES["upload_file"]['error'] == 4) {
-			$invalid_key = "No file send, please select a file.";
+			$invalid_key = $DG_L["no_key_sent"];
 		}		
-		$dgf = $this->ee->libGetResPath("devguard");
+		
 		if (!$CustomGateway)
 			include_once( $dgf . 'gateway.phtml');
 		else
@@ -100,7 +119,7 @@ class ee_devguard {
 		#file download
 		header('Content-Description: File Transfer');
 		header('Content-Type: application/octet-stream');
-		header('Content-Disposition: attachment; filename="clientKey_'.$Server_Key_Name.'.dgck"'); //<<< Note the " " surrounding the file name
+		header('Content-Disposition: attachment; filename="clientKey_'.$Server_Key_Name.'.dgck"');
 		header('Content-Transfer-Encoding: binary');
 		header('Connection: Keep-Alive');
 		header('Expires: 0');
@@ -135,9 +154,23 @@ class ee_devguard {
 		}
 	}
 
-	function guard_float_menu() {
+	function guard_float_menu($return=false) {
 		$dgf = $this->ee->libGetResPath("devguard");
-		include_once( $dgf . 'dglock.phtml');
+        $langFile = $dgf . "lang/" . $this->lang . ".php";
+	    if (file_exists($langFile)) {
+	        include_once($langFile);
+        } else {
+            $DG_L["click_close"] = "Click here to close QOX ExEngine DevGuard session.";
+        }
+		if (!$return) {
+			include_once( $dgf . 'dglock.phtml');
+		} else {
+			ob_start();
+			include_once( $dgf . 'dglock.phtml');
+			$R = ob_get_contents();
+			ob_clean();
+			return $R;
+		}
 	}
 
 }

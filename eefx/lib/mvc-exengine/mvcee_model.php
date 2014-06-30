@@ -25,12 +25,13 @@ ExEngine MVC Implementation Library
 
 class eemvc_model {
 	
-	//Default Database Object (used for Code-Hinting compatibility)
+	// Database Object
 	public $db;
+	// Resources Object
 	public $r; 
 
 	public function __toString() {
-		$obj = $this;
+		$obj = clone $this;
 		unset($obj->db);
 		unset($obj->r);
 		return print_r($obj,true);
@@ -40,7 +41,7 @@ class eemvc_model {
 		$this->r = new eemvc_methods($this);		
 	}
 	
-	//Database loader, compatible with EEDBM (used for Code-Hinting compatibility)
+	//Database loader, compatible with EEDBM
 	final function loadDB($dbObj="default") {		
 		$this->db = new eedbm($this->ee,$dbObj);
 	}
@@ -66,5 +67,6 @@ class eemvc_model {
 }
 
 include_once('model_variants/mv_dbo_mysql.php');
+include_once('model_variants/mv_dbo_sqlite.php');
 include_once('model_variants/mv_dbo_mongodb.php');
 ?>

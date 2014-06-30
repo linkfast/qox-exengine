@@ -22,9 +22,13 @@ ExEngine 7 / Libs / ExEngine Database Manager 2
 
 */
 
+define('EEDBM_ASSOC',1);
+define('EEDBM_NUM',2);
+define('EEDBM_BOTH',3);
+
 class eedbm {
 	
-	const VERSION = "0.0.1.14";
+	const VERSION = "0.0.3.1";
 	
 	public $utf8Mode = false;
 	
@@ -72,7 +76,21 @@ class eedbm {
 		$dbg = $DebugMode;
 		if (!$this->connected) {
 			switch ($this->type) {
-				
+				case "sqlite":
+					if (!class_exists('SQLite3')) {
+						$this->ee->errorWarning("ExEngine : Database Manager : No SQLite support in your PHP installation.");
+					} else {
+						$this->connObj = new SQLite3($this->host);
+						//$this->connObj->open($this->host);
+						if ($this->connObj) {
+							$this->connected = true;
+						} else {
+							$this->ee->errorWarning("ExEngine : Database Manager : Can not open SQLite database file.");
+							$this->ee->debugThis("eedbm","Can not open SQLite database. Error: ". $this->connObj->lastErrorCode() . " " . $this->connObj->lastErrorMsg()) ;
+							$this->connected = false;
+						}
+					}
+				break;
 				#MySQL MODE (LEGACY)
 				case "mysql" :					
 					$this->connObj  = mysql_connect($this->host,$this->user,$this->passwd);
@@ -80,26 +98,12 @@ class eedbm {
 					if ( ($this->connObj) && ($this->dbselObj) ) { 			
 						$this->connected = true;						
 					} else {
-						$this->ee->errorWarning("ExEngine 7 : Database Manager 2 : Can not connect to server.");
+						$this->ee->errorWarning("ExEngine : Database Manager : Can not connect to server.");
 						$this->ee->debugThis("eedbm","Can not connect to server. Error: ". mysql_errno($this->connObj) . " " . mysql_error($this->connObj));
 						$this->connected = false;
-					}				
-					$r = "<!> ExEngine : Database Manager 2 | Debug mode Enabled, remember to disable this mode in the final revision.\n<br/>";
-					$r .= "Status\t\t\t: ".print_r($this->connected,true)." (1=connected, 0=disconnected)\n<br/>";
-					$r .= "Database type\t\t: ".$this->type."\n<br/>";
-					$r .= "Host\t\t\t: ".$this->host."\n<br/>";
-					$r .= "User\t\t\t: ".$this->user."\n<br/>";
-					$r .= "Password\t\t: ".$this->passwd."\n<br/>";
-					$r .= "Database\t\t: ".$this->db."\n<br/>";
-					$r .= "Port\t\t\t: ".$this->port."\n<br/>";							
-					$this->ee->debugThis("eedbm","Debug data: ".$r);
-					if ($dbg) {
-						$this->dbgMode = true ;						
-						print "<!-- ". $r . "-->\n";		
 					}
 					break;
 				# LEGACY
-				
 				case "mysqli":
 					$this->connObj = mysqli_connect($this->host,$this->user,$this->passwd);
 					$this->dbselObj = mysqli_select_db($this->connObj,$this->db);
@@ -112,28 +116,7 @@ class eedbm {
 				break;				
 				case "pgsql":
 					#PostgreSQL Mode -> TODO
-					/*
-					$this->connObj  = mysql_connect($this->host,$this->user,$this->passwd);
-					$this->dbselObj = mysql_select_db($this->db,$this->connObj);			
-					if ( ($this->connObj) && ($this->dbselObj) ) { 			
-						$this->connected = true;						
-					} else {
-						$this->ee->errorWarning("ExEngine 7 : Database Manager 2 : Can not connect to server.");
-						$this->connected = false;
-					}					
-					if ($dbg) {
-						$this->dbgMode = true ;
-						print "<!-- <!> ExEngine : Database Manager 2 | Debug mode Enabled, remember to disable this mode in the final revision.\n";
-						print "Status\t\t\t: ".$this->connected." (1=connected, 0=disconnected)\n";
-						print "Database type\t\t: ".$this->type."\n";
-						print "Host\t\t\t: ".$this->host."\n";
-						print "User\t\t\t: ".$this->user."\n";
-						print "Password\t\t: ".$this->passwd."\n";
-						print "Database\t\t: ".$this->db."\n";
-						print "Port\t\t\t: ".$this->port."\n-->\n";
-					}
-					*/
-					$this->ee->errorExit("ExEngine : Database Manager : PostgreSQL not supported.");
+					$this->ee->errorExit("ExEngine : Database Manager : PostgreSQL not implemented.");
 				break;
 				default :
 					$this->ee->debugThis("eedbm","EDBL Driver Search");
@@ -164,6 +147,19 @@ class eedbm {
 						$this->ee->errorExit("eedbm","Database type not valid, EEDBL driver missing?");	
 					}
 				break;
+			}
+			$r = "<!> ExEngine : Database Manager | Debug mode Enabled, remember to disable this mode in the final revision.\n<br/>";
+			$r .= "Status\t\t\t: ".print_r($this->connected,true)." (1=connected, 0=disconnected)\n<br/>";
+			$r .= "Database type\t\t: ".$this->type."\n<br/>";
+			$r .= "Host\t\t\t: ".$this->host."\n<br/>";
+			$r .= "User\t\t\t: ".$this->user."\n<br/>";
+			$r .= "Password\t\t: ".$this->passwd."\n<br/>";
+			$r .= "Database\t\t: ".$this->db."\n<br/>";
+			$r .= "Port\t\t\t: ".$this->port."\n<br/>";
+			$this->ee->debugThis("eedbm","Debug data: ".$r);
+			if ($dbg) {
+				$this->dbgMode = true ;
+				print "<!-- ". $r . "-->\n";
 			}
 		}
 	}
@@ -203,6 +199,10 @@ class eedbm {
 						$ret = mysqli_query($this->connObj,$Query);
 						if ($aQ==1) $this->autoquery = $ret; else return $ret;					
 					break;
+					case "sqlite":
+						$ret = $this->connObj->query($Query);
+						if ($aQ==1) $this->autoquery = $ret; else return $ret;
+					break;
 					default:
 						if ($this->edbl_enabled) {							
 							if ($EDBL_Special==null)
@@ -226,7 +226,7 @@ class eedbm {
 	final function fetchArray($QueryObject=null,$SafeMode=true,$ResultType=null,$EDBL_Special=null) {
 		$qObj = $QueryObject;
 		$rt = $ResultType;
-		$rObj;		
+		$rObj = null;
 		
 		if ($this->connected) {
 			#autoquery
@@ -234,7 +234,7 @@ class eedbm {
 				if (isset($this->autoquery)) {
 					$qObj = $this->autoquery;
 				} else {
-					$this->ee->errorWarning("ExEngine 7 : Database Manager : Query object must be provided,<br/><code>". '$result = $dbObject->fetchArray($queryObject);</code><br/>More help : <a href="http://wiki.aldealinkfast.com/exengine/index.php?title=ExEngine_7:Documentaci%C3%B3n:ExEngine_Database_Manager_(English)" target="_blank">ExEngine Wiki : EE7 : Database Manager</a>');	
+					$this->ee->errorWarning("ExEngine : Database Manager : Query object must be provided,<br/><code>". '$result = $dbObject->fetchArray($queryObject);</code><br/>More help : <a href="http://wiki.aldealinkfast.com/exengine/index.php?title=ExEngine_7:Documentaci%C3%B3n:ExEngine_Database_Manager_(English)" target="_blank">ExEngine Wiki : EE7 : Database Manager</a>');
 				}
 			}
 			#autoquery end
@@ -242,7 +242,20 @@ class eedbm {
 			switch ($this->type) {
 				
 				#LEGACY
-				case "mysql":		
+				case "mysql":
+
+					switch ($rt) {
+						case EEDBM_ASSOC:
+							$rt = MYSQL_ASSOC;
+							break;
+						case EEDBM_BOTH:
+							$rt = MYSQL_ASSOC;
+							break;
+						case EEDBM_NUM:
+							$rt = MYSQL_NUM;
+							break;
+					}
+
 					if (true) {
 						if (isset($qObj)) {
 							if (!isset($rt)) {
@@ -256,6 +269,19 @@ class eedbm {
 				#END LEGACY
 				
 				case "mysqli":
+
+					switch ($rt) {
+						case EEDBM_ASSOC:
+							$rt = MYSQLI_ASSOC;
+							break;
+						case EEDBM_BOTH:
+							$rt = MYSQLI_ASSOC;
+							break;
+						case EEDBM_NUM:
+							$rt = MYSQLI_NUM;
+							break;
+					}
+
 					if (true) {
 						if (isset($qObj)) {
 							if (!isset($rt)) {
@@ -266,6 +292,32 @@ class eedbm {
 						}
 					}			
 				break;
+
+				case "sqlite":
+
+					switch ($rt) {
+						case EEDBM_ASSOC:
+							$rt = SQLITE3_ASSOC;
+						break;
+						case EEDBM_BOTH:
+							$rt = SQLITE3_ASSOC;
+						break;
+						case EEDBM_NUM:
+							$rt = SQLITE3_NUM;
+						break;
+					}
+
+					if (true) {
+						if (isset($qObj)) {
+							if (!isset($rt)) {
+								$rObj = $qObj->fetchArray();
+							} else {
+								$rObj = $qObj->fetchArray($rt);
+							}
+						}
+					}
+				break;
+
 				default:
 					if ($this->edbl_enabled) {
 						if ($EDBL_Special==null)
@@ -290,13 +342,15 @@ class eedbm {
 				return $rObj;
 			}
 		} else {
-				$this->ee->errorWarning("ExEngine 7 : Database Manager : Database must be connected before using fetchArray,<br/><code>". '$dbObject->open();</code>');
+				$this->ee->errorWarning("ExEngine : Database Manager : Database must be connected before using fetchArray,<br/><code>". '$dbObject->open();</code>');
 		}
 	}
 	
 	final function errorLatest() {
 		if ($this->connected) {
 			switch ($this->type) {
+				case "sqlite":
+					return $this->connObj->lastErrorCode();
 				#LEGACY
 				case "mysql" :
 					return mysql_error($this->connObj);
@@ -314,12 +368,12 @@ class eedbm {
 
 	/// Converts a search array to SQL. (Currently only supports MySQL)
 	final function searchArrayToSQL($SearchArray, $SafeMode=true, $Mode="AND") {
-		$WhereStatement = $WhereArray;
+		$WhereStatement = $SearchArray;
 		if (!is_array($WhereStatement)) {
 			$this->ee->errorExit("eedbm->searchArrayToSQL","Invalid arguments, array for SearchStatements is required.");
 		}
 		$Mode = strtoupper($Mode);
-		if ($Mode != "AND" && $Mode != "OR") $this->ee->errorExit("eedbm->searchArrayToSQL","Invalid arguments, $Mode must be either AND or OR.");
+		if ($Mode != "AND" && $Mode != "OR") $this->ee->errorExit("eedbm->searchArrayToSQL",'Invalid arguments, $Mode must be either AND or OR.');
 		$wQ='';
 		$c = count($WhereStatement);
 		$a = array_keys($WhereStatement);		
@@ -354,7 +408,7 @@ class eedbm {
 			$this->ee->errorExit("eedbm->whereArrayToSQL","Invalid arguments, array for WhereStatements is required.");
 		}
 		$Mode = strtoupper($Mode);
-		if ($Mode != "AND" && $Mode != "OR") $this->ee->errorExit("eedbm->whereArrayToSQL","Invalid arguments, $Mode must be either AND or OR.");
+		if ($Mode != "AND" && $Mode != "OR") $this->ee->errorExit("eedbm->whereArrayToSQL",'Invalid arguments, $Mode must be either AND or OR.');
 		$wQ='';
 		$c = count($WhereStatement);
 		$a = array_keys($WhereStatement);		
@@ -510,8 +564,12 @@ class eedbm {
 		$q = $this->query("INSERT INTO `".$this->db."`.`".$table."` (".$q1.") VALUES (".$q2.")".$fQ);
 		
 		switch ($this->type) {
-			#LEGACY
-			case "mysql":
+
+			case "sqlite" :
+				$this->InsertedID = $this->connObj->lastInsertRowID();
+			break;
+
+			case "mysql" :
 				$this->InsertedID = mysql_insert_id($this->connObj);
 			break;	
 			#LEGACY
@@ -561,11 +619,20 @@ class eedbm {
 				#LEGACY
 				case "mysql":
 					return mysql_num_rows($q);
-					break;
+				break;
 				#LEGACY
 				case "mysqli":
 					return mysqli_num_rows($q);
-					break;
+				break;
+				case "sqlite" :
+					#no native for this.
+					$qq = $this->connObj->query($q);
+					$cc = 0;
+					while ($rr = $qq->fetchArray()){
+						$cc++;
+					}
+					return $cc;
+				break;
 				default:
 					if ($this->edbl_enabled)
 						return $this->edbl_obj->rowCount($q);
@@ -585,6 +652,12 @@ class eedbm {
 			#legacy
 			case "mysqli":
 				return mysqli_close($this->connObj);
+			case "sqlite":
+				return $this->connObj->close();
+			default:
+				if ($this->edbl_enabled)
+					return $this->edbl_obj->close();
+			break;
 		}
 		
 		

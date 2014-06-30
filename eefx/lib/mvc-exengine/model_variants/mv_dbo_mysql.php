@@ -2,6 +2,7 @@
 /**
 @file mv_dbo_mysql.php
 @author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>
+@version 0.0.1.1
 
 @section LICENSE
 
@@ -27,6 +28,8 @@ ExEngine MVC Implementation Library
 class eemvc_model_dbo extends eemvc_model_dbo_mysql { }
 
 class eemvc_model_dbo_mysql extends eemvc_model {
+    
+    const VERSION = "0.0.1.1";
 
 	function __construct() {
 		parent::__construct();
@@ -49,7 +52,8 @@ class eemvc_model_dbo_mysql extends eemvc_model {
 		unset($vars["db"]);
 		unset($vars["r"]);
 		unset($vars["TABLEID"]);
-		unset($vars["INDEXKEY"]);		
+		unset($vars["INDEXKEY"]);	
+        unset($vars["SQLAUTOMODE"]);
 		if (isset ($this->EXCLUDEVARS) ) {
 			unset($vars["EXCLUDEVARS"]);
 			for ($c = 0; $c
@@ -67,6 +71,7 @@ class eemvc_model_dbo_mysql extends eemvc_model {
 		unset($obj->r);
 		unset($obj->TABLEID);
 		unset($obj->INDEXKEY);
+        unset($obj->SQLAUTOMODE);
 		if (isset($obj->EXCLUDEVARS))
 			unset($obj->EXCLUDEVARS);
 		return get_object_vars($obj);
@@ -78,15 +83,46 @@ class eemvc_model_dbo_mysql extends eemvc_model {
 		unset($obj->r);
 		unset($obj->TABLEID);
 		unset($obj->INDEXKEY);
+        unset($obj->SQLAUTOMODE);
 		if (isset($obj->EXCLUDEVARS))
 			unset($obj->EXCLUDEVARS);
 		return print_r($obj,true);
 	}
+    
+    private function sql_automode() {
+        /* mysql edition */
+        
+        $this->debug("SQLAUTOMODE RUN!");
+        
+        if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+        $this->loadDb();
+        $this->db->open();
+        $q = $this->db->query("SHOW COLUMNS FROM " . $this->TABLEID);
+        $pkc = 0;
+        while ($row = $this->db->fetchArray($q,true,MYSQLI_ASSOC)) {
+            $fieldName = $row["Field"];
+            $this->$fieldName = null;
+            $this->debug($fieldName);
+            if ($row["Key"] == 'PRI' && $pkc == 0) {
+                if (!isset($this->INDEXKEY)) $this->INDEXKEY = $fieldName;
+                $this->debug("ik: " . $fieldName);
+                $pkc++;
+            }
+        }
+        if ($pkc==0) {
+            if (!isset($this->INDEXKEY)) $this->INDEXKEY = 'id';
+        }
+        $this->debug($this->__toString());
+    }
 	
 	final function load($SafeMode=true) {		
-		$ik = $this->INDEXKEY;
 		
-		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+        if (isset($this->SQLAUTOMODE) && $this->SQLAUTOMODE==true) 
+            $this->sql_automode();
+        else {
+		  if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+        }        
+        $ik = $this->INDEXKEY;
 		
 		if (isset($this->$ik)) {
 			
@@ -102,10 +138,8 @@ class eemvc_model_dbo_mysql extends eemvc_model {
 			$data = $this->db->fetchArray($q,$SafeMode,MYSQLI_ASSOC);
 			unset($data[$this->INDEXKEY]);
 			$keys = @array_keys($data);
-			for ($c = 0; $c
-										< count($keys); $c++) {
-				$this->
-											$keys[$c] = $data[$keys[$c]];	
+			for ($c = 0; $c < count($keys); $c++) {
+				$this->$keys[$c] = $data[$keys[$c]];
 			}
 			
 			if (method_exists($this,'__aftload')) {
@@ -117,7 +151,13 @@ class eemvc_model_dbo_mysql extends eemvc_model {
 	}
 	
 	function search($SearchArray=null,$SafeMode=true) {
-		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		if (isset($this->SQLAUTOMODE) && $this->SQLAUTOMODE==true) 
+            $this->sql_automode();
+        else {
+		  if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+        }        
+        $ik = $this->INDEXKEY;
+        
 		$cn = get_class($this);	
 		$this->loadDb();
 		$this->db->open();	
@@ -151,7 +191,13 @@ class eemvc_model_dbo_mysql extends eemvc_model {
 	}
 
 	function load_all($WhereArray=null,$SafeMode=true) {
-		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		if (isset($this->SQLAUTOMODE) && $this->SQLAUTOMODE==true) 
+            $this->sql_automode();
+        else {
+		  if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+        }        
+        $ik = $this->INDEXKEY;
+        
 		$cn = get_class($this);	
 		$this->loadDb();
 		$this->db->open();	
@@ -162,17 +208,15 @@ class eemvc_model_dbo_mysql extends eemvc_model {
 		else $w = null;
 		$q = $this->db->query("SELECT * FROM ".$this->TABLEID. " " . $w);
 		if ($q) {
-			while ($row = $this->db->fetchArray($q,$SafeMode,MYSQLI_ASSOC)) {
+			while ($row = $this->db->fetchArray($q,$SafeMode,EEDBM_ASSOC)) {
 				unset($v);
 				$v = new $cn();	
 				if (method_exists($v,'__befload')) {
 					$v->__befload();
 				}							
 				$keys = @array_keys($row);
-				for ($c = 0; $c
-												< count($keys); $c++) {
-					$v->
-													$keys[$c] = $row[$keys[$c]];	
+				for ($c = 0; $c< count($keys); $c++) {
+					$v->$keys[$c] = $row[$keys[$c]];	
 				}	
 				if (method_exists($v,'__aftload')) {
 					$v->__aftload();
@@ -189,9 +233,12 @@ class eemvc_model_dbo_mysql extends eemvc_model {
 	}
 	
 	function load_values($SafeMode=true) {
-		$ik = $this->INDEXKEY;
-		
-		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		if (isset($this->SQLAUTOMODE) && $this->SQLAUTOMODE==true) 
+            $this->sql_automode();
+        else {
+		  if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+        }        
+        $ik = $this->INDEXKEY;
 		
 		$v = $this->getProperties();	
 		$nnc = 0;		
@@ -226,30 +273,35 @@ class eemvc_model_dbo_mysql extends eemvc_model {
 	}
 	
 	function load_page($from,$count,$SafeMode=true) {		
-		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		if (isset($this->SQLAUTOMODE) && $this->SQLAUTOMODE==true) 
+            $this->sql_automode();
+        else {
+		  if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+        }        
+        //$ik = $this->INDEXKEY;
+        
 		$cn = get_class($this);	
 		$this->loadDb();
 		$this->db->open();	
 		$re = null;
-		$c=0;
+		//$c=0;
+		$o=0;
 		$q = $this->db->query("SELECT * FROM `".$this->TABLEID."` LIMIT ".$from." , ".$count);
 		if ($q) {
-			while ($row = $this->db->fetchArray($q,$SafeMode,MYSQLI_ASSOC)) {
+			while ($row = $this->db->fetchArray($q,$SafeMode,EEDBM_ASSOC)) {
 				unset($v);
 				$v = new $cn();				
 				if (method_exists($v,'__befload')) {
 					$v->__befload();
 				}				
 				$keys = @array_keys($row);
-				for ($c = 0; $c
-														< count($keys); $c++) {
-					$v->
-															$keys[$c] = $row[$keys[$c]];	
+				for ($c = 0; $c < count($keys); $c++) {
+					$v->$keys[$c] = $row[$keys[$c]];	
 				}	
 				if (method_exists($v,'__aftload')) {
 					$v->__aftload();
 				}
-				$re[$o] = &$v;		
+				$re[$o] = &$v;
 				$o++;
 			}
 		} else return false;
@@ -257,8 +309,13 @@ class eemvc_model_dbo_mysql extends eemvc_model {
 	}
 	
 	final function insert($SafeMode=true) {
-		$ik = $this->INDEXKEY;
-		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		if (isset($this->SQLAUTOMODE) && $this->SQLAUTOMODE==true) 
+            $this->sql_automode();
+        else {
+		  if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+        }        
+        $ik = $this->INDEXKEY;
+        
 		if (isset($ik)) {
 			if (method_exists($this,'__befinsert')) {
 				$this->__befinsert();	
@@ -279,8 +336,19 @@ class eemvc_model_dbo_mysql extends eemvc_model {
 	}
 	
 	final function update($SafeMode=true) {
+        /*
 		$ik = $this->INDEXKEY;
-		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);*/
+
+		$r = null;
+        
+        if (isset($this->SQLAUTOMODE) && $this->SQLAUTOMODE==true) 
+            $this->sql_automode();
+        else {
+		  if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+        }        
+        $ik = $this->INDEXKEY;
+        
 		if (isset($ik)) {
 			if (method_exists($this,'__befupdate')) {
 				$this->__befupdate();	
@@ -299,8 +367,16 @@ class eemvc_model_dbo_mysql extends eemvc_model {
 	}
 	
 	final function delete() {
+        /*
 		$ik = $this->INDEXKEY;
 		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+        */
+        if (isset($this->SQLAUTOMODE) && $this->SQLAUTOMODE==true) 
+            $this->sql_automode();
+        else {
+		  if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
+        }        
+        $ik = $this->INDEXKEY;
 		if (isset($this->$ik)) {
 			$this->loadDb();
 			$this->db->open();

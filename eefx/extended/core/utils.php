@@ -46,9 +46,11 @@ class EE_Util_ConstantsLoader
 	}
 
 	function ArrayToConstant($InputArray,$Prefix=null) {
-		foreach ($InputArray as $key => $value) {
-			define($Prefix . $key,$value);
-		}
+        if (is_array($InputArray)) {
+            foreach ($InputArray as $key => $value) {
+                define($Prefix . $key,$value);
+            }
+        }
 	}
 
 	function debug($Message) {

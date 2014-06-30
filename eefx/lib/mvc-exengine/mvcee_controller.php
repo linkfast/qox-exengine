@@ -17,31 +17,41 @@ if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 
 @section DESCRIPTION
 
-ExEngine 7 / Libs / MVC-ExEngine / Controller Class
+ExEngine / Libs / MVC-ExEngine / Controller Class
 
 ExEngine MVC Implementation Library
 
 */
 
 class eemvc_controller {
+
+	/* @var $ee exengine */
 	public $ee; /// Parent EE7 Object.
+	/* @var $index eemvc_index */
 	public $index; /// Parent eemvc_index object.
+	/* @var $db eedbm */
 	public $db; /// Default database object, should be loaded first using $this->loadDb.
 	public $functionName; /// The name of the in-use function.
-	
-	public $r; /// Input data methods  
+
+	/* @var $r eemvc_methods */
+	public $r; /// Input data methods
+
+	/* @var $ma eema */
+	public $ma; /// EE Message Agent.
 	
 	public static $im; /// don't remenber ... :(
-		
+
+	/* @var $inst eemvc_controller */
 	private static $inst; /// This contoller instance.
 	
 	public $imSilent = false; /// Set this controller to silent, useful for writing ajax/comet servers.
 	
 	/// Default constructor, cannot be overriden, private __atconstruct function should be created in the controller to create a custom event.
 	final function __construct(&$ee,&$parent) {
+		$this->ma = new eema('eemvcc-'.get_class($this), 'MVC-EE Controller "'.get_class($this).'".');
+
 		$this->ee = &$ee;
-		$this->index = &$parent;		
-		
+		$this->index = &$parent;
 		self::$inst =& $this;
 		
 		$this->r = new eemvc_methods($this);
@@ -51,7 +61,7 @@ class eemvc_controller {
 			$this->__atconstruct();	
 			$this->functionName = $fn;
 		}
-	}	
+	}
 	
 	/// Connection static function.
 	public static function &get_instance()
@@ -66,7 +76,7 @@ class eemvc_controller {
 	
 	/// Loads a model, by default will create an object with the same name.
 	final function loadModel($model_name,$obj_name=null,$create_obj=true) {
-		$this->debug("eemvcil.php:". __LINE__ . ": loadModel: Load: ".$model_name);
+		$this->debug("mvcee_controller.php:". __LINE__ . ": loadModel: Load: ".$model_name);
 		if ($this->index->unitTest && defined('STDIN') && !$this->index->utSuite) {
 			echo 'MVC-ExEngine 7 -> Preparing model '.ucfirst($model_name).' for unit testing.'."\n";
 		} else		
@@ -90,13 +100,13 @@ class eemvc_controller {
 			
 			if ($create_obj) {
 				$this->$obj_name = new $model_name();			
-				$this->debug("eemvcil.php:". __LINE__ . ": loadModel: ".$model_name.' ('.$m_file.') Done. ($this->'.$obj_name.')');
+				$this->debug("mvcee_controller.php:". __LINE__ . ": loadModel: ".$model_name.' ('.$m_file.') Done. ($this->'.$obj_name.')');
 			}
 			else
-				$this->debug("eemvcil.php:". __LINE__ . ": loadModel: ".$model_name.' ('.$m_file.') Done.');
+				$this->debug("mvcee_controller.php:". __LINE__ . ": loadModel: ".$model_name.' ('.$m_file.') Done.');
 
 		} else {
-			$this->debug("eemvcil.php:". __LINE__ . ": loadModel: ".$model_name.'-Not found');
+			$this->debug("mvcee_controller.php:". __LINE__ . ": loadModel: ".$model_name.'-Not found');
 			if ($this->index->unitTest && defined('STDIN') && !$this->index->utSuite) {
 				echo 'MVC-ExEngine 7 -> Model '.$model_name.' not found. (Test Halted)'."\n";
 				exit;
@@ -120,9 +130,9 @@ class eemvc_controller {
 	}
 	
 	final function debug ($msg) {
-		//$this->index->debugController($msg);	
-		$this->ee->debugThis("eemvc-".get_class($this),$msg);
-		
+		//$this->index->debugController($msg);
+		$this->ma->d($msg);
+		//$this->ee->debugThis("eemvc-".get_class($this),$msg);
 	}
 	
 	final function loadView($filename,$data=null,$return=false,$dynamic=true,$checkmime=false) {	
@@ -148,12 +158,12 @@ class eemvc_controller {
 			$this->ee->eeLoad("mime");
 			$eemime = new eemime($this->ee);
 			$mime_type = $eemime->getMIMEType($view_file);				
-			$this->debug("eemvcil.php:". __LINE__ . ": specialLoadViewStatic: File Mime Type: ".$mime_type);
+			$this->debug("mvcee_controller.php:". __LINE__ . ": specialLoadViewStatic: File Mime Type: ".$mime_type);
 		}
 		
 		if (file_exists($view_file) && !is_dir($view_file)) {
 			
-			$this->debug("eemvcil.php:". __LINE__ . ": loadView: Loading: ".$view_file);
+			$this->debug("mvcee_controller.php:". __LINE__ . ": loadView: Loading: ".$view_file);
 
 			$tra = null;
 			if ($this->index->trailingSlashLegacy) {
@@ -192,24 +202,24 @@ class eemvc_controller {
 			if ($dynamic) {
 				if ((bool) @ini_get('short_open_tag') === FALSE)
 				{
-					$this->debug("eemvcil.php:". __LINE__ . ": loadView: Mode: ShortTags_Rewriter");
+					$this->debug("mvcee_controller.php:". __LINE__ . ": loadView: Mode: ShortTags_Rewriter");
 					echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('
 									<?=', '<?php echo ', file_get_contents($view_file))));
 				}
 				else
 				{		
-					$this->debug("eemvcil.php:". __LINE__ . ": loadView: Mode: Include");	
+					$this->debug("mvcee_controller.php:". __LINE__ . ": loadView: Mode: Include");	
 
 					include($view_file);
 				}
 			}
 			else
 			{
-				$this->debug("eemvcil.php:". __LINE__ . ": loadView: Mode: ReadFile");
+				$this->debug("mvcee_controller.php:". __LINE__ . ": loadView: Mode: ReadFile");
 				readfile($view_file);
 			}
 			
-			$this->debug("eemvcil.php:". __LINE__ . ": loadView: Mode: View loaded: ".$view_file);
+			$this->debug("mvcee_controller.php:". __LINE__ . ": loadView: Mode: View loaded: ".$view_file);
 			
 			$output = ob_get_contents();
 			ob_end_clean();

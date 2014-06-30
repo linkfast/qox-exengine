@@ -2,12 +2,12 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>
-@version 7.0.8.39
+@version 7.0.8.40
 
 @section LICENSE
 
 ExEngine is free software; you can redistribute it and/or modify it under the
-terms of the GNU Lesser Gereral Public Licence as published by the Free Software
+terms of the GNU Lesser General Public Licence as published by the Free Software
 Foundation; either version 2 of the Licence, or (at your opinion) any later version.
 ExEngine is distributed in the hope that it will be usefull, but WITHOUT ANY WARRANTY;
 without even the implied warranty of merchantability or fitness for a particular purpose.
@@ -20,15 +20,15 @@ if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 
 ExEngine Core
 
-ExEngine Framework core, this file contains the EE7 main functions, and the needed ones to load any module that extend the framework functionality.
+ExEngine PHP Framework core, this file contains the main functions, and the needed ones to load any module that extend the framework functionality.
 */
 
 // QOX ExEngine
-// Copyright © 1999-2008 DarkGiank Software
-// Copyright © 2009-2013 LinkFast Company
+// Copyright © 2003-2009 DarkGiank Software (darkgiank.info)
+// Copyright © 2009-2013 LinkFast Company (linkfastsa.com)
 // Copyright © 2013-2014 QOX Corporation (qox-corp.com)
 //
-// Based on DGS ExEngine by Giancarlo Chiappe Aguilar
+// Based on DGS ExEngine by Giancarlo Chiappe
 
 function &ee_gi()
 {
@@ -64,20 +64,21 @@ class exengine {
 	const V_MAJOR = 7;
 	const V_MINOR = 0;
 	const V_BUILD = 8;
-	const V_REVIS = 39;	
+	const V_REVIS = 40;	
+	#For EE6's ForwardMode Compatibility
+	const REALVERSION = "7.0.8";
+	const BUILD = V_REVIS;
 	
-	const REL_DATE = "10 JAN 2014";
-	
-	const RELEASE = "alpha";
-	
-	const EE7WP = "http://opensource.qox-corp.com/exengine";
+	const REL_DATE = "28 APR 2014";
+	const RELEASE = "alpha";	
+	const EE7WP = "http://oss.qox-corp.com/exengine";
 	
 	#New mode for avoiding passing the parent object to every object that uses EE.
 	private static $instance = false;
 	
-	// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array) ( no operational yet =( )
-	const COMUPS_SERVER = "update-1.qox-corp.com"; /// Comups update server for update checking.
-	const COMUPS_PKG	= "exengine7"; /// Comups package name for version checking.
+	// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array) ( no operational yet )
+	const COMUPS_SERVER = "update-oss.qox-corp.com"; /// Comups update server for update checking.
+	const COMUPS_PKG	= "exengine"; /// Comups package name for version checking.
 	
 	public static function &get_instance()
 	{
@@ -185,10 +186,14 @@ class exengine {
 			$this->is64bit = true;
 		} else {
 			$this->is64bit = false;			
-			$this->errorWarning("ExEngine is running in a 32-bit enviroment, 64-bit is recommended for very big integer support.");
+			$this->errorWarning("ExEngine is running in a 32-bit enviroment, 64-bit environment is recommended.");
 		}
 			
-		if (defined('STDIN')) { echo 'X-Powered by ExEngine 7 ('.$this->miscUName().")\n"; }
+		if (defined('STDIN')) { echo 'X-Powered by QOX ExEngine ('.$this->miscUName().")\n"; } else {
+			if ($this->aArray['AutoSession']) {
+				$this->sessionCreator();
+			}
+		}
 
 		$this->initEnd();
 	}
@@ -205,6 +210,7 @@ class exengine {
 		$cF = $this->eePath."eefx/cfg.php";		
 		$tP = 0;
 		if (file_exists($cF)) {
+            $ee_config = null;
 			include_once($cF);
 			$tP++;
 		}
@@ -260,26 +266,27 @@ class exengine {
 												#			PROVIDES				CLASSES PROVIDED
 			# VERY IMPORTANT
 			$this->libLoadRes("me");			# MixedEngines Control Library		(me)
-			#		
-			
+			#
+
+            $this->libLoadRes("eedbm");			# Database Manager					(eedbm)
+            $this->libLoadRes("jquery");		# ExEngine's jQuery					(jquery)
+            $this->libLoadRes("eema");		    # ExEngine Message Agent            (eema)
+
 			if ($this->argsGet("SpecialMode") == "MVCOnly") {
-				$this->libLoadRes("eedbm");
-				$this->libLoadRes("jquery");
 				$this->libLoadRes("eemvcil"); #MVC-ExEngine contains drivers for NoSQL DBs.
 				$this->aArray["SilentMode"] = true;
-			} else {			
-				$this->libLoadRes("eedbm");			# Database Manager					(eedbm)
-				$this->libLoadRes("eendbm");		# NoSQL Database Manager			(eendbm)
+			} else {
+                $this->libLoadRes("eendbm");		# NoSQL Database Manager			(eendbm)
 				$this->libLoadRes("ee7info");		# EE7 Information Service Class 	(ee7info)
 				$this->libLoadRes("browser");		# Client Browser properties Class 	(browser)
-				$this->libLoadRes("log");			# Loging Class						(eelog)			
-				$this->libLoadRes("jquery");		# ExEngine's jQuery					(jquery)
+				$this->libLoadRes("log");			# Loging Class						(eelog)
 				$this->libLoadRes("ifile");			# Internet Files Manipulation		(ifile)
 				$this->libLoadRes("mail");			# Internet Mail Class				(eemail)
 				$this->libLoadRes("gd");			# GD Image Manipulation				(gd)
 				$this->libLoadRes("eemvcil");		# EE ModelViewController I.Lib.		(eemvc_index,eemvc_model,eemvc_model_dbo (& DBO variants),eemvc_controller,eemvc_methods)
 			}
-			if ($this->cArray["devguard"]) $this->libLoadRes("devguard"); # DevGuard Class (ee_devguard)
+			if ($this->cArray["devguard"])
+                $this->libLoadRes("devguard"); # DevGuard Class (ee_devguard)
 			if ($this->cArray["storage"]) { 
 				$this->libLoadRes("eestorage"); # Storage Class (ee_storage)
 			}
@@ -290,7 +297,7 @@ class exengine {
 		if (file_exists($lib)) {
 			include_once($lib);	
 		} else {
-			$this->errorWarning($file." cannot be found or is not accesible by ExEngine.");
+			$this->errorWarning($lib." cannot be found or is not accesible by ExEngine.");
 			return false;
 		}
 	}
@@ -305,7 +312,7 @@ class exengine {
 				return $this->configGetParam("http_path")."eefx/res/".$engine."/" ;
 			}
 		} else {
-			$this->errorExit("ExEngine 7 : Library Resources : libGetResPath second argument is invalid.<br/>");
+			$this->errorExit("ExEngine Paths Error [XC06]","ExEngine 7 : Library Resources : libGetResPath second argument is invalid.<br/>");
 		}
 	}
 	
@@ -423,7 +430,8 @@ class exengine {
 		$a["VisualError"] = true;
 		$a["VisualWarning"] = true;	
 		$a["BrowserCache"] = true;		
-		$a["SpecialMode"] = null;		
+		$a["SpecialMode"] = null;
+		$a["AutoSession"] = true;
 		
 		if (isset($args) && is_array($args)) {
 			$a = array_merge($a,$args);
@@ -450,6 +458,7 @@ class exengine {
 			$this->debugThis("ee-core","meLoad: ".$enginePath.": ".var_export($r,true));
 			if ($ReturnNewObject == 1) {
 				$ee7p = $this;
+                $rObj = null;
 				eval('$rObj = new '.$enginePath.'($ee7p);');
 				$r = $rObj;
 			}
@@ -471,7 +480,7 @@ final function meGetResPath($engine,$mode="full") {
 				return $this->configGetParam("http_path")."eefx/engines/resources/".$engine."/" ;
 			} else {
 				if (strlen($_SERVER['SERVER_NAME']) == 0)
-					$this->errorExit("ExEngine : MixedEngines : meGetResPath -> SERVER_NAME is not defined.");
+					$this->errorExit("ExEngine MixedEngines Error [XC04]","ExEngine : MixedEngines : meGetResPath -> SERVER_NAME is not defined.");
 				return "http://" . $_SERVER['SERVER_NAME'] . $this->configGetParam("http_path")."eefx/engines/resources/".$engine."/" ;	
 			}
 		} elseif ($mode == "https") {
@@ -479,19 +488,19 @@ final function meGetResPath($engine,$mode="full") {
 				return $this->configGetParam("https_path")."eefx/engines/resources/".$engine."/" ;
 			} else {
 				if (strlen($_SERVER['SERVER_NAME']) == 0)
-					$this->errorExit("ExEngine : MixedEngines : meGetResPath -> SERVER_NAME is not defined.");
+					$this->errorExit("ExEngine MixedEngines Error [XC04]","ExEngine : MixedEngines : meGetResPath -> SERVER_NAME is not defined.");
 				return "https://" . $_SERVER['SERVER_NAME'] . $this->configGetParam("http_path")."eefx/engines/resources/".$engine."/" ;	
 			}	
 		} elseif ($mode == "httpauto") {
 			if ($this->strContains($this->configGetParam("https_path"),"http://") || $this->strContains($this->configGetParam("https_path"),"https://") ) {
-				$this->errorExit("ExEngine : MixedEngines : meGetResPath httpauto mode is not supported in your configuration.<br/>");
+				$this->errorExit("ExEngine MixedEngines Error [XC04]","ExEngine : MixedEngines : meGetResPath httpauto mode is not supported in your configuration.<br/>");
 			} else {
 				if (strlen($_SERVER['SERVER_NAME']) == 0)
-					$this->errorExit("ExEngine : MixedEngines : meGetResPath -> SERVER_NAME is not defined.");
+					$this->errorExit("ExEngine MixedEngines Error [XC04]","ExEngine : MixedEngines : meGetResPath -> SERVER_NAME is not defined.");
 				return "//" . $_SERVER['SERVER_NAME'] . $this->configGetParam("http_path")."eefx/engines/resources/".$engine."/" ;
 			}		
 		} else {
-			$this->errorExit("ExEngine 7 : MixedEngines : meGetResPath second argument is invalid.<br/>");
+			$this->errorExit("ExEngine MixedEngines Error [XC04]","ExEngine 7 : MixedEngines : meGetResPath second argument is invalid.<br/>");
 		}
 	}
 	
@@ -551,7 +560,7 @@ final function meGetResPath($engine,$mode="full") {
 				return $this->configGetParam("http_path")."eefx/extended/resources/" ;
 			} else {
 				if (strlen($_SERVER['SERVER_NAME']) == 0)
-					$this->errorExit("ExEngine : ExtendedEngines : eeResPath -> SERVER_NAME is not defined.");
+					$this->errorExit("ExEngine MixedEngines Error [XC05]","ExEngine : ExtendedEngines : eeResPath -> SERVER_NAME is not defined.");
 				return "http://" . $_SERVER['SERVER_NAME'] . $this->configGetParam("http_path")."eefx/extended/resources/" ;	
 				}
 			} elseif ($mode == "https") {
@@ -559,19 +568,19 @@ final function meGetResPath($engine,$mode="full") {
 				return $this->configGetParam("https_path")."eefx/extended/resources/" ;
 			} else {
 				if (strlen($_SERVER['SERVER_NAME']) == 0)
-					$this->errorExit("ExEngine : ExtendedEngines : eeResPath -> SERVER_NAME is not defined.");
+					$this->errorExit("ExEngine MixedEngines Error [XC05]","ExEngine : ExtendedEngines : eeResPath -> SERVER_NAME is not defined.");
 				return "https://" . $_SERVER['SERVER_NAME'] . $this->configGetParam("http_path")."eefx/extended/resources/" ;	
 			}	
 		} elseif ($mode == "httpauto") {
 			if ($this->strContains($this->configGetParam("https_path"),"http://") || $this->strContains($this->configGetParam("https_path"),"https://") ) {
-				$this->errorExit("ExEngine : ExtendedEngines : eeResPath httpauto mode is not supported in your configuration.<br/>");
+				$this->errorExit("ExEngine MixedEngines Error [XC05]","ExEngine : ExtendedEngines : eeResPath httpauto mode is not supported in your configuration.<br/>");
 			} else {
 				if (strlen($_SERVER['SERVER_NAME']) == 0)
-					$this->errorExit("ExEngine : ExtendedEngines : eeResPath -> SERVER_NAME is not defined.");
+					$this->errorExit("ExEngine MixedEngines Error [XC05]","ExEngine : ExtendedEngines : eeResPath -> SERVER_NAME is not defined.");
 				return "//" . $_SERVER['SERVER_NAME'] . $this->configGetParam("http_path")."eefx/extended/resources/" ;	
 			}			
 		} else {
-			$this->errorExit("ExEngine : ExtendedEngines : eeResPath argument is invalid.<br/>");
+			$this->errorExit("ExEngine MixedEngines Error [XC05]","ExEngine : ExtendedEngines : eeResPath argument is invalid.<br/>");
 		}
 	}
 	
@@ -625,123 +634,169 @@ final function meGetResPath($engine,$mode="full") {
 		else
 			return false;
 	}
+
+	final function sessionCreator($SessionName='EXENGINE-SESSIONID', $SessionLifeTime=0,$SessionCookiePath='/', $SessionDomain=null) {
+		if (isset($SessionLifeTime) && !isset($SessionDomain)) {
+			session_set_cookie_params($SessionLifeTime,$SessionCookiePath);
+		} elseif (isset($SessionLifeTime) && isset($SessionDomain)) {
+			session_set_cookie_params($SessionLifeTime,$SessionCookiePath,$SessionDomain);
+		}
+		if (isset($SessionName)) {
+			session_name($SessionName);
+		}
+		session_start();
+		if (isset($SessionLifeTime) && !isset($SessionDomain)) {
+			setcookie(session_name(),session_id(),time()+$SessionLifeTime,$SessionCookiePath);
+		} elseif (isset($SessionLifeTime) && isset($SessionDomain)) {
+			setcookie(session_name(),session_id(),time()+$SessionLifeTime,$SessionCookiePath,$SessionDomain);
+		}
+	}
 	
 	#Debug functions (requieres the monitor client and debug-mode enabled in cfg file)
 	final function debugThis($app,$message,$dateFormat="%I:%M:%S %P - %b/%d/%Y") {
 		$app = $this->miscURLClean($app);
 		if ($this->cArray["debug"]) {
-			@session_start();
-			if (isset($_SESSION["exengine-debugger-apps"]) && is_array($_SESSION["exengine-debugger-apps"])) {
-				foreach ($_SESSION["exengine-debugger-apps"] as $appf) {
-					if ($appf == $app) {
-						$found=true;
-						break;
-					}else{
-						$found=false;
+
+			if ($this->aArray["AutoSession"])
+				@session_start();
+
+			if (session_status() != PHP_SESSION_NONE) {
+				if (isset($_SESSION["exengine-debugger-apps"]) && is_array($_SESSION["exengine-debugger-apps"])) {
+					foreach ($_SESSION["exengine-debugger-apps"] as $appf) {
+						if ($appf == $app) {
+							$found=true;
+							break;
+						}else{
+							$found=false;
+						}
 					}
+				} else {
+					$found = false;
 				}
-			} else {
-				$found = false;
-			}
-			if (!$found) {
-				$_SESSION["exengine-debugger-apps"][] = $app;
-			}			
-			if (!isset($_SESSION[$app][0])) {
-				$_SESSION[$app][0] = strftime($dateFormat) . "[**]" . $message;
-			} else {
-				$_SESSION[$app][] = strftime($dateFormat) . "[**]" .$message;
-			}
+				if (!$found) {
+					$_SESSION["exengine-debugger-apps"][] = $app;
+				}
+				$da = array ( "date" => strftime($dateFormat), "msg"=> $message);
+				if (!isset($_SESSION[$app][0])) {
+					$_SESSION[$app][0] = $da;
+				} else {
+					$_SESSION[$app][] = $da;
+				}
+			}  else return false;
 		}
 	}
 	
 	final function debugClean($app) {
 		$app = $this->miscURLClean($app);
 		if ($this->cArray["debug"]) {
-			@session_start();
-			$found=false;
-			if (isset($_SESSION["exengine-debugger-apps"]) && is_array($_SESSION["exengine-debugger-apps"])) {
-				foreach ($_SESSION["exengine-debugger-apps"] as $appf) {
-					if ($appf == $app) {
-						$found=true;
-						break;
-					}else{
-						$found=false;
+
+			if ($this->aArray["AutoSession"])
+				@session_start();
+
+			if (session_status() != PHP_SESSION_NONE) {
+				$found=false;
+				if (isset($_SESSION["exengine-debugger-apps"]) && is_array($_SESSION["exengine-debugger-apps"])) {
+					foreach ($_SESSION["exengine-debugger-apps"] as $appf) {
+						if ($appf == $app) {
+							$found=true;
+							break;
+						}else{
+							$found=false;
+						}
 					}
-				}
-			} else {
-				$found = false;
-			}
-			
-			if ($found) {
-				$err=0;
-				for ($c=0;$c<count($_SESSION[$app]);$c++) {
-					$_SESSION[$app]=null;	
-					if (isset($_SESSION[$app][$c])) {
-						$err++;
-					}
-				}
-				if ($err==0) {
-					return true;
 				} else {
+					$found = false;
+				}
+
+				if ($found) {
+					$err=0;
+					for ($c=0;$c<count($_SESSION[$app]);$c++) {
+						$_SESSION[$app]=null;
+						if (isset($_SESSION[$app][$c])) {
+							$err++;
+						}
+					}
+					if ($err==0) {
+						return true;
+					} else {
+						return false;
+					}
+				}else{
 					return false;
 				}
-			}else{
-				return false;
-			}
+			}  else return false;
 		}
 	}
 	
 	final function debugDisconnect($app) {
 		$app = $this->miscURLClean($app);
 		if ($this->cArray["debug"]) {
-			@session_start();
-			if (isset($_SESSION["exengine-debugger-apps"]) && is_array($_SESSION["exengine-debugger-apps"])) {
-				foreach ($_SESSION["exengine-debugger-apps"] as $appf) {
-					if ($appf == $app) {
-						$found=true;
-						break;
-					}else{
-						$found=false;
+			if ($this->aArray["AutoSession"])
+				@session_start();
+			if (session_status() != PHP_SESSION_NONE) {
+				if (isset($_SESSION["exengine-debugger-apps"]) && is_array($_SESSION["exengine-debugger-apps"])) {
+					foreach ($_SESSION["exengine-debugger-apps"] as $appf) {
+						if ($appf == $app) {
+							$found=true;
+							break;
+						}else{
+							$found=false;
+						}
 					}
+				} else {
+					$found = false;
 				}
-			} else {
-				$found = false;
-			}
-			if (!$found) {
-				return false;
-			}else{
-				unset($_SESSION[$app]);
-				return true;
-			}
+				if (!$found) {
+					return false;
+				}else{
+					unset($_SESSION[$app]);
+					return true;
+				}
+			}  else return false;
 		}
 	}
 	
 	final function debugCleanAll() {
 		if ($this->cArray["debug"]) {
-			if (isset($_SESSION["exengine-debugger-apps"])) {
-				$apps = $_SESSION["exengine-debugger-apps"];
-				foreach ($apps as $app) {
-					unset($_SESSION[$app]);	
-				}
-				unset($_SESSION["exengine-debugger-apps"]);
-				if (!isset($_SESSION["exengine-debugger-apps"])) {
-					return true;
+			if ($this->aArray["AutoSession"])
+				@session_start();
+			if (session_status() != PHP_SESSION_NONE) {
+				if (isset($_SESSION["exengine-debugger-apps"])) {
+					$apps = $_SESSION["exengine-debugger-apps"];
+					foreach ($apps as $app) {
+						unset($_SESSION[$app]);
+					}
+					unset($_SESSION["exengine-debugger-apps"]);
+					if (!isset($_SESSION["exengine-debugger-apps"])) {
+						return true;
+					} else {
+						return false;
+					}
 				} else {
-					return false;
+					return true;
 				}
 			} else {
-				return true;
+				return false;
 			}
-		} else {
-			return false;
-		}
+		} else return false;
+
 	}
 	
-	final function debugCreateClient() {		
+	final function debugCreateClient($useMa=false, $CreateSession=true) {
 		$pee = &$this;
 		$cd = true;
-		include_once($this->miscGetResPath("full")."debug.php");
+        if (!$useMa) {
+            $eemaLegacyMode = true;
+		    include_once($this->miscGetResPath("full")."eema.php");
+        }
+        else
+            include_once($this->miscGetResPath("full")."eema.php");
 	}
+
+    /* message agent client creator */
+    final function maCreateClient($CreateSession=true) {
+        $this->debugCreateClient(true);
+    }
 	
 	#Misc Functions
 	final function miscMessShow($message) {
@@ -755,7 +810,7 @@ final function meGetResPath($engine,$mode="full") {
 		} elseif ($mode == "http") {
 			return $this->configGetParam("http_path")."eefx/common/" ;
 		} else {
-			$this->errorExit("ExEngine 7 : Misc Functions : misGetResPath argument is invalid.<br/>");
+			$this->errorExit("ExEngine Paths Error [XC06]",'ExEngine 7 : Misc Functions : misGetResPath argument is invalid.<br/>');
 		}
 	}
 	final static function miscPhpSelfNoPath($gArgs=false) {		
@@ -764,6 +819,7 @@ final function meGetResPath($engine,$mode="full") {
 		} else {
 			# From PowWeb Forum / B&T Support / http://forum.powweb.com/showthread.php?t=49016
 			#this is not working...
+            $a = null;
 			preg_match('#(\w*)\.php(.)*#',$a,$_SERVER['SCRIPT_NAME']); 
 		}
 		return $a[0];
@@ -783,7 +839,7 @@ final function meGetResPath($engine,$mode="full") {
 		return "ExEngine ".exengine::V_MAJOR.".".exengine::V_MINOR.".".exengine::V_BUILD." Rev. ".exengine::V_REVIS;	
 	}
 	final function miscMessages($mss,$ret=0) {
-		$ee7_string = "ExEngine 7";
+		$ee7_string = "ExEngine";
 		if ($this->msEnabled) {
 			$extra = " (MuS)";
 		} else {
@@ -793,11 +849,11 @@ final function meGetResPath($engine,$mode="full") {
 			case "Slogan":
 				if ($this->cArray["debug"]) {
 					$_versionString = $this->miscGetVersion();
-					$str = "X-Powered by ".$ee7_string.$extra."/".$_versionString." // DebugMode Enabled // https://github.com/gchiappe/exengine7/";
+					$str = "X-Powered by QOX ".$ee7_string.$extra."/".$_versionString." // DebugMode Enabled // https://github.com/QOXCorp/exengine";
 					if ($ret==0)
 						$this->miscMessShow($str);
 				} else {
-					$str= "X-Powered by ".$ee7_string.$extra." // https://github.com/gchiappe/exengine7/";
+					$str= "X-Powered by QOX ".$ee7_string.$extra." // https://github.com/QOXCorp/exengine";
 					if ($ret==0)
 						$this->miscMessShow($str);	
 				}
@@ -910,7 +966,7 @@ final function meGetResPath($engine,$mode="full") {
 		} else if ($this->strContains(PHP_OS,"Win")) {
 			return "windows";
 		} else {
-			return "unknow";
+			return "unknown";
 		}
 	}
 	
@@ -950,7 +1006,7 @@ final function meGetResPath($engine,$mode="full") {
 	}
 	
 	# TagMode 
-	# (c) 2012 LinkFast Company OpenSource
+	# (c) 2012 LinkFast Company Opensource
 	private $TagTempFile;
 	private $TagStringLoaded=false;
 	private $TagStringsArr;
@@ -975,6 +1031,7 @@ final function meGetResPath($engine,$mode="full") {
 					}					
 					$this->TagStringLoaded = true;
 				} elseif ($type=="PHP") {
+                    $Str = null;
 					include_once($file);
 					if (!isset($this->TagStringsArr[$name])) {
 						$this->TagStringsArr[$name] = $Str;
@@ -1071,10 +1128,7 @@ final function meGetResPath($engine,$mode="full") {
 			}
 		}		
 		print $this->TagTempFile[$name];
-	}
-	#For EE6's ForwardMode Compatibility
-	const REALVERSION = "7.0.8";
-	const BUILD = 39;
+	}	
 }
 
 //Prevent from non-include access

@@ -1,11 +1,10 @@
-﻿<?php
-	$httpP = $this->
-ee->libGetResPath("devguard","http");
+<?php
+	$httpP = $this->ee->libGetResPath("devguard","http");
 	$logoEE = $this->ee->miscGetResPath("http")."dev_guard_shield.png";
 ?>
 <html>
 <head>
-	<title>Application protected by QOX ExEngine DevGuard</title>
+	<title><?php print $DG_L["gateway_title"]; ?></title>
 	<link href='http://fonts.googleapis.com/css?family=Alegreya+Sans:100,400,500,700,800,900' rel='stylesheet' type='text/css'>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<style>
@@ -71,16 +70,16 @@ ee->libGetResPath("devguard","http");
 				<form id="devguard_form" action="<?php echo $_SERVER["REQUEST_URI"]; ?>" method="post" enctype="multipart/form-data">
 				<div align="center"><img src="<?php echo $logoEE; ?>" /></div>
 				<p>
-					This application is in <span style="font-weight: 500;">development stage</span> and its access is restricted to select users, if you need access contact application developers to get a copy of the key file.
+					<?php print $DG_L["welcome_text"]; ?>
 				</p>
 				<?php if ($invalid_key) { ?>
 				<p style="color: rgb(194, 0, 0); text-align: center; font-weight: 500;">
 					<?php echo $invalid_key; ?></p>
 				<?php } ?>
 				<p style="text-align: center; font-weight: 500;">
-					Please select the project key to start a session<br/>
+					<?php print $DG_L["select_key"]; ?><br/>
 					<input type="file" name="upload_file" id="upload_file"><br/>
-					<input class="ee_btn" type="submit" value="Authenticate">
+					<input class="ee_btn" type="submit" value="<?php print $DG_L["auth_button"]; ?>">
 				</p>
 				<p style="text-align: center;">
 					<img src="<?php print $this->ee->miscGetResPath("http"); ?>ee7_powered_line.png" />
