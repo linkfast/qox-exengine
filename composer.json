@@ -7,17 +7,17 @@
 		"issues" : "https://github.com/QOXCorp/exengine/issues"
 	},
 	"require": {
-        "php": ">=5.4.0",        
-    },
-    "authors": [
+        "php" : ">=5.4.0"  
+  },
+  "authors": [
         {
             "name": "QOX Corporation",
             "email": "oss@qox-corp.com"
         }
-    ],
+  ],
 	"extra": {
-        "branch-alias": {
-            "dev-master": "7.0.8-dev"
-        }
-    }
+			"branch-alias": {
+					"dev-master": "7.0.8-dev"
+			}
+  }
 }
