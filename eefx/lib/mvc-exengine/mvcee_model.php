@@ -42,7 +42,7 @@ class eemvc_model {
 	}
 	
 	//Database loader, compatible with EEDBM
-	final function loadDB($dbObj="default") {		
+	final protected function loadDB($dbObj="default") {
 		$this->db = new eedbm($this->ee,$dbObj);
 	}
 	
