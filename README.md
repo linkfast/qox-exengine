@@ -5,7 +5,7 @@ ExEngine PHP Opensource Framework
 Git nightly repository.
 
 Homepage: (under development http://oss.qox-corp.com/exengine)
- 
+
 Quick Start MVC Application
 ===========================
 - Create a folder for you app.
@@ -18,8 +18,11 @@ Quick Start MVC Application
 	<?php
 		include_once("libs/ee/ee.php");
 		$ee = new exengine(array("SpecialMode"=>"MVCOnly"));
-		$mvc = new eemvc_index($ee,"start");
-		$mvc->SessionMode = true;
+
+    $mvc_session = new eemvc_session();
+    $mvc_session->Enabled = true;
+
+		$mvc = new eemvc_index("start",$mvc_session);	# "start" will be the default controller name, must match the controller file name, see the next step.
 		$mvc->start();
 	?>
 ```
@@ -30,11 +33,11 @@ Quick Start MVC Application
 ```php
 	<?php
 		class Start extends eemvc_controller {
-			
-			function index() {
+
+			function index() { # index is the default function called.
 				print '<h1> Hello World! </h1>';
 			}
-		
+
 		}
 	?>
 ```
@@ -55,7 +58,9 @@ PARAMETER1, PARAMETER2... are the parameter or parameters of the function (if ha
 GET1, etc. are the standard GET method values.
 
 You can also pass POST values to a Function inside a Controller.
-	
+
+See the examples dir for more detail about resources, views and models.
+
 Quick Start Application
 =======================
 - Create a folder for you app.
@@ -75,7 +80,7 @@ You can also modify the default database array in order to use ExEngine Database
 	<?php
 		include_once("libs/ee/ee.php");
 		$ee = new exengine();
-		
+
 		$str1 = "hello world";
 		$str2 = "world";
 
@@ -102,6 +107,6 @@ The release of this product is under the GPL license, so its use is at your own 
 
 ExEngine Homepage: (under development  http://oss.qox-corp.com/exengine)
 
-ExEngine 7 Wiki  : (under development  http://oss.qox-corp.com/wikis/ee)
+ExEngine 7 Wiki  : (under development  http://oss.qox-corp.com/wiki/ee)
 
 (C) 2014 QOX Corporation - qox-corp.com
