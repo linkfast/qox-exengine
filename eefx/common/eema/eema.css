@@ -1,0 +1,34 @@
+/* css */
+
+#legacy-messages-data {
+    width: 100%;
+    background-color: #262626;
+    color: #FBFBFB;
+    font-family: Monaco, Andale Mono, Courier New, monospace;
+    display: none;
+    overflow-y:scroll;
+}
+
+#messages-data {
+    width: 100%;
+    background-color: #262626;
+    color: #FBFBFB;
+    font-family: Monaco, Andale Mono, Courier New, monospace;
+    display: none;
+    overflow-y:scroll;
+}
+
+#legacy-messages-in-panel {
+}
+
+.white-href {
+    color: #FFF;
+}
+
+.white-href:hover {
+    color: #FFF;
+}
+
+.white-href:visited {
+    color: #FFF;
+}

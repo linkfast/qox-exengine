@@ -1,0 +1,104 @@
+<?php
+	$TotalPackages = $RR->PassedPackages + $RR->FailedPackages;
+	$TotalMethods = $RR->PassedMethods + $RR->FailedMethods;
+	$TotalAsserts = $RR->PassedAsserts + $RR->FailedAsserts;
+	$TotalTimePkg = 0;
+	foreach ($RR->SubResults as $PR) {
+		$TotalTimePkg += $PR->UsedTime;
+	}
+	$AverageTCP = $TotalTimePkg/count($RR->SubResults);
+?>
+<h1>UNIT TESTING SUMMARY</h1>
+<h2>Global Summary</h2>
+<p><b>Test Success Rate</b>: <?=number_format($RR->PassedPackages*100/$TotalPackages)?> %</p>
+<p><b>Total Packages</b>: <?=$TotalPackages?> (Passed: <?=$RR->PassedPackages?> Failed: <?=$RR->FailedPackages?>)</p>
+<p><b>Total Methods</b>: <?=$TotalMethods?> (Passed: <?=$RR->PassedMethods?> Failed: <?=$RR->FailedMethods?>)</p>
+<p><b>Total Asserts</b>: <?=$TotalAsserts?> (Passed: <?=$RR->PassedAsserts?> Failed: <?=$RR->FailedAsserts?>)</p>
+<h2>Performance Summary</h2>
+<p><b>Suite Time Consumed</b>: <?=$RR->UsedTime?> ms</p>
+<p><b>Package Time Consumed</b>: <?=$TotalTimePkg?> ms</p>
+<p><b>Averege Time Consumation per Package</b>: <?=number_format($AverageTCP,2)?> ms</p>
+<h3>Package Performance</h3>
+<table border="1" cellpadding="0" cellspacing="0">
+		<tr>
+			<th>Package Name</th>
+			<th>Time Consumed</th>
+		</tr>
+<?php
+	foreach ($RR->SubResults as $PR) {
+		?>
+		<tr>
+			<td><?=$PR->Title?></td>
+			<td><?=$PR->UsedTime?> ms</td>
+		</tr>
+		<?
+	}
+?>
+</table>
+<h2>Package Summary</h2>
+<table border="1" cellpadding="0" cellspacing="0">
+		<tr>
+			<th>Package Name</th>
+			<th>Methods Passed</th>
+			<th>Methods Failed</th>
+			<th>Assertion Rate</th>
+			<th>Time Consumed</th>
+		</tr>
+<?php
+	foreach ($RR->SubResults as $PR) {
+		?>
+		<tr>
+			<td><?=$PR->Title?></td>
+			<td><?=$PR->PassedMethods?></td>
+			<td><?=$PR->FailedMethods?></td>
+			<td><?=number_format($PR->PassedMethods*100/($PR->PassedMethods+$PR->FailedMethods))?> %</td>
+			<td><?=$PR->UsedTime?> ms</td>
+		</tr>
+		<?
+	}
+?>
+</table>
+<h3>Methods Summary per Package</h3>
+<?php
+	foreach ($RR->SubResults as $PR) {
+?>
+	<h4><?=$PR->Title?></h4>
+	<table border="1" cellpadding="0" cellspacing="0">
+		<tr>
+			<th>Method Name</th>
+			<th>Asserts Passed</th>
+			<th>Asserts Failed</th>
+			<th>Assertion Rate</th>
+			<th>Time Consumed</th>
+		</tr>
+	<?php foreach ($PR->SubResults as $MR) { ?>
+		<tr>
+			<td><?=$MR->MethodName?></td>
+			<td><?=$MR->PassedAsserts?></td>
+			<td><?=$MR->FailedAsserts?></td>
+			<td><?=number_format($MR->PassedAsserts*100/($MR->PassedAsserts+$MR->FailedAsserts))?> %</td>
+			<td><?=$MR->UsedTime?> ms</td>
+		</tr>
+		<tr>
+			<td colspan="5">
+				<table border="1" width="100%" cellpadding="0" cellspacing="0">
+					<tr>
+						<th>Assert Title</th>
+						<th>Result</th>
+					</tr>
+					<?php foreach ($MR->SubResults as $AR) { ?>
+					<tr>
+						<td><?=$AR->Title?></td>
+						<td><?=$AR->ResultInfo?></td>
+					</tr>
+					<?php } ?>
+				</table>
+			</td>
+		</tr>
+	<?php } ?>
+	</table>
+<?php } ?>
+<h2>Result Report Data Object</h2>
+<p>Data is serialized and base64 encoded. <br/>Can be loaded creating a EEUnitTest_ResultReader object and loading this data.</p>
+<textarea rows="10" cols="70"><?php print base64_encode(serialize($RR)) ?></textarea>
+<p>ExEngine Unit Testing Suite v.<?=EEUnitTest_Suite::VERSION?></p>

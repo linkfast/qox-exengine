@@ -1,0 +1,1 @@
+http://codeaid.net/php/calculate-script-execution-time-%28php-class%29
