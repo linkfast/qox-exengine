@@ -25,6 +25,7 @@ abstract class DefaultApplicationConfig {
 		var $LogCleaningPolicyEnabled = true;
 	var $ExEngineApplicationName = 'MyMVCApplication';
 
+	/* @var $ee \ExEngine\Core */
 	protected $ee;
 	function __construct() {
 		$this->ee = &ee_gi();
