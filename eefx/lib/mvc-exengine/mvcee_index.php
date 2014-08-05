@@ -272,6 +272,9 @@ namespace ExEngine\MVC {
 			$this->rewriteRulesEnabled  = $Configuration->RewriteRulesEnabled;
 			$this->rewriteBaseFolder = $Configuration->RewriteBaseFolder;
 
+			$this->dgEnabled = $Configuration->DevGuard;
+			$this->dgKey = $Configuration->DevGuardKey;
+
             $this->controllersFolder = $this->appFolder . '/' . $this->controllersFolder;
             $this->viewsFolder = $this->appFolder . '/' . $this->viewsFolder;
             $this->modelsFolder = $this->appFolder . '/' . $this->modelsFolder;
