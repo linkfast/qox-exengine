@@ -25,6 +25,11 @@ abstract class DefaultApplicationConfig {
 		var $LogCleaningPolicyEnabled = true;
 	var $ExEngineApplicationName = 'MyMVCApplication';
 
+	protected $ee;
+	function __construct() {
+		$this->ee = &ee_gi();
+	}
+
 	/**
 	 * Override this function to the set the when the log files will be reset.
 	 * @return bool
