@@ -9,8 +9,9 @@ Homepage: (under development http://oss.qox-corp.com/exengine)
 Quick Start MVC Application
 ===========================
 
-MVC-ExEngine has ben sepparated to a different project, follow this link:
+MVC-ExEngine has ben sepparated to a different project:
 
+https://github.com/QOXCorp/mvc-exengine
 
 Note: The access to controllers is this way:
 http://localhost/myapp/index.php/CONTROLLER_NAME/FUNCTION_NAME/PARAMETER1/PARAMETER2/?GET1=VAL&GET2=VAL
