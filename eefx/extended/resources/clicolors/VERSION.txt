@@ -1,5 +1,0 @@
-04/09/2013 05:26 PM GMT-005 - GIT SNAPSHOT
-
-EXENGINE 7
-
-https://github.com/kevinlebrun/colors.php
