@@ -20,10 +20,10 @@ if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 
 ExEngine 7 / Libs / ExEngine Development Stage Guard (devguard)
 
-*/
+ */
 
 class ee_devguard {
-	const VERSION = "0.0.1.4";
+	const VERSION = "0.0.1.5";
 	private $ee;
 	var $password = "default";
 	var $lang = "en";
@@ -33,15 +33,15 @@ class ee_devguard {
 			$this->ee->errorExit("ExEngine DevGuard Error", "php mcrypt library is required, please install before using DevGuard.");
 		}
 		if (isset($this->ee->cArray["devguard_default_language"])) {
-		    $this->lang = $this->ee->cArray["devguard_default_language"];
-        }
+			$this->lang = $this->ee->cArray["devguard_default_language"];
+		}
 	}
 
 	function guard($Server_Key_Name) {
 
-		if(strlen(session_id()) == 0) {			
+		if(strlen(session_id()) == 0) {
 			if (! eemvc_get_index_instance() ) {
-		    	session_start();
+				session_start();
 			} else {
 				$index_obj = eemvc_get_index_instance();
 				if (!$index_obj->SessionMode || strlen(session_id()) == 0) {
@@ -58,24 +58,24 @@ class ee_devguard {
 	}
 
 	private function loadGateway($Server_Key_Name,$CustomGateway=false) {
-	    $dgf = $this->ee->libGetResPath("devguard");
-	    $langFile = $dgf . "lang/" . $this->lang . ".php";
-	    if (file_exists($langFile)) {
-	        include_once($langFile);
-        } else {
-            $DG_L["gateway_title"] = "Application protected by QOX ExEngine DevGuard";
-            $DG_L["welcome_text"] = 'This application is in <span style="font-weight: 500;">development stage</span> and its access is restricted to select users, if you need access contact application developers to get a copy of the key file.';
-            $DG_L["select_key"] = "Please select the project key to start a session";
-            $DG_L["auth_button"] = "AUTHENTICATE";
-            $DG_L["wrong_file"] = "Invalid or wrong file provided, please select the correct key file.";
-            $DG_L["no_key_sent"] = "No file send, please select a file.";
-            
-            $DG_L["click_close"] = "Click here to close QOX ExEngine DevGuard session.";
-        }
+		$dgf = $this->ee->libGetResPath("devguard");
+		$langFile = $dgf . "lang/" . $this->lang . ".php";
+		if (file_exists($langFile)) {
+			include_once($langFile);
+		} else {
+			$DG_L["gateway_title"] = "Application protected by QOX ExEngine DevGuard";
+			$DG_L["welcome_text"] = 'This application is in <span style="font-weight: 500;">development stage</span> and its access is restricted to select users, if you need access contact application developers to get a copy of the key file.';
+			$DG_L["select_key"] = "Please select the project key to start a session";
+			$DG_L["auth_button"] = "AUTHENTICATE";
+			$DG_L["wrong_file"] = "Invalid or wrong file provided, please select the correct key file.";
+			$DG_L["no_key_sent"] = "No file send, please select a file.";
+
+			$DG_L["click_close"] = "Click here to close QOX ExEngine DevGuard session.";
+		}
 
 		$invalid_key = null;
 		//print $_FILES["upload_file"]['error'] ;
-		if (isset($_FILES["upload_file"]) && $_FILES["upload_file"]['error'] == 0) {			
+		if (isset($_FILES["upload_file"]) && $_FILES["upload_file"]['error'] == 0) {
 			$val = $this->guard_decrypt($Server_Key_Name);
 			if ($val) {
 				$_SESSION['DG_SA'] = true;
@@ -91,8 +91,8 @@ class ee_devguard {
 		}
 		if (isset($_FILES["upload_file"]) && $_FILES["upload_file"]['error'] == 4) {
 			$invalid_key = $DG_L["no_key_sent"];
-		}		
-		
+		}
+
 		if (!$CustomGateway)
 			include_once( $dgf . 'gateway.phtml');
 		else
@@ -106,7 +106,7 @@ class ee_devguard {
 		exit;
 	}
 
-	function guard_gen_keys($Server_Key_Name) {		
+	function guard_gen_keys($Server_Key_Name) {
 		$string = hash("sha512", rand());
 		$key = $this->password;
 		$fname = $this->ee->cArray["devguard_keys_path"]."/".$Server_Key_Name.".dgsk";
@@ -135,16 +135,19 @@ class ee_devguard {
 			$this->ee->errorExit("ExEngine DevGuard Error", "Upload Error. :(");
 		}
 		$fname = $this->ee->cArray["devguard_keys_path"]."/".$Server_Key_Name.".dgsk";
-		clearstatcache();
-		$data = file_get_contents($_FILES["upload_file"]["tmp_name"]);
-		$key = $this->password;
-		$data = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($key), $data, MCRYPT_MODE_CBC, md5(md5($key)));
-		$sk_size = filesize($fname);
-		if (!$sk_size) {
+		if (file_exists($fname)) {
+			clearstatcache();
+			$data = file_get_contents($_FILES["upload_file"]["tmp_name"]);
+			$key = $this->password;
+			$data = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($key), $data, MCRYPT_MODE_CBC, md5(md5($key)));
+			$sk_size = filesize($fname);
+			if (!$sk_size) {
+				$this->ee->errorExit("ExEngine DevGuard Error", "Cannot open server Key file. ($fname).");
+			}
+			if (md5_file($fname) == $data) return true; else return false;
+		} else {
 			$this->ee->errorExit("ExEngine DevGuard Error", "Cannot open server Key file. ($fname).");
 		}
-		if (md5_file($fname) == $data) return true; else return false;
-
 	}
 
 	function guard_end() {
@@ -156,12 +159,12 @@ class ee_devguard {
 
 	function guard_float_menu($return=false) {
 		$dgf = $this->ee->libGetResPath("devguard");
-        $langFile = $dgf . "lang/" . $this->lang . ".php";
-	    if (file_exists($langFile)) {
-	        include_once($langFile);
-        } else {
-            $DG_L["click_close"] = "Click here to close QOX ExEngine DevGuard session.";
-        }
+		$langFile = $dgf . "lang/" . $this->lang . ".php";
+		if (file_exists($langFile)) {
+			include_once($langFile);
+		} else {
+			$DG_L["click_close"] = "Click here to close QOX ExEngine DevGuard session.";
+		}
 		if (!$return) {
 			include_once( $dgf . 'dglock.phtml');
 		} else {

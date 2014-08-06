@@ -9,7 +9,7 @@ Homepage: (under development http://oss.qox-corp.com/exengine)
 Quick Start MVC Application
 ===========================
 
-MVC-ExEngine has ben sepparated to a different project:
+MVC-ExEngine application files has ben sepparated to a different project:
 
 https://github.com/QOXCorp/mvc-exengine
 

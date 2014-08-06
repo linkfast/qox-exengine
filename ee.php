@@ -473,7 +473,7 @@ namespace ExEngine {
 		public $loadedMEVersion;
 		final function meLoad($enginePath,$ReturnNewObject=0,$requiredVersion="0.0.0.0") {
 			$this->debugThis("ee-core","meLoad: ".$enginePath);
-			$this->errorLib("me");
+			$this->errorLib("\\ExEngine\\MixedEngineLoader");
 
 			if (!$this->strContains($enginePath,",")) {
 				$a = new MixedEngineLoader($this,$enginePath,$requiredVersion);

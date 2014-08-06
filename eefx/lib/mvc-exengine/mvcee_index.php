@@ -107,6 +107,9 @@ namespace ExEngine\MVC {
 
 		private $SessionEnabled = false;
 
+		/* @var $r Methods */
+		public $r;
+
 		private static $inst;
 		/// Connection static function.
 		public static function &get_instance()
@@ -692,20 +695,6 @@ namespace ExEngine\MVC {
 				$name = ucfirst($name);
                 /* @var $ctrl Controller */
 				$ctrl = new $name($this->ee,$this);
-				if (isset($ctrl->imSilent)) {
-					if ($ctrl->imSilent)
-						$this->AlwaysSilent = true;
-				}
-
-                if (isset($ctrl->layout)) {
-					$this->controllerLayout = $ctrl->layout;
-                }
-
-                if (isset($ctrl->layoutData)) {
-                    if (is_array($ctrl->layoutData))
-                        $this->layoutAdditionalData = $ctrl->layoutData;
-                }
-
 				if (strlen($next) == 0) {
 					$next = "index";
 				}
@@ -736,6 +725,20 @@ namespace ExEngine\MVC {
 							$ctrl->functionName = "__atdestroy";
 							$ctrl->__atdestroy();
 						}
+					}
+					if ($ctrl->r instanceof Methods) {
+						$this->r = &$ctrl->r;
+					}
+					if (isset($ctrl->imSilent)) {
+						if ($ctrl->imSilent)
+							$this->AlwaysSilent = true;
+					}
+					if (isset($ctrl->layout)) {
+						$this->controllerLayout = $ctrl->layout;
+					}
+					if (isset($ctrl->layoutData)) {
+						if (is_array($ctrl->layoutData))
+							$this->layoutAdditionalData = $ctrl->layoutData;
 					}
 				} else {
 					$this->raiseError("e404mnf",array("Error_Type"=> "Method not found", "Error_Msg"=>"Method \"".ucfirst($next). "\" not found in \"".$this->controllersFolder.ucfirst($name)."\"."),$ctl_folder,true,__LINE__,__FILE__);
@@ -777,6 +780,23 @@ namespace ExEngine\MVC {
 								$ctrl->functionName = "__atdestroy";
 								$ctrl->__atdestroy();
 							}
+						}
+						if ($ctrl->r instanceof Methods) {
+							$this->r = &$ctrl->r;
+						}
+
+						if (isset($ctrl->imSilent)) {
+							if ($ctrl->imSilent)
+								$this->AlwaysSilent = true;
+						}
+
+						if (isset($ctrl->layout)) {
+							$this->controllerLayout = $ctrl->layout;
+						}
+
+						if (isset($ctrl->layoutData)) {
+							if (is_array($ctrl->layoutData))
+								$this->layoutAdditionalData = $ctrl->layoutData;
 						}
 					} else {
 						$this->raiseError("e404mnf",array("Error1_Type"=> "Controller not found", "Error1_Msg" => "Controller \"".ucfirst($this->urlParsedData[0]). "\" not found in \"".$this->controllersFolder."\". ", "Error2_Type" => "Method in default controller not found", "Error2_Msg"=>"Method \"".ucfirst($this->urlParsedData[0]). "\" not found in \"".$this->controllersFolder.ucfirst($this->defcontroller)."\"."),$ctl_folder,true,__LINE__,__FILE__);

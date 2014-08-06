@@ -43,9 +43,9 @@ class LayoutAssets {
 
 	function loadAssets() {
 		$AssetsFiles = [
-			'JSConfig' => $this->index->AppConfiguration->ConfigurationFolder . '/assets/javascript.yml',
-			'CSSConfig' => $this->index->AppConfiguration->ConfigurationFolder .'/assets/css.yml',
-			'FontConfig' => $this->index->AppConfiguration->ConfigurationFolder .'/assets/fonts.yml'
+			'JSConfig' => $this->index->AppConfiguration->AppFolder . '/assets/javascript.yml',
+			'CSSConfig' => $this->index->AppConfiguration->AppFolder .'/assets/css.yml',
+			'FontConfig' => $this->index->AppConfiguration->AppFolder .'/assets/fonts.yml'
 		];
 		foreach ($AssetsFiles as $AKey => $AValue) {
 			if (file_exists($AValue)) {
@@ -165,7 +165,7 @@ class LayoutAssets {
 					} else {
 						$File = $this->StaticFolderHTTP . $File;
 					}
-					$this->CSS .= "\t" . '<link href="'. $File .'"></script>' . "\n";
+					$this->CSS .= "\t" . '<link href="'. $File .'" rel="stylesheet">' . "\n";
 				} else {
 					$this->ee->errorExit('MVC-ExEngine LayoutAssets Loader','Required asset not found (`'.$Data['src'].'`).');
 				}
