@@ -9,6 +9,7 @@ class Tool {
 	const VERSION = '0.0.0.1';
 	private static $instance;
 	private $ApplicationConfig;
+    private $MVC_Index;
 	public static function &get_instance()
 	{
 		return self::$instance;
@@ -17,10 +18,11 @@ class Tool {
 	function __construct(DefaultApplicationConfig $applicationConfig) {
 		$this->ee = &ee_gi();
 		$this->ApplicationConfig = $applicationConfig;
-		$this->ApplicationConfig->ApplicationInit();
+        $this->ApplicationConfig->UsingFromCLI = true;
 		$this->ee->eeLoad('eespyc');
 		$SW = new \eespyc();
 		$SW->load();
+        $this->MVC_Index = new Index($this->ApplicationConfig);
 		self::$instance =& $this;
 	}
 
@@ -38,6 +40,7 @@ class Tool {
 			if (in_array("--help",array_map('strtolower', $argv))) {
 				echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
 				echo "Arguments: \n";
+                #echo "\t-sf\tEnable scaffolding.";
 				echo "\t-g\tEnable the generator capability, must be followed by one of these options.\n";
 				echo "\t\tcontroller\tCreates a new controller.\n";
 				echo "\t\tmodel\t\tCreates a new model.\n";
@@ -51,6 +54,7 @@ class Tool {
 				echo "\n";
 				echo "Misc. Options:\n";
 				echo "\t-ct\tEnables Console Coloring (only if you have a color capable terminal).\n";
+                echo "\t-wu\tEnables web interface (experimental).\n";
 				exit();
 			}
 			if (in_array("-ct",array_map('strtolower', $argv))) {
@@ -65,7 +69,7 @@ class Tool {
 						case "controller":
 							if (isset($argv[3]) and strlen($argv[3]) > 0) {
 								echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
-								echo "\nCreating controller `".ucfirst($argv[3])."`...\n";
+								echo "\nCreating controller `".ucfirst($argv[3])."`...";
 								$this->createController($argv[3]);
 								echo "Finished.\n";
 							} else {
@@ -75,6 +79,40 @@ class Tool {
 								echo "\tmvctool -g controller mynewcontroller\n\n";
 							}
 							break;
+                        case "model":
+                            if ((isset($argv[3]) and isset($argv[4])) and
+                                (strlen($argv[3]) > 0 and strlen($argv[4]) > 0)) {
+                                echo "\nCreating Model `".ucfirst($argv[3])."`...";
+                                $this->createModel($argv[3], $argv[4], $argv[5]);
+                                echo "Finished.\n";
+                            } else {
+                                echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+                                echo "\nThe `-g model` command requires the model name and class properties check the following\n";
+                                echo "example:\n\n";
+                                echo "\tmvctool -g model mymodel properties [subfolder/namespace]\n";
+                                echo "\tproperties should be in this format: property1,property2=defvalue\n";
+                                echo "\texample:  \"title,content,age=10\"\n";
+                                echo "\tAlso you can bypass optional parameters order by setting them to null.\n";
+                            }
+                            break;
+                        case "model_dbo":
+                            if ((isset($argv[3]) and isset($argv[4]) and isset($argv[5])) and
+                                (strlen($argv[3]) > 0 and strlen($argv[4]) > 0 and strlen($argv[5]) > 0)) {
+                                echo "\nCreating DBO Model `".ucfirst($argv[3])."`...";
+                                $this->createModelDBO($argv[3], $argv[4], $argv[5], $argv[6], $argv[7], $argv[8]);
+                                echo "Finished.\n";
+                            } else {
+                                echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+                                echo "\nThe `-g model_dbo` command requires the model name, dbo driver and class properties check the following\n";
+                                echo "example:\n\n";
+                                echo "\tmvctool -g model_dbo mymodel dbo_driver properties [database config filename] [subfolder/namespace] [table_id]\n";
+                                echo "\tproperties should be in this format: property1=type;defaultvalue,property2=type\n";
+                                echo "\ttypes can be: index (for the primary key, its int on sql databases)\n";
+                                echo "\t              int, string and date. ints are always int32 and string are text in mysql and sqlite.\n";
+                                echo "\texample:  \"_mongo_id=index,title=string;DefaultValue,order=int,15\"\n";
+                                echo "\tAlso you can bypass optional parameters order by setting them to null.\n";
+                            }
+                            break;
 					}
 				} else {
 					echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
@@ -87,13 +125,182 @@ class Tool {
 			case "-db":
 
 				break;
+            case "-wu";
+                echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+                echo "\nStarting web interface: http://localhost:8989/.\nPress CTRL+C to stop serving.";
+                system('php -S localhost:8989 bin/webui.php');
+                break;
+			default:
+				echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+				echo "Invalid option. \n";
+				echo "Run with the --help argument for more info. \n";
+				break;
 		}
 
 
 
 	}
 
-	protected function createController($ControllerName) {
+    protected function createModelDBO($ModelName, $DBO_Driver, $Params, $ConnectionConfig="default", $Namespace="null", $Table_Id="null") {
+
+        if (strlen($ConnectionConfig) == 0 or $ConnectionConfig == "null")
+            $ConnectionConfig = "default";
+
+        if (strlen($Namespace) == 0)
+            $Namespace = "null";
+
+        if (strlen($Table_Id) == 0)
+            $Table_Id = "null";
+
+        $DriverClassNames = [
+            "mongodb" => "\\ExEngine\\MVC\\DBO\\MongoDB",
+            "mysql" => "\\ExEngine\\MVC\\DBO\\MySQL",
+            "sqlite" => "\\ExEngine\\MVC\\DBO\\SQLite"
+        ];
+
+        if (!array_key_exists($DBO_Driver,$DriverClassNames)) {
+            echo "ERROR! - Invalid driver, valid drivers: mongodb, mysql, sqlite.\n";
+            return;
+        }
+
+        if ($ConnectionConfig=="default") {
+            $ConnectionConfig = $this->ApplicationConfig->DefaultDatabase;
+        }
+
+        $Create=true;
+        if (!file_exists($this->ApplicationConfig->ConfigurationFolder . '/database/' . $ConnectionConfig . '.yml')) {
+            echo "WARNING! - Database configuration does not exists, I'm not creating tables.\n";
+            $Create = false;
+        }
+
+        $P = explode(',' , $Params);
+        if (count($P) <= 1) {
+            echo "ERROR! - Malformed or no properties for this DBO, please add at least two properties.\n";
+            echo "         example:\n";
+            echo "         mvctool -g model_dbo " . $ModelName . " " . $DBO_Driver . " \"_mongo_id=index,title=string;DefaultValue,order=int,15\"" . " " . $ConnectionConfig;
+            return;
+        }
+
+        $N = "\n";
+        if ($Namespace!="null") {
+            $N = "\t" . 'namespace ' . $Namespace. ';' . "\n";
+        }
+
+        $PropertiesString = "\t\t" . 'var $DBC = "' . $ConnectionConfig . '";' . "\n";
+
+        if ($Table_Id!="null")
+            $PropertiesString .= "\t\t" . 'var $TABLEID = "' . $Table_Id . '";' . "\n";
+
+        $AtConstructString = "\t\t\t".'parent::__construct();' . "\n";
+        foreach ($P as $Prop) {
+            $PX = explode('=',$Prop);
+            $Name = $PX[0];
+            $DefVal=null;
+            if ($this->ee->strContains($PX[1], ';')) {
+                $DV = explode(';', $PX[1]);
+                $Type = $DV[0];
+                $DefVal = $DV[1];
+            } else {
+                $Type = $PX[1];
+            }
+
+            switch ($Type) {
+                case 'index':
+                        $PropertiesString .= "\t\t" . 'var $' . $Name . ';' . "\n";
+                        $PropertiesString .= "\t\t" . 'var $INDEXKEY = "'.$Name.'";' . "\n";
+                    break;
+                case 'string':
+                    if (strlen($DefVal) > 0) {
+                        if (is_string($DefVal)) {
+                            $PropertiesString .= "\t\t" . '/* String Property */' . "\n\t\t" . 'var $' . $Name . ' = "' . $DefVal . '";' . "\n";
+                        } else {
+                            echo "ERROR! - Invalid default value for '" . $Name . "', value must be String.\n";
+                            return;
+                        }
+                    } else {
+                        $PropertiesString .= "\t\t" . '/* String Property */' . "\n\t\t" . 'var $' . $Name . ';' . "\n";
+                    }
+                    break;
+                case 'int':
+                    if (strlen($DefVal) > 0) {
+                        if (is_int($DefVal)) {
+                            $PropertiesString .= "\t\t" . '/* Integer Property */' . "\n\t\t" . 'var $' . $Name . ' = ' . $DefVal . ';' . "\n";
+                        } else {
+                            echo "ERROR! - Invalid default value for '" . $Name . "', value must be Integer.\n";
+                            return;
+                        }
+                    } else {
+                        $PropertiesString .= "\t\t" . '/* Integer Property */' . "\n\t\t" . 'var $' . $Name . ';' . "\n";
+                    }
+                    break;
+                case 'date':
+                    if (strlen($DefVal) > 0) {
+                        echo "ERROR! - Default value for date property is not supported.\n";
+                        return;
+                    } else {
+                        $PropertiesString .= "\t\t" . '/* Date Property */' . "\n\t\t" . 'var $' . $Name . ';' . "\n";
+                        if ($DBO_Driver=='mongodb') {
+                            $AtConstructString .= "\t\t\t" . '$this->' . $Name . ' = new \MongoDate();' . "\n";
+                        }
+                    }
+                    break;
+                case 'object':
+                    if ($DBO_Driver=='mongodb') {
+                        if (strlen($DefVal) > 0) {
+                            echo "ERROR! - Default value for object property is not supported.\n";
+                            return;
+                        } else {
+                            $PropertiesString .= "\t\t" . '/* Object Property */' . "\n\t\t" . 'var $' . $Name . ';' . "\n";
+                        }
+                    } else {
+                        echo "ERROR! - Object property is only supported in NoSQL databases.\n";
+                        return;
+                    }
+                    break;
+                default:
+                    echo "ERROR! - Property type '".$Type."' not valid.\n";
+                    return;
+            }
+        }
+
+        $ModelDboSnippet = '<?php
+/**
+* MVC-ExEngine
+* This DBO model was generated using MVCTool.
+* Date: '.strftime("%d/%m/%Y").'
+* Timestamp: '.time().'
+*/
+'.$N. "\t" . 'class '. ucfirst($ModelName) . ' extends ' . $DriverClassNames[$DBO_Driver] . ' {
+
+'.$PropertiesString.'
+
+'."\t\t".'function __construct() {
+'.$AtConstructString.'
+'."\t\t".'}
+'."\t".'}
+?>';
+
+        if (file_exists($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder) and
+            is_dir($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder)) {
+            if ( $Namespace!= "null" ) {
+                if (file_exists($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder . '/' . strtolower($Namespace)) and
+                    is_dir($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder . '/' . strtolower($Namespace))) {
+                    file_put_contents($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder . '/' . strtolower($Namespace) . '/' . strtolower($ModelName) . '.php',$ModelDboSnippet,LOCK_EX);
+                } else {
+                    mkdir($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder . '/' . strtolower($Namespace));
+                    file_put_contents($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder . '/' . strtolower($Namespace) . '/' . strtolower($ModelName) . '.php',$ModelDboSnippet,LOCK_EX);
+                }
+            } else {
+                file_put_contents($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder . '/' . strtolower($ModelName) . '.php',$ModelDboSnippet,LOCK_EX);
+            }
+            print "OK\n";
+        } else {
+            $this->ee->errorExit('MVC-ExEngine Tool','Models folder does not exist, check Application Configuration.');
+        }
+
+    }
+
+	protected function createController($ControllerName, $Commented=true) {
 		$ControllerSnippet = '<?php
 /**
 * MVC-ExEngine
@@ -152,8 +359,78 @@ class Tool {
 
 	}
 
-	protected function createModel($ModelName) {
+	protected function createModel($ModelName, $Params, $Namespace="null") {
+        if (strlen($Namespace) == 0)
+            $Namespace = "null";
 
+        $P = explode(',' , $Params);
+        if (count($P) <= 1) {
+            echo "ERROR! - Malformed or no properties for this DBO, please add at least two properties.\n";
+            echo "         example:\n";
+            echo "         mvctool -g model " . $ModelName . " \"prop1=defval,prop2=defval\"\n";
+            return;
+        }
+
+        $N = "\n";
+        if ($Namespace!="null") {
+            $N = "\t" . 'namespace ' . $Namespace. ';' . "\n";
+        }
+
+        $PropertiesString = "";
+
+        foreach ($P as $Prop) {
+            $DefVal=null;
+            if ($this->ee->strContains($Prop, '=')) {
+                $DV = explode('=', $Prop);
+                $Name = $DV[0];
+                $DefVal = $DV[1];
+            } else {
+                $Name = $Prop;
+            }
+
+            if (strlen($DefVal) > 0) {
+                if (is_int($DefVal)) {
+                    $PropertiesString .= "\t\t" . '/* Integer Property */' . "\n\t\t" . 'var $' . $Name . ' = ' . $DefVal . ';' . "\n";
+                }
+                elseif (is_string($DefVal)) {
+                    $PropertiesString .= "\t\t" . '/* String Property */' . "\n\t\t" . 'var $' . $Name . ' = "' . $DefVal . '";' . "\n";
+                }
+            } else {
+                $PropertiesString .= "\t\t" . '/* Property */' . "\n\t\t" . 'var $' . $Name . ';' . "\n";
+            }
+        }
+
+        $ModelSnippet = '<?php
+/**
+* MVC-ExEngine
+* This model was generated using MVCTool.
+* Date: '.strftime("%d/%m/%Y").'
+* Timestamp: '.time().'
+*/
+'.$N. "\t" . 'class '. ucfirst($ModelName) . ' extends \\ExEngine\\MVC\\Model {
+
+'.$PropertiesString.'
+
+'."\t".'}
+?>';
+
+        if (file_exists($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder) and
+            is_dir($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder)) {
+            if ( $Namespace!= "null" ) {
+                if (file_exists($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder . '/' . strtolower($Namespace)) and
+                    is_dir($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder . '/' . strtolower($Namespace))) {
+                    file_put_contents($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder . '/' . strtolower($Namespace) . '/' . strtolower($ModelName) . '.php',$ModelSnippet,LOCK_EX);
+                } else {
+                    mkdir($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder . '/' . strtolower($Namespace));
+                    file_put_contents($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder . '/' . strtolower($Namespace) . '/' . strtolower($ModelName) . '.php',$ModelSnippet,LOCK_EX);
+                }
+            } else {
+                file_put_contents($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ModelsFolder . '/' . strtolower($ModelName) . '.php',$ModelSnippet,LOCK_EX);
+            }
+            print "OK\n";
+        } else {
+            $this->ee->errorExit('MVC-ExEngine Tool','Models folder does not exist, check Application Configuration.');
+        }
 	}
 
 }

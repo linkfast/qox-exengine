@@ -28,7 +28,7 @@ namespace ExEngine\MVC;
 /* Accessible from all controllers, models and views in the object $this->r */
 class Methods {
     
-	const VERSION = "0.0.1.4";
+	const VERSION = "0.0.1.5";
 
 	/* @var $cparent Controller */
 	var $cparent;
@@ -42,6 +42,10 @@ class Methods {
 		return $this->cparent->index->staticFolder . $this->tra ;
 	}
 
+    /**
+     * Gives the Controllers folder path, made for redirectios and link creation.
+     * @return string
+     */
 	final function c() {
 		return $this->cparent->index->controllersFolderHTTP.$this->tra;
 	}
@@ -172,7 +176,18 @@ class Methods {
 			}
 			return $return;
 		}else {
-			return @$pd[$arg_list[0]];
+            if ($this->ee->strContains($arg_list[0],",")) {
+                $ex = explode(',',$arg_list[0]);
+                $return = new \stdClass();
+                for ($i = 0; $i < count($ex) ; $i++) {
+                    $return->$ex[$i] = $pd[$ex[$i]];
+                }
+                return $return;
+            } elseif ($numargs == 1) {
+                return @$pd[$arg_list[0]];
+            }else {
+                $this->ee->errorExit('ExEngine MVC Methods', 'r->get() function must have at least one argument.');
+            }
 		}
 	}
 	
@@ -180,6 +195,7 @@ class Methods {
 		$numargs = func_num_args();
 		$arg_list = func_get_args();
 
+        /* added compatibility for AngularJS ajax */
 		$data2 = @json_decode(file_get_contents('php://input'));
 		if ($data2 instanceof \stdClass) {
 			$pd = get_object_vars($data2);
@@ -193,10 +209,61 @@ class Methods {
 				$return->$arg_list[$i] = $pd[$arg_list[$i]];
 			}
 			return $return;
-		}else {
-			return @$pd[$arg_list[0]];
-		}
+		} elseif ($numargs == 1) {
+            if ($this->ee->strContains($arg_list[0],",")) {
+                $ex = explode(',',$arg_list[0]);
+                $return = new \stdClass();
+                for ($i = 0; $i < count($ex) ; $i++) {
+                    $return->$ex[$i] = $pd[$ex[$i]];
+                }
+                return $return;
+            } else {
+                return @$pd[$arg_list[0]];
+            }
+		} else {
+            $this->ee->errorExit('ExEngine MVC Methods', 'r->post() function must have at least one argument.');
+            return null;
+        }
 	}
+
+    final function postCopyToModel(&$Object) {
+        $numargs = func_num_args();
+        $arg_list = func_get_args();
+        /* added compatibility for AngularJS ajax */
+        $data2 = @json_decode(file_get_contents('php://input'));
+        if ($data2 instanceof \stdClass) {
+            $pd = get_object_vars($data2);
+        } else {
+            $pd = $_POST;
+        }
+
+        if ($numargs >= 2) {
+            if ($numargs >= 3) {
+                $return = new \stdClass();
+                for ($i = 1; $i < $numargs; $i++) {
+                    $return[$arg_list[$i]] = $pd[$arg_list[$i]];
+                }
+            } else {
+                if ($this->ee->strContains($arg_list[1],",")) {
+                    $ex = explode(',',$arg_list[1]);
+                    for ($i = 0; $i < count($ex) ; $i++) {
+                        $return[$ex[$i]] = $pd[$ex[$i]];
+                    }
+                } else {
+                    $return[$arg_list[1]] = $pd[$arg_list[1]];
+                }
+            }
+        } else {
+            $return = $pd;
+        }
+
+        $obj_v = get_object_vars($Object);
+
+        foreach (array_keys($obj_v) as $obj_var) {
+            if (isset($return[$obj_var]))
+                $Object->$obj_var = $return[$obj_var];
+        }
+    }
     
     final function query($b64=false) {
         $qs = $_SERVER['QUERY_STRING'];

@@ -28,7 +28,7 @@ namespace ExEngine\MVC\DBO;
 
 class MongoDB extends \ExEngine\MVC\Model {
     
-    const VERSION = "0.0.0.10";
+    const VERSION = "0.0.0.12";
 	
 	function __construct() {
 		parent::__construct();
@@ -57,6 +57,9 @@ class MongoDB extends \ExEngine\MVC\Model {
 					$this->ee->errorExit('MVC-ExEngine','Specified database configuration is not compatible with MongoDB DBO, please set a compatible database configuration setting the $DBC reserved variable in the model.');
 				} else {
 					$this->MONGODB_URL = $dbCfg['host'];
+                    if (isset($dbCfg['db'])) {
+                        $this->MONGODB = $dbCfg['db'];
+                    }
 				}
 			}
 		}
@@ -181,7 +184,10 @@ class MongoDB extends \ExEngine\MVC\Model {
 	}
     
     private function createMongoClient() {
-        if (isset($this->MONGODB_HOST) && (isset($this->MONGODB_USER) && isset($this->MONGODB_PWD) && isset($this->MONGODB_AUTHDB))) {
+        if (!isset($this->MONGODB_URL) and
+            isset($this->MONGODB_HOST) and
+            (isset($this->MONGODB_USER) and isset($this->MONGODB_PWD) and isset($this->MONGODB_AUTHDB))
+        ) {
             $cfgArr = array('db' => $this->MONGODB_AUTHDB, 'username' => $this->MONGODB_USER, 'password' => $this->MONGODB_PWD);
             $connString = 'mongodb://'.$this->MONGODB_HOST.':'.$this->MONGODB_PWD.'@'.$this->MONGODB_HOST.'/'.$this->MONGODB_AUTHDB;
             $r = new \MongoClient($connString);
@@ -461,7 +467,7 @@ class MongoDB extends \ExEngine\MVC\Model {
 		if (!isset($this->INDEXKEY)) $this->INDEXKEY = "_mongo_id";	
 		if (!isset($this->TABLEID)) $this->TABLEID = get_class($this);
 		$ik = $this->INDEXKEY;
-		if (!isset($this->$ik)) {
+		//if (!isset($this->$ik)) {
 			if (method_exists($this,'__befinsert')) {
 				$this->__befinsert();	
 			}
@@ -469,8 +475,17 @@ class MongoDB extends \ExEngine\MVC\Model {
 				$m = $this->createMongoClient();
 				$db = $m->selectCollection($this->MONGODB,$this->TABLEID);
 				$iarr = $this->getProperties(true);
-				if($this->INDEXKEY == "_mongo_id")
-					unset($iarr[$this->INDEXKEY]);
+				if($this->INDEXKEY == "_mongo_id") {
+                    if (get_class($this->_mongo_id) == "MongoId"){
+                        $iarr['_id'] = $this->mongo_id;
+                    } else {
+                        if (strlen($this->_mongo_id) > 0) {
+                            $iarr['_id'] = new \MongoId($this->_mongo_id);
+                        } else {
+                             unset($iarr[$this->INDEXKEY]);
+                        }
+                    }
+                }
 				$result = $db->insert($iarr,array("w" => 1));
 				if ($result["ok"] == 1) {
 					if($this->INDEXKEY == "_mongo_id")
@@ -488,8 +503,8 @@ class MongoDB extends \ExEngine\MVC\Model {
                 $this->log()->e(print_r($e,true));
 				return false;
 			}
-		} else 
-			return false;	
+		//} else
+		//	return false;
 	}
 	
 	final function update($SafeMode=true) {

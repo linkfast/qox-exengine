@@ -56,10 +56,10 @@ namespace ExEngine {
 		const V_MAJOR = 7;
 		const V_MINOR = 0;
 		const V_BUILD = 8;
-		const V_REVIS = 41;
+		const V_REVIS = 42;
 		#For EE6's ForwardMode Compatibility
 		const REALVERSION = "7.0.8";
-		const BUILD = 41;
+		const BUILD = 42;
 
 		const REL_DATE = "03 AGO 2014";
 		const RELEASE = "alpha";

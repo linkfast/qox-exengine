@@ -26,18 +26,24 @@ $httpResPathFonts = $ee->libGetResPath('fonts','http');
 	</script>
 	<style>
 		@font-face {
+			font-family: 'ethno_q';
+			src: url('<?php print $httpResPathFonts; ?>ethnocentric.otf');
+		}
+		@font-face {
 			font-family: 'ethno';
 			src: url('<?php print $httpResPathFonts; ?>ethnocentric_italic.otf');
 		}
-		@font-face {
-			font-family: 'ethno_n';
-			src: url('<?php print $httpResPathFonts; ?>ethnocentric.otf');
+		.QLogo {
+			font-family: ethno_q;
+			background-color: #000;
+			color: #D96D00;
+			padding-right: 4px;
+			padding-left: 4px;
+			font-size: 1.4em;
 		}
 		.EELogo {
 			font-family: ethno;
-		}
-		.QLogo {
-			font-family: ethno_n;
+			font-size: 1.4em;
 		}
 		.navbar-brand:hover {
 			color: #FFF !important;
@@ -49,11 +55,11 @@ $httpResPathFonts = $ee->libGetResPath('fonts','http');
 	<div class="container-fluid">
 		<div class="navbar-header">
 			<a class="navbar-brand">
-				<img src="<?php print $httpCommonPath; ?>qox_q.png" style="max-height: 32px; margin-top: -6px;" title="QOX Corporation">&nbsp;
+				<!--<img src="<?php print $httpCommonPath; ?>qox_q.png" style="max-height: 32px; margin-top: -6px;" title="QOX Corporation">-->
+				<span class="QLogo">QOX</span>
+				&nbsp;
 				<span class="EELogo">ExEngine</span>
 			</a>
-		</div>
-		<div class="navbar-collapse collapse">
 		</div>
 	</div>
 </div>
@@ -68,7 +74,7 @@ $httpResPathFonts = $ee->libGetResPath('fonts','http');
 					<?php print $DG_L["welcome_text"]; ?>
 				</p>
 				<?php if ($invalid_key) { ?>
-					<p style="color: rgb(194, 0, 0); text-align: center; font-weight: 500;">
+					<p style="color: rgb(194, 0, 0); font-weight: 500;">
 						<?php echo $invalid_key; ?></p>
 				<?php } ?>
 				<p style="font-weight: 500;">

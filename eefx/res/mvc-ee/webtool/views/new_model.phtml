@@ -1,0 +1,42 @@
+<form class="form-horizontal" method="post" action="?F=new_model_act">
+    <fieldset>
+
+        <!-- Form Name -->
+        <legend>New Model</legend>
+
+        <!-- Text input-->
+        <div class="form-group required-control">
+            <label class="col-md-3 control-label" for="name">Name</label>
+            <div class="col-md-6">
+                <input id="name" name="name" type="text" placeholder="class name" class="form-control " required="">
+
+            </div>
+        </div>
+
+        <!-- Textarea -->
+        <div class="form-group required-control">
+            <label class="col-md-3 control-label" for="properties">Properties</label>
+            <div class="col-md-8">
+                <textarea id="properties" name="properties" required="" class="form-control ">prop1=defval,prop2,prop3=defval</textarea>
+            </div>
+        </div>
+
+        <!-- Text input-->
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="namespace">Namespace / Subfolder</label>
+            <div class="col-md-6">
+                <input id="namespace" name="namespace" type="text" placeholder="Dbo" class="form-control ">
+
+            </div>
+        </div>
+
+        <!-- Button -->
+        <div class="form-group">
+            <label class="col-md-3 control-label" for=""></label>
+            <div class="col-lg-6">
+                <button id="" name="" class="btn btn-primary">Create Model</button>
+            </div>
+        </div>
+
+    </fieldset>
+</form>

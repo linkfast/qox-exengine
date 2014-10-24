@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><?=$Title?></title>
+    <link rel="stylesheet" href="?F=asset&R=bootstrap&A=themes/bootstrap.flatly.min.css"/>
+    <script src="?F=asset&R=jquery&A=jquery-1.10.2.min.js"></script>
+    <script src="?F=asset&R=bootstrap&A=basic/js/bootstrap.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'ethno_q';
+            src: url('?F=asset&R=fonts&A=ethnocentric.otf');
+        }
+        @font-face {
+            font-family: 'ethno';
+            src: url('?F=asset&R=fonts&A=ethnocentric_italic.otf');
+        }
+        .QLogo {
+            font-family: ethno_q;
+            background-color: #000;
+            color: #D96D00;
+            padding-right: 4px;
+            padding-left: 4px;
+            font-size: 32px;
+        }
+        .EELogo {
+            font-family: ethno;
+            font-size: 32px;
+        }
+        .navbar-brand:hover {
+            color: #FFF !important;
+        }
+    </style>
+</head>
+<body>
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand">
+                <span class="QLogo">QOX</span>
+                &nbsp;
+                <span class="EELogo">ExEngine</span>
+            </a>
+        </div>
+    </div>
+</div>
+<div class="container-fluid" style="margin-top: 80px;">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <a class="btn btn-default" href="?F=new_controller">New Controller</a>
+                    <a class="btn btn-default" href="?F=new_model">New Model</a>
+                    <a class="btn btn-default" href="?F=new_model_dbo">New DBO Model</a>
+                    <a class="btn btn-default" href="?F=new_view" disabled="disabled">New HTML5 View</a>
+                    <a class="btn btn-default" href="?F=create_schema" disabled="disabled">Create schema</a>
+                    <a class="btn btn-default" href="?F=create_tables" disabled="disabled">Create/Update tables</a>
+                </div>
+            </div>
+            <?=$View_Data?>
+        </div>
+    </div>
+</div>
+<div class="container-fluid">
+    <p><small>&copy <?php print strftime('%Y');?> <a href="//qox-corp.com" target="_blank">QOX Corporation</a></small></p>
+</div>
+</body>
+</html>

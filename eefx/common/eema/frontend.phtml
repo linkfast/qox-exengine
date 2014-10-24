@@ -38,11 +38,24 @@
 
 	<style>
 		@font-face {
+			font-family: 'ethno_q';
+			src: url('<?php print $httpResPathFonts; ?>ethnocentric.otf');
+		}
+		@font-face {
 			font-family: 'ethno';
 			src: url('<?php print $httpResPathFonts; ?>ethnocentric_italic.otf');
 		}
+		.QLogo {
+			font-family: ethno_q;
+			background-color: #000;
+			color: #D96D00;
+			padding-right: 4px;
+			padding-left: 4px;
+			font-size: 32px;
+		}
 		.EELogo {
 			font-family: ethno;
+			font-size: 32px;
 		}
 		.navbar-brand:hover {
 			color: #FFF !important;
@@ -62,8 +75,11 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand">
-                <img src="<?php print $httpCommonPath; ?>qox_q.png" style="max-height: 32px; margin-top: -6px;" title="QOX Corporation">&nbsp;
-                <?php if ($eemaLegacyMode) { ?> <span class="EELogo">ExEngine</span><small>Debugger</small> <?php } else { ?><span class="EELogo">ExEngine</span> <small>Message Agent</small><?php } ?>
+                <!-- <img src="<?php print $httpCommonPath; ?>qox_q.png" style="max-height: 32px; margin-top: -6px;" title="QOX Corporation"> -->
+				<span class="QLogo">QOX</span>
+					&nbsp;
+				<span class="EELogo">ExEngine</span>
+                <!-- <?php if ($eemaLegacyMode) { ?> <small>Debugger</small> <?php } else { ?><small>Message Agent</small><?php } ?> -->
             </a>
         </div>
         <div class="navbar-collapse collapse">

@@ -114,7 +114,7 @@ class EEUnitTest_Suite {
 	var $ActualMethod;
 	var $ActualCase;
 
-	const VERSION = "0.0.0.4";
+	const VERSION = "0.0.0.5";
 	
 	private $noAsk=false;
 	private $utils;
@@ -131,6 +131,7 @@ class EEUnitTest_Suite {
 		global $argv;
 		$this->ee = &ee_gi();
 		self::$instance =& $this;
+        define('EE_UTS',self::VERSION);
 		if(defined('STDIN')) {
 			$this->fromCli = true;
 			$this->RenderMode = "cli";

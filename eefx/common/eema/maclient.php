@@ -93,7 +93,7 @@ if (count(eema::getApps()) > 0) {
 						<ul class="nav navbar-nav navbar-right">
 							<li><a href="" onclick="return eema_toggleAutoRefresh();">Autoupdate <span class="badge" id="autorefresh-badge">OFF</span></a></li>
 							<li class="dropdown dropdown-keepopen">
-								<a href="#" id="filters_toggle_btn" class="dropdown-toggle" onclick="eema_toggleDropdown();">Filters <span class="caret"></span></a>
+								<a href="#" id="filters_toggle_btn" class="dropdown-toggle" onclick="eema_toggleDropdown(); return false;">Filters <span class="caret"></span></a>
 								<ul class="dropdown-menu" role="menu">
 									<li><a href="#" onclick="eema_toggleFilter('trace'); return false;">TRACE 		<span id="badge_trace" class="badge" id="autorefresh-badge">ON</span></a></li>
 									<li><a href="#" onclick="eema_toggleFilter('debug'); return false;">DEBUG 		<span id="badge_debug" class="badge" id="autorefresh-badge">ON</span></a></li>

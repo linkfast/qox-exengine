@@ -1,0 +1,70 @@
+<form class="form-horizontal" method="post" action="?F=new_dbo">
+    <fieldset>
+
+        <!-- Form Name -->
+        <legend>New DBO Model</legend>
+
+        <!-- Text input-->
+        <div class="form-group required-control">
+            <label class="col-md-3 control-label" for="name">Name</label>
+            <div class="col-md-6">
+                <input id="name" name="name" type="text" placeholder="class name" class="form-control " required="">
+
+            </div>
+        </div>
+
+        <!-- Select Basic -->
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="driver">DBO Driver</label>
+            <div class="col-md-6">
+                <select id="driver" name="driver" class="form-control ">
+                    <option value="mongodb">MongoDB</option>
+                    <option value="mysql">MySQL</option>
+                    <option value="sqlite">SQLite</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Select Basic -->
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="dbcfg">Database Config</label>
+            <div class="col-md-6">
+                <select id="dbcfg" name="dbcfg" class="form-control ">
+                    <?php
+                        foreach ($CfgFiles as $C) {
+                         ?>
+                            <option value="<?=$C?>"><?=$C?></option>
+                        <?php
+                        }
+                    ?>
+                </select>
+            </div>
+        </div>
+
+        <!-- Textarea -->
+        <div class="form-group required-control">
+            <label class="col-md-3 control-label" for="properties">Properties</label>
+            <div class="col-md-8">
+                <textarea id="properties" name="properties" required="" class="form-control ">_mongo_id=index,name=string,age=int;21</textarea>
+            </div>
+        </div>
+
+        <!-- Text input-->
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="namespace">Namespace / Subfolder</label>
+            <div class="col-md-6">
+                <input id="namespace" name="namespace" type="text" placeholder="Dbo" class="form-control ">
+
+            </div>
+        </div>
+
+        <!-- Button -->
+        <div class="form-group">
+            <label class="col-md-3 control-label" for=""></label>
+            <div class="col-lg-6">
+                <button id="" name="" class="btn btn-primary">Create DBO Model</button>
+            </div>
+        </div>
+
+    </fieldset>
+</form>

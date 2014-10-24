@@ -36,6 +36,8 @@ include_once('mvc-exengine/mvcee_applicationconfig.php');
 include_once('mvc-exengine/mvcee_tool.php');
 include_once('mvc-exengine/mvcee_i18n.php');
 
+include_once('mvc-exengine/mvcee_webtool.php');
+
 
 # Add your custom DBO´s includes here:
 

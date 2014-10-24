@@ -29,7 +29,7 @@ $jq->load();
 $jq->load_ui("redmond");
 ?>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>ExEngine FX</title>
+<title>QOX ExEngine Application Framework</title>
 <style type="text/css">
 <!--
 body,td,th {
@@ -60,11 +60,11 @@ body {
 		<div id="alert-fromee7" align="center"
 			class="ui-state-highlight ui-corner-all smallButtons"
 			style="margin: auto; width: 85%; margin-top: 20px; padding: 0 .7em;">
-			<h2>Redirected from ee.php (ExEngine 7 Core)</h2>
+			<h2>Redirected from ee.php (ExEngine Core)</h2>
 			<br /> <strong>ExEngine</strong> is a collection of libraries and
 			should be included instead of being called as a webpage or
 			application.<br /> <br />
-			<button>Ok</button>
+			<button>ok</button>
 		</div>
 		<?
 		}
@@ -76,7 +76,7 @@ body {
 			<h2>Redirected from a Framework directory</h2>
 			<br /> <strong>ExEngine</strong> resources should not be browseables.<br />
 			<br />
-			<button>Ok</button>
+			<button>ok</button>
 		</div>
 		<?
 		}
@@ -84,10 +84,10 @@ body {
 		<div>
 		<? if ($ee->cArray["debug"]) { ?>
 			<p>
-				<span style="color: #333; font-weight: bold; font-size: 16px;">DEBUG MODE TOOLS:</span><br />
-				<a href="common/excommander.php">EXENGINE COMMANDER</a><br /> 
-				<a href="common/debug.php">DEBUGGER</a><br />
-                <a href="common/eema.php">MESSAGE AGENT (formerly Debugger 2.0)</a><br />
+				<span style="color: #333; font-weight: bold; font-size: 16px;">DEBUG MODE TOOLS:</span><br><br>
+				<a href="common/excommander.php">EXENGINE COMMANDER</a><br>
+                <a href="common/eema.php">ExEngine Message Agent (EEMA)</a><br>
+				<a href="common/eema.php?page=legacy-client">DEBUGGER (EEMA in legacy mode)</a><br>
                 <a href="common/manager.php">EXTENSION MANAGER</a>
 			</p>
 			<p>Note: Menu will be hidden when debug-mode is disabled.</p>

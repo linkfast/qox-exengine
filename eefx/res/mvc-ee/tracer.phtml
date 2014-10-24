@@ -1,0 +1,134 @@
+<?php
+/**
+ * ExEngine Tracer 1.0.1
+ */
+
+$RRnd = md5(microtime());
+$httpResPathFonts = $this->ee->libGetResPath('fonts','http');
+?>
+<style>
+    @font-face {
+        font-family: 'ethno_it_<?php print $RRnd; ?>';
+        src: url('<?php print $httpResPathFonts; ?>ethnocentric_italic.otf');
+    }
+    @font-face {
+        font-family: 'ethno_<?php print $RRnd; ?>';
+        src: url('<?php print $httpResPathFonts; ?>ethnocentric.otf');
+    }
+</style>
+<div id="mvc_ee_tracer_<?php print $RRnd; ?>"
+     style="width: 100%;
+            height: 290px;
+            background-color: #e1edf7">
+    <div style="background-color: #405769;
+                width: 100%;
+                height: 32px;
+                padding-top: 0px;">
+        <span style="padding-left: 15px;"> </span>
+		<span style="font-family: 'ethno_<?php print $RRnd; ?>', Verdana, Arial, sans-serif;
+            color: #D96D00;
+            background-color: #000;
+            padding-left: 2px;
+            padding-right: 2px;
+            font-size:22px;">QOX</span>
+        <span style="font-family: 'ethno_it_<?php print $RRnd; ?>', Verdana, Arial, sans-serif;
+            color: #FFF;
+            font-size: 22px;
+            padding-left: 5px;">exengine</span>
+    </div>
+    <div style="height: 260px;
+                overflow: auto;">
+        <div style="color: #FFF;
+                    background-color: #4f6274;
+                    width: 100%;
+                    padding-left: 15px">
+            Tracer<?php if ($this->SessionEnabled) { ?><span style="font-size: 10px; color: #FFF">(you can disable this tool adding ?EEMVC_SPECIAL=TRACER_OFF, and reenable it adding ?EEMVC_SPECIAL=TRACER_ON, by default is enabled, this lasts for the session)</span><?php } ?>
+        </div>
+        <div style="padding-left: 15px">
+            <?php
+            $Divider = 2;
+            if ($this->SessionEnabled) {
+                $Divider = 3;
+            }
+            $Proportion = 100 / $Divider;
+            ?>
+            <table style="width: 100%;">
+                <thead>
+                <tr>
+                    <th style="width: <?php print $Proportion; ?>%;">Views</th>
+                    <th style="width: <?php print $Proportion; ?>%;">Models</th>
+                    <?php if ($this->SessionEnabled) { ?>
+                        <th style="width: <?php print $Proportion; ?>%;">Session<span style="font-size: 10px;"> (Core, MVC, DevGuard and EEMA/Debugger data are not displayed)</span></th>
+                    <?php } ?>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td style="vertical-align: top; text-align: left;">
+                        <?php
+                        foreach ($this->loadedViews as $K => $V) {
+                            print '<span style="color: #F00">' . $K . '</span><br>';
+                            foreach ($V as $VK => $VV) {
+                                print '&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #00F;">'. $VK . ' (' . count($VV) . ')' . '</span><br>';
+                                if (is_array($VV)) {
+                                    foreach ($VV as $VVK => $VVV) {
+                                        print '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$VVV . '<br>';
+                                    }
+                                } else {
+                                    print '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . $VV . '<br>';
+                                }
+                            }
+                        }
+                        ?>
+                    </td>
+                    <td style="vertical-align: top; text-align: left;">
+                        <?php
+                        foreach ($this->loadedModels as $K => $V) {
+                            print '<span style="color: #F00">' . $K . '</span><br>';
+                            foreach ($V as $VK => $VV) {
+                                print '&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #00F;">'. $VK . ' (' . count($VV) . ')' . '</span><br>';
+                                if (is_array($VV)) {
+                                    foreach ($VV as $VVK => $VVV) {
+                                        print '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$VVV . '<br>';
+                                    }
+                                } else {
+                                    print '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . $VV . '<br>';
+                                }
+                            }
+                        }
+                        ?>
+                    </td>
+                    <?php if ($this->SessionEnabled) { ?>
+                        <td style="vertical-align: top; text-align: left;">
+                            <?php
+                            $SESS_DATA = $_SESSION;
+                            unset($SESS_DATA['exengine-eema-apps']);
+                            unset($SESS_DATA['exengine-eema-messages']);
+                            if (isset($SESS_DATA['exengine-debugger-apps']) and is_array($SESS_DATA['exengine-debugger-apps'])) {
+                                foreach ($SESS_DATA['exengine-debugger-apps'] as $DApp) {
+                                    unset($SESS_DATA[$DApp]);
+                                }
+                            }
+                            unset($SESS_DATA['MVC_EXENGINE_TRACER_STATE']);
+                            unset($SESS_DATA['DG_SA']);
+                            unset($SESS_DATA['exengine-debugger-apps']);
+
+                            foreach ($SESS_DATA as &$SDO) {
+                                if (strlen($SDO) > 20) {
+                                    /*$SDO = str_replace("'","\\'",$SDO);
+                                    $SDO = str_replace("\n"," ",$SDO);
+                                    $SDO = str_replace("\r"," ",$SDO);*/
+                                    $SDO = '<a href="#" onclick="alert(\''.htmlentities($SDO).'\'); return false;">'. substr($SDO,0,20) . '</a>';
+                                }
+                            }
+
+                            print nl2br(print_r($SESS_DATA,true));
+                            ?>
+                        </td>
+                    <?php } ?>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

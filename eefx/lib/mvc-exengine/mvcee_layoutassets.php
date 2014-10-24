@@ -6,7 +6,7 @@ use ExEngine\Extended\Composer;
 
 class LayoutAssets {
 
-	const VERSION = '0.0.0.1';
+	const VERSION = '0.0.0.2';
 
 	var $CSS;
 	var $JS;
@@ -15,13 +15,11 @@ class LayoutAssets {
 	private $JSConfig;
 	private $CSSConfig;
 	private $FontConfig;
-
 	private $StaticFolder;
 	private $StaticFolderHTTP;
 	private $DynamicParserHTTP;
-
+	private $EE_ErrorMgmt_Title = 'MVC-ExEngine LayoutAssets Loader';
 	private $EEComposer;
-
 	private $ee;
 	private $index;
 
@@ -41,6 +39,76 @@ class LayoutAssets {
 		$this->DynamicParserHTTP = $DynamicParserHTTP;
 	}
 
+	function loadAssets_String($Type='',$YamlString='') {
+		$ValidTypes = ['Fonts','JS','CSS'];
+		$RetData = '';
+		if (in_array($Type,$ValidTypes)) {
+			if (isset($YamlString) and
+				strlen($YamlString) > 0) {
+				$ParsedYAML = \ExEngine\Extended\Spyc\Spyc::YAMLLoadString($YamlString);
+				if (is_array($ParsedYAML) and
+					count($ParsedYAML) > 0) {
+					foreach ($ParsedYAML as $YAMLObj) {
+						switch ($Type) {
+							case $ValidTypes[0]:
+								$this->Fonts .= $this->LoadFont($YAMLObj);
+								break;
+							case $ValidTypes[1]:
+								$this->JS .= $this->LoadJS($YAMLObj);
+								break;
+							case $ValidTypes[2]:
+								$this->CSS .= $this->LoadCSS($YAMLObj);
+								break;
+						}
+					}
+				} else {
+					$this->ee->errorExit($this->EE_ErrorMgmt_Title,'loadAssets require a valid YAML string, read the default assets yml file for more information and example ('.$this->index->AppConfiguration->AppFolder.'/assets/*.yml).');
+				}
+			} else {
+				$this->ee->errorExit($this->EE_ErrorMgmt_Title,'loadAssets require a valid YAML string, read the default assets yml file for more information and example ('.$this->index->AppConfiguration->AppFolder.'/assets/*.yml).');
+			}
+		} else {
+			$this->ee->errorExit($this->EE_ErrorMgmt_Title,'loadAssets $Type param must be either: Fonts, JS or CSS.');
+		}
+	}
+
+	function loadAssets_ControllerView($Type='',$YamlString='',$Return=false) {
+		$ValidTypes = ['Fonts','JS','CSS'];
+		$RetData = '';
+		if (in_array($Type,$ValidTypes)) {
+			if (isset($YamlString) and
+				strlen($YamlString) > 0) {
+				$ParsedYAML = \ExEngine\Extended\Spyc\Spyc::YAMLLoadString($YamlString);
+				if (is_array($ParsedYAML) and
+					count($ParsedYAML) > 0) {
+					foreach ($ParsedYAML as $YAMLObj) {
+						switch ($Type) {
+							case $ValidTypes[0]:
+									$RetData .= $this->LoadFont($YAMLObj);
+								break;
+							case $ValidTypes[1]:
+									$RetData .= $this->LoadJS($YAMLObj);
+								break;
+							case $ValidTypes[2]:
+									$RetData .= $this->LoadCSS($YAMLObj);
+								break;
+						}
+						if ($Return)
+							return $RetData;
+						else
+							print $RetData;
+					}
+				} else {
+					$this->ee->errorExit($this->EE_ErrorMgmt_Title,'loadAssets require a valid YAML string, read the default assets yml file for more information and example ('.$this->index->AppConfiguration->AppFolder.'/assets/*.yml).');
+				}
+			} else {
+				$this->ee->errorExit($this->EE_ErrorMgmt_Title,'loadAssets require a valid YAML string, read the default assets yml file for more information and example ('.$this->index->AppConfiguration->AppFolder.'/assets/*.yml).');
+			}
+		} else {
+			$this->ee->errorExit($this->EE_ErrorMgmt_Title,'loadAssets $Type param must be either: Fonts, JS or CSS.');
+		}
+	}
+
 	function loadAssets() {
 		$AssetsFiles = [
 			'JSConfig' => $this->index->AppConfiguration->AppFolder . '/assets/javascript.yml',
@@ -53,22 +121,22 @@ class LayoutAssets {
 				switch ($AKey) {
 					case 'JSConfig':
 						foreach ($this->$AKey as $JSObj) {
-							$this->LoadJS($JSObj);
+							$this->JS .= $this->LoadJS($JSObj);
 						}
 						break;
 					case 'CSSConfig':
 						foreach ($this->$AKey as $CSSObj) {
-							$this->LoadCSS($CSSObj);
+							$this->CSS .= $this->LoadCSS($CSSObj);
 						}
 						break;
 					case 'FontConfig':
 						foreach ($this->$AKey as $FontObj) {
-							$this->LoadFont($FontObj);
+							$this->Fonts .= $this->LoadFont($FontObj);
 						}
 						break;
 				}
 			} else {
-				$this->ee->errorExit('MVC-ExEngine LayoutAssets Loader','Asset YML not found: ' .$AValue );
+				$this->ee->errorExit($this->EE_ErrorMgmt_Title,'Asset YML not found: ' .$AValue );
 			}
 		}
 		if (strlen($this->Fonts)) {
@@ -81,22 +149,22 @@ class LayoutAssets {
 			/* load composer package */
 			$File = $this->EEComposer->getPackageDir($Data['package']). '/' . $Data['src'];
 			if (file_exists($File)) {
-				$this->Fonts .= "\t" . '@font-face { font-family: \''.$Data['name'].'\'; src: url(\''.$File.'\');}' . "\n";
+				return "\t" . '@font-face { font-family: \''.$Data['name'].'\'; src: url(\''.$File.'\');}' . "\n";
 			} else {
-				$this->ee->errorExit('MVC-ExEngine LayoutAssets Loader','Required asset not found (`'.$Data['src'].'`).');
+				$this->ee->errorExit($this->EE_ErrorMgmt_Title,'Required asset not found (`'.$Data['src'].'`).');
 			}
 		} else {
 			if (isset($Data['remote']) && $Data['remote'] == true) {
 				/* load remote data */
-				$this->Fonts .= "\t" . '@font-face { font-family: \''.$Data['name'].'\'; src: url(\''.$Data['src'].'\');}' . "\n";
+				return "\t" . '@font-face { font-family: \''.$Data['name'].'\'; src: url(\''.$Data['src'].'\');}' . "\n";
 			} else {
 				/* load static folder data */
 				$File = $this->StaticFolder . '/fonts/' . $Data['src'] ;
 				if (file_exists($File)) {
 					$File = '/fonts/' . $Data['src'];
-					$this->Fonts .= "\t" . '@font-face { font-family: \''.$Data['name'].'\'; src: url(\''.$File.'\');}' . "\n";
+					return "\t" . '@font-face { font-family: \''.$Data['name'].'\'; src: url(\''.$File.'\');}' . "\n";
 				} else {
-					$this->ee->errorExit('MVC-ExEngine LayoutAssets Loader','Required asset not found (`'.$Data['src'].'`).');
+					$this->ee->errorExit($this->EE_ErrorMgmt_Title,'Required asset not found (`'.$Data['src'].'`).');
 				}
 			}
 		}
@@ -107,21 +175,21 @@ class LayoutAssets {
 			/* load composer package */
 			$File = $this->EEComposer->getPackageDir($Data['package']). '/' . $Data['src'] . '.js';
 			if (file_exists($File)) {
-				$this->JS .= "\t" . '<script src="'. $this->ee->httpGetUrlFromPath($File) .'"></script>' . "\n";
+				return "\t" . '<script src="'. $this->ee->httpGetUrlFromPath($File) .'"></script>' . "\n";
 			} else {
-				$this->ee->errorExit('MVC-ExEngine LayoutAssets Loader','Required asset not found (`'.$Data['src'].'`).');
+				$this->ee->errorExit($this->EE_ErrorMgmt_Title,'Required asset not found (`'.$Data['src'].'`).');
 			}
 		} else {
 			if (isset($Data['remote']) && $Data['remote'] == true) {
 				/* load remote data */
-				$this->JS .= "\t" . '<script src="'. $Data['src'] .'"></script>' . "\n";
+				return "\t" . '<script src="'. $Data['src'] .'"></script>' . "\n";
 			} else {
 				if (isset($Data['requirejs']) and $Data['requirejs']==true) {
 					$File = $Data['src'] . '/' . 'require.js';
 					if (file_exists($File)) {
-						$this->JS .= "\t" . '<script src="'. $this->ee->httpGetUrlFromPath($this->ee->appPath.$File) .'"></script>' . "\n";
+						return "\t" . '<script src="'. $this->ee->httpGetUrlFromPath($this->ee->appPath.$File) .'"></script>' . "\n";
 					} else {
-						$this->ee->errorExit('MVC-ExEngine LayoutAssets Loader','Required asset not found (`'.$Data['src'].'`).');
+						$this->ee->errorExit($this->EE_ErrorMgmt_Title,'Required asset not found (`'.$Data['src'].'`).');
 					}
 				} else {
 					/* load static folder data */
@@ -133,9 +201,9 @@ class LayoutAssets {
 						} else {
 							$File = $this->StaticFolderHTTP . $File;
 						}
-						$this->JS .= "\t" . '<script src="'. $File .'"></script>' . "\n";
+						return "\t" . '<script src="'. $File .'"></script>' . "\n";
 					} else {
-						$this->ee->errorExit('MVC-ExEngine LayoutAssets Loader','Required asset not found (`'.$Data['src'].'`).');
+						$this->ee->errorExit($this->EE_ErrorMgmt_Title,'Required asset not found (`'.$Data['src'].'`).');
 					}
 				}
 			}
@@ -147,14 +215,14 @@ class LayoutAssets {
 			/* load composer package */
 			$File = $this->EEComposer->getPackageDir($Data['package']). '/' . $Data['src'] . '.css';
 			if (file_exists($File)) {
-				$this->CSS .= "\t" . '<link href="'. $this->ee->httpGetUrlFromPath($File) .'" rel="stylesheet">' . "\n";
+				return "\t" . '<link href="'. $this->ee->httpGetUrlFromPath($File) .'" rel="stylesheet">' . "\n";
 			} else {
-				$this->ee->errorExit('MVC-ExEngine LayoutAssets Loader','Required asset not found (`'.$Data['src'].'`).');
+				$this->ee->errorExit($this->EE_ErrorMgmt_Title,'Required asset not found (`'.$Data['src'].'`).');
 			}
 		} else {
 			if (isset($Data['remote']) && $Data['remote'] == true) {
 				/* load remote data */
-				$this->CSS .= "\t" . '<link href="'. $Data['src'] .'" rel="stylesheet">' . "\n";
+				return "\t" . '<link href="'. $Data['src'] .'" rel="stylesheet">' . "\n";
 			} else {
 				/* load static folder data */
 				$File = $this->StaticFolder . '/css/' . $Data['src'] . '.css';
@@ -165,9 +233,9 @@ class LayoutAssets {
 					} else {
 						$File = $this->StaticFolderHTTP . $File;
 					}
-					$this->CSS .= "\t" . '<link href="'. $File .'" rel="stylesheet">' . "\n";
+					return "\t" . '<link href="'. $File .'" rel="stylesheet">' . "\n";
 				} else {
-					$this->ee->errorExit('MVC-ExEngine LayoutAssets Loader','Required asset not found (`'.$Data['src'].'`).');
+					$this->ee->errorExit($this->EE_ErrorMgmt_Title,'Required asset not found (`'.$Data['src'].'`).');
 				}
 			}
 		}
