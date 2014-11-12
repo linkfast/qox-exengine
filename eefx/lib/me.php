@@ -36,8 +36,8 @@ class MixedEngineLoader {
 	/* @var $ee Core */
 	private $ee;
 	
-	const VERSION = "1.0.0";
-	const REV = 9;
+	const VERSION = "1.0.1";
+	const REV = 1;
 	const RELEASE = "alpha";
 	
 	
@@ -66,6 +66,7 @@ class MixedEngineLoader {
 		#Get Class Name First, to check if loaded.
 		if ($ex==1) {
 			$this->meName = $this->getClassName($this->meFile);
+            //print $this->meName;
 		}
 		if (!$this->checkIfLoaded($this->meFile)) {
 			#Load File now.
@@ -73,7 +74,9 @@ class MixedEngineLoader {
 				$versionME = $this->getMixedEngineVersion($this->meFile);
 				if ($versionME == "4") {	
 					$this->ee->debugThis("me-loader","Loader: Loading...");
-					include_once($this->meFile);					
+                    //print $this->meFile;
+					include_once($this->meFile);
+                    //print \ExEngine\Engines\Ldap\Connection::NAME;
 					if ($this->checkMEv4standard()) {	
 						$this->ee->debugThis("me-loader","Loader: V4 Standard: Passed.");
 						
@@ -255,21 +258,24 @@ class MixedEngineLoader {
 	final function getClassName($file) {
 		//$this->ee->debugThis("me-loader","Loader: Getting class name for: ".$file);
 		$meString = implode('', file($file));
+        $nameSpace = '/namespace (.*);/';
 		$firstClassPat = '/class ([A-Za-z0-9._%-]*)/';
+        preg_match($nameSpace, $meString, $matches_ns);
 		preg_match($firstClassPat,$meString,$matches);
 		# ONLY THE FIRST CLASS!
 		$this->ee->debugThis("me-loader","Loader: Class name: ".$matches[1]);
-		return $matches[1];
+        if (isset($matches_ns[1])) {
+            return '\\'.str_replace(';','',$matches_ns[1]).'\\'.$matches[1];
+        } else
+		    return $matches[1];
 	}
 	
 	final function checkMEv4standard() {
 		if (class_exists($this->meName)) {
-			
 			$meVersion = $this->meName.'::VERSION';
 			$meName = $this->meName.'::NAME';
 			$meDate = $this->meName.'::DATE';
 			$meRqEE = $this->meName.'::RQEE7';
-			
 			if (defined($meVersion) && defined($meName) && defined($meDate) && defined($meRqEE)) {
 				return true;
 			} else {

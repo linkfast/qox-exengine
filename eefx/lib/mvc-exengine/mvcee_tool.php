@@ -6,7 +6,7 @@
 namespace ExEngine\MVC;
 
 class Tool {
-	const VERSION = '0.0.0.1';
+	const VERSION = '0.0.0.4';
 	private static $instance;
 	private $ApplicationConfig;
     private $MVC_Index;
@@ -39,6 +39,7 @@ class Tool {
 		if (isset($argv)) {
 			if (in_array("--help",array_map('strtolower', $argv))) {
 				echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+                echo "(C) QOX Corporation <qox-corp.com>" . "\n";
 				echo "Arguments: \n";
                 #echo "\t-sf\tEnable scaffolding.";
 				echo "\t-g\tEnable the generator capability, must be followed by one of these options.\n";
@@ -69,8 +70,9 @@ class Tool {
 						case "controller":
 							if (isset($argv[3]) and strlen($argv[3]) > 0) {
 								echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+                                echo "(C) QOX Corporation <qox-corp.com>" . "\n";
 								echo "\nCreating controller `".ucfirst($argv[3])."`...";
-								$this->createController($argv[3]);
+								$this->createController($argv[3], $argv[4], $argv[5]);
 								echo "Finished.\n";
 							} else {
 								echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
@@ -82,11 +84,14 @@ class Tool {
                         case "model":
                             if ((isset($argv[3]) and isset($argv[4])) and
                                 (strlen($argv[3]) > 0 and strlen($argv[4]) > 0)) {
+                                echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+                                echo "(C) QOX Corporation <qox-corp.com>" . "\n";
                                 echo "\nCreating Model `".ucfirst($argv[3])."`...";
                                 $this->createModel($argv[3], $argv[4], $argv[5]);
                                 echo "Finished.\n";
                             } else {
                                 echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+                                echo "(C) QOX Corporation <qox-corp.com>" . "\n";
                                 echo "\nThe `-g model` command requires the model name and class properties check the following\n";
                                 echo "example:\n\n";
                                 echo "\tmvctool -g model mymodel properties [subfolder/namespace]\n";
@@ -98,11 +103,14 @@ class Tool {
                         case "model_dbo":
                             if ((isset($argv[3]) and isset($argv[4]) and isset($argv[5])) and
                                 (strlen($argv[3]) > 0 and strlen($argv[4]) > 0 and strlen($argv[5]) > 0)) {
+                                echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+                                echo "(C) QOX Corporation <qox-corp.com>" . "\n";
                                 echo "\nCreating DBO Model `".ucfirst($argv[3])."`...";
                                 $this->createModelDBO($argv[3], $argv[4], $argv[5], $argv[6], $argv[7], $argv[8]);
                                 echo "Finished.\n";
                             } else {
                                 echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+                                echo "\n(C) QOX Corporation <qox-corp.com>" . "\n";
                                 echo "\nThe `-g model_dbo` command requires the model name, dbo driver and class properties check the following\n";
                                 echo "example:\n\n";
                                 echo "\tmvctool -g model_dbo mymodel dbo_driver properties [database config filename] [subfolder/namespace] [table_id]\n";
@@ -116,6 +124,7 @@ class Tool {
 					}
 				} else {
 					echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+                    echo "(C) QOX Corporation <qox-corp.com>" . "\n";
 					echo "\nThe `-g` command requires an additional command, check the following\n";
 					echo "examples:\n\n";
 					echo "\tmvctool -g model mynewmodel\n";
@@ -127,11 +136,13 @@ class Tool {
 				break;
             case "-wu";
                 echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+                echo "(C) QOX Corporation <qox-corp.com>" . "\n";
                 echo "\nStarting web interface: http://localhost:8989/.\nPress CTRL+C to stop serving.";
                 system('php -S localhost:8989 bin/webui.php');
                 break;
 			default:
 				echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
+                echo "\n(C) QOX Corporation <qox-corp.com>" . "\n";
 				echo "Invalid option. \n";
 				echo "Run with the --help argument for more info. \n";
 				break;
@@ -188,8 +199,10 @@ class Tool {
 
         $PropertiesString = "\t\t" . 'var $DBC = "' . $ConnectionConfig . '";' . "\n";
 
-        if ($Table_Id!="null")
-            $PropertiesString .= "\t\t" . 'var $TABLEID = "' . $Table_Id . '";' . "\n";
+        if ($Table_Id=="null")
+            $Table_Id = strtolower($ModelName);
+
+        $PropertiesString .= "\t\t" . 'var $TABLEID = "' . $Table_Id . '";' . "\n";
 
         $AtConstructString = "\t\t\t".'parent::__construct();' . "\n";
         foreach ($P as $Prop) {
@@ -266,9 +279,11 @@ class Tool {
         $ModelDboSnippet = '<?php
 /**
 * MVC-ExEngine
+* (C) '.strftime('%Y').' QOX Corporation <qox-corp.com>
 * This DBO model was generated using MVCTool.
-* Date: '.strftime("%d/%m/%Y").'
+* Date: '.strftime("%d/%m/%Y - %H:%M:%S").'
 * Timestamp: '.time().'
+* Command: mvctool -g model_dbo '. $ModelName .' ' . $DBO_Driver . ' ' . $PropertiesString . ' ' . $ConnectionConfig . ' ' . $Namespace . ' ' . $Table_Id .'
 */
 '.$N. "\t" . 'class '. ucfirst($ModelName) . ' extends ' . $DriverClassNames[$DBO_Driver] . ' {
 
@@ -300,52 +315,86 @@ class Tool {
 
     }
 
-	protected function createController($ControllerName, $Commented=true) {
+	protected function createController($ControllerName, $WithDefaults="defaults", $Commented="commented") {
+        if (strlen($WithDefaults) == 0 or $WithDefaults == "defaults")
+            $WithDefaults="defaults";
+
+        if (strlen($Commented) == 0 or $Commented == "commented")
+            $Commented="commented";
+
+
 		$ControllerSnippet = '<?php
 /**
 * MVC-ExEngine
+* (C) '.strftime('%Y').' QOX Corporation <qox-corp.com>
 * This controller was generated using MVCTool.
-* Date: '.strftime("%d/%m/%Y").'
+* Date: '.strftime("%d/%m/%Y - %H:%M:%S").'
 * Timestamp: '.time().'
+* Command: mvctool -g controller '. $ControllerName .' ' . $WithDefaults . ' ' . $Commented .'
 */
-	class ' . ucfirst($ControllerName) . ' extends \\ExEngine\\MVC\\Controller {
-		/* Set this var to true when writing Ajax servers, it will not load the layout */
-		var $imSilent = false;
+	class ' . ucfirst($ControllerName) . ' extends \\ExEngine\\MVC\\Controller {' . "\n";
 
-		/* You can set a different layout than the default one setting this variable */
-		var $layout = "default";
+        if ($WithDefaults=="defaults") {
+            if ($Commented=="commented")
+                $ControllerSnippet .= '		/* Set this var to true when writing Ajax servers, it will not load the layout */' . "\n" ;
+            $ControllerSnippet .= '		var $imSilent = false;' . "\n" ;
 
-		/* You can pass additional data to the layout with this variable, remember its an associative array */
-		var $layoutData = [];
+            if ($Commented=="commented")
+                $ControllerSnippet .= '		/* You can set a different layout than the default one setting this variable */' . "\n" ;
+            $ControllerSnippet .= '		var $layout = "default";' . "\n" ;
 
-		/* You can set the default locale for this controller, set to "default" to use the application default. */
-		var $locale = "default";
+            if ($Commented=="commented")
+                $ControllerSnippet .= '		/* You can pass additional data to the layout with this variable, remember its an associative array */' . "\n";
+            $ControllerSnippet .= '		var $layoutData = [];' . "\n";
 
-		/* You can set here the controller init (will be executed always) */
-		protected function __atconstruct() {
-			/* write your controller init code here */
-		}
+            if ($Commented=="commented")
+                $ControllerSnippet .= '		/* You can set the default locale for this controller, set to "default" to use the application default. */' . "\n";
+            $ControllerSnippet .= '		var $locale = "default";' . "\n";
+        }
 
-		/* this is the default action */
-		function index() {
-			/* write your code here */
-			print "<h1>Hello World!</h1>";
-		}
 
-		/* Add more actions after this, to use actions just append the action name to the url, check the action3 example for more information
-		function action2() {
-			# write your code here
-			print "<h1>This is action2</h1>";
-		}
 
-		function action3($arg1=null) {
-			# this action has arguments, you can add more arguments to this action, they will be passed separating each one with `/` in the url,
-			# for ex. to pass arg1, you should call this action like this: /'.strtolower($ControllerName).'/action3/argument1, so $arg1 will contain the
-			# argument1 string.
-			print "<h1>$arg1</h1>";
-		}
-		*/
-	}
+        if ($Commented=="commented")
+            $ControllerSnippet .= '		/* You can set here the controller init (will be executed always) */' . "\n";
+
+        $ControllerSnippet .= '		protected function __atconstruct() {' . "\n";
+
+        if ($Commented=="commented")
+            $ControllerSnippet .= '			/* write your controller init code here */' . "\n";
+
+        $ControllerSnippet .= '		}' . "\n";
+
+        //$ControllerSnippet .= '
+        if ($Commented=="commented")
+            $ControllerSnippet .= '		/* this is the default action */' . "\n";
+
+        $ControllerSnippet .= '		function index() {' . "\n";
+        if ($Commented=="commented")
+            $ControllerSnippet .= '			/* write your code here */' . "\n";
+        if ($WithDefaults=="defaults")
+            $ControllerSnippet .= '			print "<h1>Hello World!</h1>";' . "\n";
+        $ControllerSnippet .= '		}' . "\n";
+
+        if ($WithDefaults=="defaults") {
+            if ($Commented=="commented")
+                $ControllerSnippet .= '		/* Add more actions after this, to use actions just append the action name to the url, check the action3 example for more information' . "\n";
+            $ControllerSnippet .= '		function action2() {' . "\n";
+                if ($Commented=="commented")
+                    $ControllerSnippet .= '			# write your code here' . "\n";
+                $ControllerSnippet .= '			print "<h1>This is action2</h1>";' . "\n";
+            $ControllerSnippet .= '		}' . "\n";
+
+        $ControllerSnippet .= '		function action3($arg1=null) {' . "\n";
+                if ($Commented=="commented")
+                    $ControllerSnippet .= '			# this action has arguments, you can add more arguments to this action, they will be passed separating each one with `/` in the url,
+                # for ex. to pass arg1, you should call this action like this: /'.strtolower($ControllerName).'/action3/argument1, so $arg1 will contain the
+                # argument1 string.' . "\n";
+
+                $ControllerSnippet .= '			print "<h1>$arg1</h1>";' . "\n";
+        $ControllerSnippet .= '		}
+            */' . "\n";
+        }
+        $ControllerSnippet .= '	}
 ?>';
 		if (file_exists($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ControllersFolder) and
 			is_dir($this->ApplicationConfig->AppFolder . '/' . $this->ApplicationConfig->ControllersFolder)) {
@@ -404,8 +453,9 @@ class Tool {
 /**
 * MVC-ExEngine
 * This model was generated using MVCTool.
-* Date: '.strftime("%d/%m/%Y").'
+* Date: '.strftime("%d/%m/%Y - %H:%M:%S").'
 * Timestamp: '.time().'
+* Command: mvctool -g model '. $ModelName .' ' . $PropertiesString . ' ' . $Namespace .'
 */
 '.$N. "\t" . 'class '. ucfirst($ModelName) . ' extends \\ExEngine\\MVC\\Model {
 

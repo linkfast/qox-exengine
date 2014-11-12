@@ -21,161 +21,163 @@ ExEngine / Libs / MVC-ExEngine / Methods Class (Resources)
 
 ExEngine MVC Implementation Library
 
-*/
+ */
 
 namespace ExEngine\MVC;
 
 /* Accessible from all controllers, models and views in the object $this->r */
 class Methods {
-    
-	const VERSION = "0.0.1.5";
 
-	/* @var $cparent Controller */
-	var $cparent;
-	var $jQueryObject;
+    const VERSION = "0.0.1.6";
 
-	final function sf() {
-		return $this->cparent->index->staticFolderHTTP . $this->tra;
-	}
+    /* @var $cparent Controller */
+    var $cparent;
+    var $jQueryObject;
+    var $goTo;
 
-	final function fsf() {
-		return $this->cparent->index->staticFolder . $this->tra ;
-	}
+    final function sf() {
+        return $this->cparent->index->staticFolderHTTP . $this->tra;
+    }
+
+    final function fsf() {
+        return $this->cparent->index->staticFolder . $this->tra ;
+    }
 
     /**
      * Gives the Controllers folder path, made for redirectios and link creation.
      * @return string
      */
-	final function c() {
-		return $this->cparent->index->controllersFolderHTTP.$this->tra;
-	}
-		
-	/* TODO: REMOVE
-	final function scpath() {
-		$urldata = $this->cparent->index->unModUrlParsedData;
-		$size = count($urldata);
-		$str_make = null;
-		$urldata = array_slice($urldata,0,($size-3));
-		$size = count($urldata);
-		for ($i = 0; $i
-							< $size ; $i++) {
-			$str_make .= $urldata[$i].'/';	
-		}
-		return $str_make;
-	}
-	*/
-	
-	final function home() {
-		$x[0] = null;
-		if (!$this->cparent->index->rewriteRulesEnabled) {
-			$x = $_SERVER['REQUEST_URI'];		
-			$x = explode($this->cparent->index->indexname,$x);
-		}
-		return "//" . $_SERVER['HTTP_HOST']. $x[0];
-	}
+    final function c() {
+        return $this->cparent->index->controllersFolderHTTP.$this->tra;
+    }
 
-	/**
-	 * Get database configuration Array (may be compatible with EEDBM if db type is a SQL-based)
-	 * @param string $databaseFile
-	 * @return array|bool
-	 */
-	final function getDbConf($databaseFile='default') {
-		$CfFile =  $this->cparent->index->AppConfiguration->ConfigurationFolder . '/database/';
-		if ($databaseFile=='default') {
-			$CfFile .= $this->cparent->index->AppConfiguration->DefaultDatabase . '.yml';
-		} else {
-			$CfFile .= $databaseFile . '.yml';
-		}
-		if (file_exists($CfFile)) {
-			$this->ee->eeLoad('eespyc');
-			$YW = new \eespyc();
-			$YW->load();
-			return \ExEngine\Extended\Spyc\Spyc::YAMLLoad($CfFile);
-		} else {
-			$this->ee->errorExit('MVC-ExEngine','Database configuration file not found ("'.$CfFile.'").');
-			return false;
-		}
-	}
+    /* TODO: REMOVE
+    final function scpath() {
+        $urldata = $this->cparent->index->unModUrlParsedData;
+        $size = count($urldata);
+        $str_make = null;
+        $urldata = array_slice($urldata,0,($size-3));
+        $size = count($urldata);
+        for ($i = 0; $i
+                            < $size ; $i++) {
+            $str_make .= $urldata[$i].'/';
+        }
+        return $str_make;
+    }
+    */
 
-	final function sc() {		
-		return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername . $this->tra;	
-	}
+    final function home() {
+        $x[0] = null;
+        if (!$this->cparent->index->rewriteRulesEnabled) {
+            $x = $_SERVER['REQUEST_URI'];
+            $x = explode($this->cparent->index->indexname,$x);
+        }
+        return "//" . $_SERVER['HTTP_HOST']. $x[0];
+    }
 
-	final function scfolder() {
-		return $this->cparent->index->sameControllerFolderHTTP . $this->tra;
-	}
-	
-	final function scf() {
-		return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername."/".$this->cparent->functionName. $this->tra;		
-	}
+    /**
+     * Get database configuration Array (may be compatible with EEDBM if db type is a SQL-based)
+     * @param string $databaseFile
+     * @return array|bool
+     */
+    final function getDbConf($databaseFile='default') {
+        $CfFile =  $this->cparent->index->AppConfiguration->ConfigurationFolder . '/database/';
+        if ($databaseFile=='default') {
+            $CfFile .= $this->cparent->index->AppConfiguration->DefaultDatabase . '.yml';
+        } else {
+            $CfFile .= $databaseFile . '.yml';
+        }
+        if (file_exists($CfFile)) {
+            $this->ee->eeLoad('eespyc');
+            $YW = new \eespyc();
+            $YW->load();
+            return \ExEngine\Extended\Spyc\Spyc::YAMLLoad($CfFile);
+        } else {
+            $this->ee->errorExit('MVC-ExEngine','Database configuration file not found ("'.$CfFile.'").');
+            return false;
+        }
+    }
 
-	final function scfi() {
-		if ($this->cparent->functionName == "index")
-		return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername . $this->tra;
-			else
-		return $this->scf();
-	}
-	
-	final function vs() {
-		return $this->cparent->index->controllersFolderHTTP.$this->tra."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";	
-	}
+    final function sc() {
+        return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername . $this->tra;
+    }
 
-	private $ee;
-	final function __construct(&$parent) {
-		$this->cparent = &$parent;
-		$this->jQueryObject = &$this->cparent->index->jQueryObject;
-		$this->tra = null;
-		$this->ee = &ee_gi();
-		if ($this->cparent->index->trailingSlashLegacy) {
-			$this->tra = "/";
-		}
-	}
-	
-	final function getSession($element) {
-		if ($this->cparent->index->isSessionEnabled())
-			return @$_SESSION[$element];
-		else {
-			$this->ee->errorExit("MVC-ExEngine","Cannot get a session variable, session support is not enabled.");
-			return null;	
-		}			
-	}
-	
-	final function setSession($element,$value) {
-		if ($this->cparent->index->isSessionEnabled())
-			$_SESSION[$element] = $value;	
-		else {
-			$this->ee->errorExit("MVC-ExEngine","Cannot set a session variable, session support is not enabled.");
-			return null;	
-		}
-	}
-	
-	final function clearSession() {
-		if ($this->cparent->index->dgEnabled) {
-			$dgSession = $_SESSION["DG_SA"];
-		}
-		session_unset();	
-		if ($this->cparent->index->dgEnabled) {
-			$_SESSION["DG_SA"] = $dgSession;
-		}
-	}
-	
-	final function remSession($element) {
-		unset($_SESSION[$element]);	
-	}
+    final function scfolder() {
+        return $this->cparent->index->sameControllerFolderHTTP . $this->tra;
+    }
 
-	final function get() {
-		$numargs = func_num_args();
-		$arg_list = func_get_args();
+    final function scf() {
+        return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername."/".$this->cparent->functionName. $this->tra;
+    }
 
-		$pd = $_GET;
+    final function scfi() {
+        if ($this->cparent->functionName == "index")
+            return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername . $this->tra;
+        else
+            return $this->scf();
+    }
 
-		if ($numargs >= 2) {
-			$return = new \stdClass();
-			for ($i = 0; $i < $numargs; $i++) {
-				$return->$arg_list[$i] = $pd[$arg_list[$i]];
-			}
-			return $return;
-		}else {
+    final function vs() {
+        return $this->cparent->index->controllersFolderHTTP.$this->tra."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
+    }
+
+    private $ee;
+    final function __construct(&$parent) {
+        $this->cparent = &$parent;
+        $this->jQueryObject = &$this->cparent->index->jQueryObject;
+        $this->tra = null;
+        $this->ee = &ee_gi();
+        if ($this->cparent->index->trailingSlashLegacy) {
+            $this->tra = "/";
+        }
+        $this->goTo = new Redirect($this);
+    }
+
+    final function getSession($element) {
+        if ($this->cparent->index->isSessionEnabled())
+            return @$_SESSION[$element];
+        else {
+            $this->ee->errorExit("MVC-ExEngine","Cannot get a session variable, session support is not enabled.");
+            return null;
+        }
+    }
+
+    final function setSession($element,$value) {
+        if ($this->cparent->index->isSessionEnabled())
+            $_SESSION[$element] = $value;
+        else {
+            $this->ee->errorExit("MVC-ExEngine","Cannot set a session variable, session support is not enabled.");
+            return null;
+        }
+    }
+
+    final function clearSession() {
+        if ($this->cparent->index->dgEnabled) {
+            $dgSession = $_SESSION["DG_SA"];
+        }
+        session_unset();
+        if ($this->cparent->index->dgEnabled) {
+            $_SESSION["DG_SA"] = $dgSession;
+        }
+    }
+
+    final function remSession($element) {
+        unset($_SESSION[$element]);
+    }
+
+    final function get() {
+        $numargs = func_num_args();
+        $arg_list = func_get_args();
+
+        $pd = $_GET;
+
+        if ($numargs >= 2) {
+            $return = new \stdClass();
+            for ($i = 0; $i < $numargs; $i++) {
+                $return->$arg_list[$i] = $pd[$arg_list[$i]];
+            }
+            return $return;
+        }else {
             if ($this->ee->strContains($arg_list[0],",")) {
                 $ex = explode(',',$arg_list[0]);
                 $return = new \stdClass();
@@ -188,28 +190,28 @@ class Methods {
             }else {
                 $this->ee->errorExit('ExEngine MVC Methods', 'r->get() function must have at least one argument.');
             }
-		}
-	}
-	
-	final function post() {
-		$numargs = func_num_args();
-		$arg_list = func_get_args();
+        }
+    }
+
+    final function post() {
+        $numargs = func_num_args();
+        $arg_list = func_get_args();
 
         /* added compatibility for AngularJS ajax */
-		$data2 = @json_decode(file_get_contents('php://input'));
-		if ($data2 instanceof \stdClass) {
-			$pd = get_object_vars($data2);
-		} else {
-			$pd = $_POST;
-		}
+        $data2 = @json_decode(file_get_contents('php://input'));
+        if ($data2 instanceof \stdClass) {
+            $pd = get_object_vars($data2);
+        } else {
+            $pd = $_POST;
+        }
 
-		if ($numargs >= 2) {
-			$return = new \stdClass();
-			for ($i = 0; $i < $numargs; $i++) {
-				$return->$arg_list[$i] = $pd[$arg_list[$i]];
-			}
-			return $return;
-		} elseif ($numargs == 1) {
+        if ($numargs >= 2) {
+            $return = new \stdClass();
+            for ($i = 0; $i < $numargs; $i++) {
+                $return->$arg_list[$i] = $pd[$arg_list[$i]];
+            }
+            return $return;
+        } elseif ($numargs == 1) {
             if ($this->ee->strContains($arg_list[0],",")) {
                 $ex = explode(',',$arg_list[0]);
                 $return = new \stdClass();
@@ -220,12 +222,17 @@ class Methods {
             } else {
                 return @$pd[$arg_list[0]];
             }
-		} else {
+        } else {
             $this->ee->errorExit('ExEngine MVC Methods', 'r->post() function must have at least one argument.');
             return null;
         }
-	}
+    }
 
+    /**
+     * Copy POSTs params to an MVC-ExEngine model or DBO model.
+     * @param $Object
+     * @param string $PostName
+     */
     final function postCopyToModel(&$Object) {
         $numargs = func_num_args();
         $arg_list = func_get_args();
@@ -264,8 +271,14 @@ class Methods {
                 $Object->$obj_var = $return[$obj_var];
         }
     }
-    
-    final function query($b64=false) {
+
+    /**
+     * Gets the actual query string.
+     * @param bool $EncodeToBase64
+     * @return mixed|string
+     */
+    final function query($EncodeToBase64=false) {
+        $b64 = $EncodeToBase64;
         $qs = $_SERVER['QUERY_STRING'];
         if (!$this->cparent->ee->strContains($qs, '?')) {
             $qs = preg_replace('/&/', '?', $qs, 1);
@@ -275,17 +288,184 @@ class Methods {
         else
             return $qs;
     }
-	
-	final function file($pname) {
-		return @$_FILES[$pname];	
-	}
-	
-	final function allpost() {
-		return @$_POST;	
-	}
-	
-	final function allget() {
-		return @$_GET;	
-	}
+
+    /**
+     * Gets StaticUploadFolder HTTP path.
+     * @return string
+     */
+    final function sfu() {
+        return $this->cparent->index->staticFolderHTTP . '/' . $this->cparent->index->AppConfiguration->StaticUploadFolder .  $this->tra;
+    }
+
+    /**
+     * Creates a FileUpload object for handling uploads.
+     * @param $PostName
+     * @return FileUpload
+     */
+    final function file($PostName) {
+        //return @$_FILES[$pname];
+        return new FileUpload($PostName);
+    }
+
+    /**
+     * Gets raw $_POST variable from PHP.
+     * @return mixed
+     */
+    final function allpost() {
+        return @$_POST;
+    }
+
+    /**
+     * Gets raw $_GET vaiable from PHP.
+     * @return mixed
+     */
+    final function allget() {
+        return @$_GET;
+    }
+}
+
+class Redirect {
+    private $index;
+    /* @var $r Methods */
+    private $r;
+    function __construct($R) {
+        $this->index = &eemvc_get_index_instance();
+        $this->r = $R;
+    }
+    function home($Arguments) {
+        if ($Arguments != null)
+            $Arguments = '/' . $Arguments;
+        header('Location: ' . $this->r->home() . $Arguments);
+    }
+    function func($function_name, $Arguments=null) {
+        if ($Arguments != null)
+            $Arguments = '/' . $Arguments;
+        header('Location: ' . $this->r->sc() . '/' . $function_name . $Arguments);
+    }
+    function cont($controller, $Arguments=null) {
+        if ($Arguments != null)
+            $Arguments = '/' . $Arguments;
+        header('Location: ' . $this->r->c() . '/' . $controller . $Arguments);
+    }
+    function index($Arguments=null) {
+        if ($Arguments != null)
+            $Arguments = '/' . $Arguments;
+        header('Location: ' . $this->r->sc() . $Arguments);
+    }
+}
+
+class FileUpload {
+
+    private $Name;
+    private $Extension;
+    private $Type;
+    private $Size;
+    private $Temp_Name;
+    private $Error_Code;
+
+    private $ee;
+    private $mvcee;
+
+    private $StaticUploadFile = '';
+    private $StaticRelative = '';
+
+    const VERSION = "0.0.1.0";
+
+    function __construct($PostName)
+    {
+        $this->ee = &ee_gi();
+        $this->mvcee = &eemvc_get_index_instance();
+
+        if (isset($_FILES[$PostName]) and is_array($_FILES[$PostName])) {
+            $F = $_FILES[$PostName];
+            $this->Name = $F['name'];
+            $this->Type = $F['type'];
+            $this->Size = $F['size'];
+            $this->Temp_Name = $F['tmp_name'];
+            $this->Error_Code = $F['error'];
+            $this->Extension = pathinfo($this->Name, PATHINFO_EXTENSION);
+        } else {
+            $this->ee->errorExit('MVC-ExEngine File Uploads', 'Error getting uploaded file.');
+        }
+    }
+
+    function getExtension() {
+        return $this->Extension;
+    }
+
+    function getErrorCode() {
+        return $this->Error_Code;
+    }
+
+    function getSize() {
+        return $this->Size;
+    }
+
+    function getType() {
+        return $this->Type;
+    }
+
+    function getTempName() {
+        return $this->Temp_Name;
+    }
+
+    function rename($NewName) {
+        $this->Name = $NewName;
+    }
+
+    function getStaticHTTPPath() {
+        if (file_exists($this->StaticUploadFile)) {
+            return $this->mvcee->staticFolderHTTP . '/' . $this->mvcee->AppConfiguration->StaticUploadFolder . '/' . $this->StaticRelative;
+        } else {
+            return false;
+        }
+    }
+
+    function moveToStatic($SubFolder='.') {
+        if ($this->Error_Code==0) {
+            $NLFolder = $this->mvcee->AppConfiguration->StaticFolder . '/' . $this->mvcee->AppConfiguration->StaticUploadFolder . '/' . $SubFolder;
+            if (!is_dir($NLFolder))
+                mkdir($NLFolder);
+            $NewLocation =  $NLFolder . '/' . $this->Name;
+            $U = move_uploaded_file($this->Temp_Name, $NewLocation);
+            if ($U) {
+                $this->StaticRelative = $SubFolder . '/' . $this->Name;
+                $this->StaticUploadFile = $NewLocation;
+            }
+            return $U;
+        } else {
+            return false;
+        }
+    }
+
+    /*
+     * TODO
+    function moveToEEStorage() {
+
+    }
+    */
+
+    function moveToSafeStorage($SubFolder='.') {
+        if ($this->Error_Code==0) {
+            $NewLocation = $this->mvcee->AppConfiguration->SafeStorageFolder . '/' . $SubFolder . '/' . $this->Name;
+            return move_uploaded_file($this->Temp_Name, $NewLocation);
+        } else {
+            return false;
+        }
+    }
+
+    function move($Location) {
+        if ($this->Error_Code==0) {
+            if (is_dir($Location)) {
+                $NewLocation = $Location . '/' . $this->Name;
+                return move_uploaded_file($this->Temp_Name, $NewLocation);
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
 }
 ?>

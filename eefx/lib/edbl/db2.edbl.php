@@ -41,6 +41,7 @@ class edbl_db2
 	
 	# EDBL DRIVER
 	private $dbm;
+
 	private $ee;
 		
 	function __construct($dbm,$ee,$EDBL_Special) {

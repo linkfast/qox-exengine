@@ -45,10 +45,9 @@
     </div>
 </div>
 <div class="container-fluid" style="margin-top: 80px;">
-    <div class="panel panel-default">
-        <div class="panel-body">
+    <h2><?=$Title?></h2>
             <div class="panel panel-default">
-                <div class="panel-body">
+                <div class="panel-heading">
                     <a class="btn btn-default" href="?F=new_controller">New Controller</a>
                     <a class="btn btn-default" href="?F=new_model">New Model</a>
                     <a class="btn btn-default" href="?F=new_model_dbo">New DBO Model</a>
@@ -56,10 +55,10 @@
                     <a class="btn btn-default" href="?F=create_schema" disabled="disabled">Create schema</a>
                     <a class="btn btn-default" href="?F=create_tables" disabled="disabled">Create/Update tables</a>
                 </div>
+                <div class="panel-body">
+                    <?=$View_Data?>
+                </div>
             </div>
-            <?=$View_Data?>
-        </div>
-    </div>
 </div>
 <div class="container-fluid">
     <p><small>&copy <?php print strftime('%Y');?> <a href="//qox-corp.com" target="_blank">QOX Corporation</a></small></p>

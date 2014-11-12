@@ -68,8 +68,20 @@ class WebTool {
 
     private function new_controller_act() {
         $Name = $_POST['name'];
+        $Defaults = $_POST['defaults'];
+        $Commented = $_POST['commented'];
+
+        if ($Defaults=="true")
+            $Defaults = "defaults";
+        else
+            $Defaults = 'no_defaults';
+        if ($Commented=="true")
+            $Commented = "commented";
+        else
+            $Commented = 'no_commented';
+
         ob_start();
-        system('mvctool -g controller ' . $Name);
+        system('mvctool -g controller ' . $Name . ' ' . $Defaults . ' ' . $Commented);
         $Output = ob_get_contents();
         ob_end_clean();
 

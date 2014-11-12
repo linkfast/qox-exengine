@@ -28,7 +28,7 @@ namespace ExEngine\MVC;
 
 /**
  * Class Controller
- * @version 0.0.2.3
+ * @version 0.0.2.5
  * @package ExEngine\MVC
  */
 class Controller {
@@ -62,6 +62,8 @@ class Controller {
 	public $locale='default'; /// Set to other locale than default to change on load.
 
 	public $I18n;
+
+    public $viewsFolder = '';
 	
 	/// Default constructor, cannot be overriden, private __atconstruct function should be created in the controller to create a custom event.
 	/**
@@ -146,64 +148,81 @@ class Controller {
 		}
 	}
 	
-	/// Loads a model, by default will create an object with the same name.
+	/// Loads a model, by default will not create an object with the same name.
 	/**
-	 * @param string $Model_Path Path to the model class file.
+	 * @param string|array $Model_Path Path to the model class file.
 	 * @param string $Object_Name Set to null to create automatically the object based on class name.
 	 * @param bool $Create_Object Set to false to avoid creating the object.
 	 * @return mixed
 	 */
-	final function loadModel($Model_Path, $Object_Name=null,$Create_Object=true) {
-		$model_name = $Model_Path;
-		$obj_name = $Object_Name;
-		$create_obj = $Create_Object;
-		$this->debug("mvcee_controller.php:". __LINE__ . ": loadModel: Load: ".$model_name);
-		if ($this->index->unitTest && defined('STDIN') && !$this->index->utSuite) {
-			echo 'MVC-ExEngine -> Loading dependency model '.ucfirst($model_name).'.'."\n";
-		} else		
-		if ($this->index->utSuite)
-			$this->index->utSuite->write("<b>MVC-ExEngine</b><tab>Loading dependency model ".ucfirst($model_name).".");
-		$m_file = $this->index->modelsFolder."/".$model_name.".php";
-		if (file_exists($m_file)) {
-			include_once($m_file);
+	final function loadModel($Model_Path, $Object_Name=null,$Create_Object=false) {
+        if (is_array($Model_Path)) {
+            foreach ($Model_Path as $ModelP) {
+                $this->loadModelSingle($ModelP, null, $Create_Object);
+            }
+        } else {
+            $this->loadModelSingle($Model_Path, $Object_Name, $Create_Object);
+        }
+	}
 
-			$model_name = explode("/",$model_name);
-			$model_name = $model_name[(count($model_name)-1)];
-			$model_name = ucfirst($model_name);
+    /// Loads a model, by default will create an object with the same name.
+    /**
+     * @param string $Model_Path Path to the model class file.
+     * @param string $Object_Name Set to null to create automatically the object based on class name.
+     * @param bool $Create_Object Set to false to avoid creating the object.
+     * @return mixed
+     */
+    final function loadModelSingle($Model_Path, $Object_Name=null, $Create_Object=true) {
+        $model_name = $Model_Path;
+        $obj_name = $Object_Name;
+        $create_obj = $Create_Object;
+        $this->debug("mvcee_controller.php:". __LINE__ . ": loadModel: Load: ".$model_name);
+        if ($this->index->unitTest && defined('STDIN') && !$this->index->utSuite) {
+            echo 'MVC-ExEngine -> Loading dependency model '.ucfirst($model_name).'.'."\n";
+        } else
+            if ($this->index->utSuite)
+                $this->index->utSuite->write("<b>MVC-ExEngine</b><tab>Loading dependency model ".ucfirst($model_name).".");
+        $m_file = $this->index->modelsFolder."/".$model_name.".php";
+        if (file_exists($m_file)) {
+            include_once($m_file);
+
+            $model_name = explode("/",$model_name);
+            $model_name = $model_name[(count($model_name)-1)];
+            $model_name = ucfirst($model_name);
 
             $callers=debug_backtrace();
             $this->index->addModelToArray($Model_Path,get_class($this) . '/' . $callers[1]['function']);
 
-			if ($obj_name==null)
-				$obj_name = $model_name;
-			
-			if ($create_obj) {
-				$this->$obj_name = new $model_name();			
-				$this->debug("mvcee_controller.php:". __LINE__ . ": loadModel: ".$model_name.' ('.$m_file.') Done. ($this->'.$obj_name.')');
-			}
-			else
-				$this->debug("mvcee_controller.php:". __LINE__ . ": loadModel: ".$model_name.' ('.$m_file.') Done.');
+            if ($obj_name==null)
+                $obj_name = $model_name;
 
-		} else {
-			$this->debug("mvcee_controller.php:". __LINE__ . ": loadModel: ".$model_name.'-Not found');
-			if ($this->index->unitTest && defined('STDIN') && !$this->index->utSuite) {
-				echo 'MVC-ExEngine 7 -> Model '.$model_name.' not found. (Test Halted)'."\n";
-				exit;
-			} else
-			if ($this->index->utSuite) {
-				$this->index->utSuite->write("<b>MVC-ExEngine</b><tab>Model ".$model_name." not found. (Test Halted).");
-				exit;
-			}
-			else
-				$this->ee->errorExit("MVC-ExEngine","Model not found. ( ".$model_name." )
+            if ($create_obj) {
+                $this->$obj_name = new $model_name();
+                $this->debug("mvcee_controller.php:". __LINE__ . ": loadModel: ".$model_name.' ('.$m_file.') Done. ($this->'.$obj_name.')');
+            }
+            else
+                $this->debug("mvcee_controller.php:". __LINE__ . ": loadModel: ".$model_name.' ('.$m_file.') Done.');
+
+        } else {
+            $this->debug("mvcee_controller.php:". __LINE__ . ": loadModel: ".$model_name.'-Not found');
+            if ($this->index->unitTest && defined('STDIN') && !$this->index->utSuite) {
+                echo 'MVC-ExEngine 7 -> Model '.$model_name.' not found. (Test Halted)'."\n";
+                exit;
+            } else
+                if ($this->index->utSuite) {
+                    $this->index->utSuite->write("<b>MVC-ExEngine</b><tab>Model ".$model_name." not found. (Test Halted).");
+                    exit;
+                }
+                else
+                    $this->ee->errorExit("MVC-ExEngine","Model not found. ( ".$model_name." )
 									</br>
 									<b>Trace:</b>
 									<br/>
 									Controller: ".get_class($this)."
 									<br/>
 									Function: ".$this->functionName,"ExEngine_MVC_Implementation_Library");
-		}		
-	}
+        }
+    }
 
 	/**
 	 * @param string $msg
@@ -226,10 +245,13 @@ class Controller {
 	 * @param bool $checkmime
 	 * @return mixed
 	 */
-	final function loadView($filename,$data=null,$return=false,$dynamic=true,$checkmime=false) {	
-		
-		$view_fileo = $this->index->viewsFolder."/".$filename;
-		//print $view_fileo;	
+	final function loadView($filename,$data=null,$return=false,$dynamic=true,$checkmime=false,$asset_autoload=true) {
+
+        if (strlen($this->viewsFolder) > 0) {
+            $view_fileo = $this->index->viewsFolder . '/' . $this->viewsFolder . '/' . $filename;
+        } else {
+            $view_fileo = $this->index->viewsFolder . '/' . $filename;
+        }
 		
 		$view_file = $view_fileo;	
 		
@@ -320,7 +342,22 @@ class Controller {
             $this->index->addViewToArray($filename,get_class($this).'/'.$callers[1]['function']);
 
 			//$this->index->debug($output);
-			
+
+            if ($asset_autoload) {
+                if (file_exists($this->index->AppConfiguration->StaticFolder . '/css/' . $this->index->AppConfiguration->ViewsFolder . '/' . $filename . '.dyn.css')) {
+                    $this->loadAssetsToLayout('CSS', '- src: "' . $this->index->AppConfiguration->ViewsFolder .'/' . $filename . '.dyn"' . "\n" . "  dynamic: true");
+                }
+                if (file_exists($this->index->AppConfiguration->StaticFolder . '/css/' . $this->index->AppConfiguration->ViewsFolder . '/' . $filename . '.css')) {
+                    $this->loadAssetsToLayout('CSS', '- src: "' . $this->index->AppConfiguration->ViewsFolder .'/' . $filename . '"');
+                }
+                if (file_exists($this->index->AppConfiguration->StaticFolder . '/javascript/' . $this->index->AppConfiguration->ViewsFolder . '/' . $filename . '.js')) {
+                    $this->loadAssetsToLayout('JS', '- src: "' . $this->index->AppConfiguration->ViewsFolder .'/' . $filename . '"');
+                }
+                if (file_exists($this->index->AppConfiguration->StaticFolder . '/javascript/' . $this->index->AppConfiguration->ViewsFolder . '/' . $filename . '.dyn.js')) {
+                    $this->loadAssetsToLayout('JS', '- src: "' . $this->index->AppConfiguration->ViewsFolder .'/' . $filename . '.dyn"' . "\n" . "  dynamic: true");
+                }
+            }
+
 			if ($return)
 			{
 				return $output;
@@ -330,7 +367,7 @@ class Controller {
 				echo $output;
 			}				
 		} else {
-			$this->ee->errorExit("MVC-ExEngine","View (".$view_file.") not found.","eemvcil");
+			$this->ee->errorExit("MVC-ExEngine","View (".$view_fileo.") not found.","eemvcil");
 		}
 	}
 }

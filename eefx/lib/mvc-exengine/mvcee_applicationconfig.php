@@ -2,7 +2,7 @@
 
 /**
  * Default Application Config
- * V. 0.0.1.6
+ * V. 0.0.1.7
  */
 
 Namespace ExEngine\MVC;
@@ -25,6 +25,7 @@ abstract class DefaultApplicationConfig {
     var $ModelsFolder = 'models';
     var $ViewsFolder = 'views';
     var $StaticFolder = 'static';
+    var $StaticUploadFolder = 'usr_upload';
     var $SafeStorageFolder = 'safe_storage';
     var $ConfigurationFolder = 'config';
     var $EnableLog = true;
