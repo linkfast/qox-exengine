@@ -6,7 +6,7 @@
 namespace ExEngine\MVC;
 
 class Tool {
-	const VERSION = '0.0.0.4';
+	const VERSION = '0.0.0.5';
 	private static $instance;
 	private $ApplicationConfig;
     private $MVC_Index;
@@ -55,7 +55,7 @@ class Tool {
 				echo "\n";
 				echo "Misc. Options:\n";
 				echo "\t-ct\tEnables Console Coloring (only if you have a color capable terminal).\n";
-                echo "\t-wu\tEnables web interface (experimental).\n";
+                echo "\t-wu\tEnables web interface (experimental) (use '-wu online' for network access).\n";
 				exit();
 			}
 			if (in_array("-ct",array_map('strtolower', $argv))) {
@@ -136,9 +136,14 @@ class Tool {
 				break;
             case "-wu";
                 echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";
-                echo "(C) QOX Corporation <qox-corp.com>" . "\n";
-                echo "\nStarting web interface: http://localhost:8989/.\nPress CTRL+C to stop serving.";
-                system('php -S localhost:8989 bin/webui.php');
+                echo "(C) QOX Corporation <qox-corp.com>" . "\n";                
+				if (isset($argv[2]) and $argv[2]=="online") {
+					echo "\nStarting web interface: http://localhost:8989/.\nPress CTRL+C to stop serving.";
+					system('php -S 0.0.0.0:8989 bin/webui.php');
+				} else {
+					echo "\nStarting web interface: http://*:8989/.\nPress CTRL+C to stop serving.";
+					system('php -S localhost:8989 bin/webui.php');				
+				}
                 break;
 			default:
 				echo "\nMVC-ExEngine v." . Index::VERSION . " Tool v." . self::VERSION . "\n";

@@ -2,7 +2,7 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>
-@version 7.0.8.42
+@version 7.0.8.43
 
 @section LICENSE
 
@@ -29,6 +29,13 @@ ExEngine PHP Framework core, this file contains the main functions, and the need
 // Copyright © 2013-2014 QOX Corporation (qox-corp.com)
 //
 // Based on DGS ExEngine by Giancarlo Chiappe
+
+/* PHP Version Check */
+if (version_compare(PHP_VERSION, '5.4.0', '<')) {
+    print '<h1>ExEngine</h1><p>ExEngine requires PHP 5.4 or higher, please update your installation.</p>';
+	exit();
+}
+
 namespace ExEngine {
 /// ExEngine 7 Framework Core Class (default config array is in eefx/cfg.php).
 	class Core {
@@ -56,12 +63,12 @@ namespace ExEngine {
 		const V_MAJOR = 7;
 		const V_MINOR = 0;
 		const V_BUILD = 8;
-		const V_REVIS = 42;
+		const V_REVIS = 43;
 		#For EE6's ForwardMode Compatibility
 		const REALVERSION = "7.0.8";
-		const BUILD = 42;
+		const BUILD = 43;
 
-		const REL_DATE = "03 AGO 2014";
+		const REL_DATE = "15 NOV 2014";
 		const RELEASE = "alpha";
 		const EE7WP = "http://oss.qox-corp.com/exengine";
 
