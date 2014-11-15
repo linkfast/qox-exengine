@@ -6,7 +6,7 @@
 namespace ExEngine\MVC;
 
 class Tool {
-	const VERSION = '0.0.0.5';
+	const VERSION = '0.0.0.6';
 	private static $instance;
 	private $ApplicationConfig;
     private $MVC_Index;
@@ -288,7 +288,7 @@ class Tool {
 * This DBO model was generated using MVCTool.
 * Date: '.strftime("%d/%m/%Y - %H:%M:%S").'
 * Timestamp: '.time().'
-* Command: mvctool -g model_dbo '. $ModelName .' ' . $DBO_Driver . ' ' . $PropertiesString . ' ' . $ConnectionConfig . ' ' . $Namespace . ' ' . $Table_Id .'
+* Command: mvctool -g model_dbo '. $ModelName .' ' . $DBO_Driver . ' ' . $Params . ' ' . $ConnectionConfig . ' ' . $Namespace . ' ' . $Table_Id .'
 */
 '.$N. "\t" . 'class '. ucfirst($ModelName) . ' extends ' . $DriverClassNames[$DBO_Driver] . ' {
 
@@ -460,7 +460,7 @@ class Tool {
 * This model was generated using MVCTool.
 * Date: '.strftime("%d/%m/%Y - %H:%M:%S").'
 * Timestamp: '.time().'
-* Command: mvctool -g model '. $ModelName .' ' . $PropertiesString . ' ' . $Namespace .'
+* Command: mvctool -g model '. $ModelName .' ' . $Params . ' ' . $Namespace .'
 */
 '.$N. "\t" . 'class '. ucfirst($ModelName) . ' extends \\ExEngine\\MVC\\Model {
 
