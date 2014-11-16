@@ -30,10 +30,12 @@ ExEngine PHP Framework core, this file contains the main functions, and the need
 //
 // Based on DGS ExEngine by Giancarlo Chiappe
 
-/* PHP Version Check */
-if (version_compare(PHP_VERSION, '5.4.0', '<')) {
-    print '<h1>ExEngine</h1><p>ExEngine requires PHP 5.4 or higher, please update your installation.</p>';
-	exit();
+namespace {
+	/* PHP Version Check */
+	if (version_compare(PHP_VERSION, '5.4.0', '<')) {
+		print '<h1>ExEngine</h1><p>ExEngine requires PHP 5.4 or higher, please update your installation.</p>';
+		exit();
+	}
 }
 
 namespace ExEngine {
