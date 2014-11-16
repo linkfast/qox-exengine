@@ -28,7 +28,7 @@ namespace ExEngine\MVC;
 
 /**
  * Class Controller
- * @version 0.0.2.5
+ * @version 0.0.2.6
  * @package ExEngine\MVC
  */
 class Controller {
@@ -64,6 +64,7 @@ class Controller {
 	public $I18n;
 
     public $viewsFolder = '';
+    public $viewsContainer = '';
 	
 	/// Default constructor, cannot be overriden, private __atconstruct function should be created in the controller to create a custom event.
 	/**
@@ -356,6 +357,11 @@ class Controller {
                 if (file_exists($this->index->AppConfiguration->StaticFolder . '/javascript/' . $this->index->AppConfiguration->ViewsFolder . '/' . $filename . '.dyn.js')) {
                     $this->loadAssetsToLayout('JS', '- src: "' . $this->index->AppConfiguration->ViewsFolder .'/' . $filename . '.dyn"' . "\n" . "  dynamic: true");
                 }
+            }
+
+            if (strlen($this->viewsContainer) and
+                $this->viewsContainer != $filename) {
+                $output = $this->loadView($this->viewsContainer, [ 'Content' => $output ], true);
             }
 
 			if ($return)
