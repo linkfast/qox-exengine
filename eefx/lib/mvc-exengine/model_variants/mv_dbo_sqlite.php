@@ -2,7 +2,7 @@
 /**
 @file mv_dbo_sqlite.php
 @author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>
-@version 0.0.1.0
+@version 0.0.1.2
 
 @section LICENSE
 
@@ -28,25 +28,23 @@ namespace ExEngine\MVC\DBO;
 
 class SQLite extends \ExEngine\MVC\Model {
 
-	const VERSION = "0.0.1.1";
+	const VERSION = "0.0.1.2";
 
 	var $DBCONN = "default";
 
 	function __construct() {
 		parent::__construct();
-
-		//if (!function_exists('sqlite_open')) {
-		//	$this->ee->errorExit("MVC-ExEngine",
-		//		"This DBO requires SQLite support in your PHP installation.","ExEngine_MVC_Implementation_Library");
-		//}
-
-		if (!$this->checkSQLite()) {
+    	if (!$this->checkSQLite()) {
 			$this->ee->errorExit("MVC-ExEngine",
 				"This DBO is designed to work with SQLite.","ExEngine_MVC_Implementation_Library");
 		}
 	}
 
 	private function checkSQLite() {
+        $MVCInstance = &eemvc_get_index_instance();
+        if ($this->DBCONN == "default") {
+            $this->DBCONN = $MVCInstance->AppConfiguration->DefaultDatabase;
+        }
 		$this->loadDb($this->DBCONN);
 		$dbType = $this->db->type;
 		if ($dbType != "sqlite")
