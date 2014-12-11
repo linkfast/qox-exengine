@@ -89,6 +89,7 @@ namespace {
 	include_once('model_variants/mv_dbo_mysql.php');
 	include_once('model_variants/mv_dbo_sqlite.php');
 	include_once('model_variants/mv_dbo_mongodb.php');
+    include_once('model_variants/mv_dbo_parse.php');
 
 	class eemvc_model_dbo_sqlite extends ExEngine\MVC\DBO\SQLite {};
 	class eemvc_model_dbo_mongodb extends ExEngine\MVC\DBO\MongoDB {};

@@ -65,16 +65,15 @@ namespace ExEngine {
 		const V_MAJOR = 7;
 		const V_MINOR = 0;
 		const V_BUILD = 8;
-		const V_REVIS = 43;
+		const V_REVIS = 44;
 		#For EE6's ForwardMode Compatibility
 		const REALVERSION = "7.0.8";
-		const BUILD = 43;
+		const BUILD = 44;
 
-		const REL_DATE = "15 NOV 2014";
+		const REL_DATE = "11 DEC 2014";
 		const RELEASE = "alpha";
 		const EE7WP = "http://oss.qox-corp.com/exengine";
 
-		#New mode for avoiding passing the parent object to every object that uses EE.
 		private static $instance = false;
 
 		// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array) ( no operational yet )
@@ -1174,6 +1173,15 @@ namespace ExEngine {
 			}
 			print $this->TagTempFile[$name];
 		}
+
+        /* class functions */
+        final function classGetRealName($Object) {
+            $classname = get_class($Object);
+            if (preg_match('@\\\\([\w]+)$@', $classname, $matches)) {
+                $classname = $matches[1];
+            }
+            return $classname;
+        }
 	}
 }
 
