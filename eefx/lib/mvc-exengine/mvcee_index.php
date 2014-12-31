@@ -758,7 +758,7 @@ namespace ExEngine\MVC {
                 else
                     $strx = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
 
-                print $strx;
+                //print $strx;
                 $this->controllersFolderHTTP = $strx;
 
                 $this->sameControllerFolderHTTP = $strx.str_replace($this->origControllerFolderName,"",$this->controllersFolder);
