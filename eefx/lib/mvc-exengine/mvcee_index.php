@@ -17,7 +17,7 @@ if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 
 @section DESCRIPTION
 
-ExEngine 7 / Libs / MVC-ExEngine / Index Class
+ExEngine / Libs / MVC-ExEngine / Index Class
 
 ExEngine MVC Implementation Library
 
@@ -47,7 +47,7 @@ namespace ExEngine\MVC {
 
     class Index {
 
-        const VERSION = "0.0.2.6"; /// Version of EE MVC Implementation library.
+        const VERSION = "0.0.2.7"; /// Version of EE MVC Implementation library.
 
         private $ee; /// This is the connector to the main ExEngine object.
         public $controllername; /// Name of the Controller in use.
@@ -757,7 +757,10 @@ namespace ExEngine\MVC {
                 }
                 else
                     $strx = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
+
+                print $strx;
                 $this->controllersFolderHTTP = $strx;
+
                 $this->sameControllerFolderHTTP = $strx.str_replace($this->origControllerFolderName,"",$this->controllersFolder);
                 if (file_exists($this->controllersFolder.$namel)) {
                     $this->debug("eemvcil.php:". __LINE__ . ": Index: Loading controller: ".$this->controllersFolder.$name);
@@ -1013,18 +1016,16 @@ namespace ExEngine\MVC {
             $this->staticFolderHTTP = $str;
             if ($this->rewriteRulesEnabled) {
                 if (substr($_SERVER['HTTP_HOST'], -1) == "/")
-                    $srv = substr($_SERVER['HTTP_HOST'], 0, -1);
+                    $srv = substr($_SERVER['HTTP_HOST'].(strlen($this->rewriteBaseFolder)>0 ? '/'.$this->rewriteBaseFolder: ''), 0, -1);
                 else
-                    $srv = $_SERVER['HTTP_HOST'];
+                    $srv = $_SERVER['HTTP_HOST'].(strlen($this->rewriteBaseFolder)>0 ? '/'.$this->rewriteBaseFolder: '');
 
                 $str = "//" . $srv;
             }
-
-            else
-                $str = "//" . $_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
-
+            else {
+                $str = "//" . $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
+            }
             $this->controllersFolderHTTP = $str;
-
         }
 
         /// Shortcut to the ExEngine Debugger (Session or remote) for the index class.
