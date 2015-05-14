@@ -28,7 +28,7 @@ namespace ExEngine\MVC;
 /* Accessible from all controllers, models and views in the object $this->r */
 class Methods {
 
-    const VERSION = "0.0.1.6";
+    const VERSION = "0.0.1.7";
 
     /* @var $cparent Controller */
     var $cparent;
@@ -193,6 +193,39 @@ class Methods {
         }
     }
 
+    /**
+     * @return string|\stdClass
+     */
+    final function put() {
+        $numargs = func_num_args();
+        $arg_list = func_get_args();
+
+        parse_str(file_get_contents("php://input"),$pd);
+
+        if ($numargs >= 2) {
+            $return = new \stdClass();
+            for ($i = 0; $i < $numargs; $i++) {
+                $return->$arg_list[$i] = $pd[$arg_list[$i]];
+            }
+            return $return;
+        } elseif ($numargs == 1) {
+            if ($this->ee->strContains($arg_list[0],",")) {
+                $ex = explode(',',$arg_list[0]);
+                $return = new \stdClass();
+                for ($i = 0; $i < count($ex) ; $i++) {
+                    if ($pd[$ex[$i]]!=null)
+                        $return->$ex[$i] = $pd[$ex[$i]];
+                }
+                return $return;
+            } else {
+                return @$pd[$arg_list[0]];
+            }
+        } else {
+            $this->ee->errorExit('ExEngine MVC Methods', 'r->put() function must have at least one argument.');
+            return null;
+        }
+    }
+
     final function post() {
         $numargs = func_num_args();
         $arg_list = func_get_args();
@@ -315,6 +348,11 @@ class Methods {
         return @$_POST;
     }
 
+    final function allput() {
+        parse_str(file_get_contents("php://input"),$pd);
+        return $pd;
+    }
+
     /**
      * Gets raw $_GET vaiable from PHP.
      * @return mixed
@@ -332,7 +370,7 @@ class Redirect {
         $this->index = &eemvc_get_index_instance();
         $this->r = $R;
     }
-    function home($Arguments) {
+    function home($Arguments=null) {
         if ($Arguments != null)
             $Arguments = '/' . $Arguments;
         header('Location: ' . $this->r->home() . $Arguments);
@@ -362,6 +400,7 @@ class FileUpload {
     private $Size;
     private $Temp_Name;
     private $Error_Code;
+    private $FileData;
 
     private $ee;
     private $mvcee;
@@ -371,13 +410,13 @@ class FileUpload {
 
     const VERSION = "0.0.1.0";
 
-    function __construct($PostName)
+    function __construct($PostNameOrB64Data,$b64isDataURI=false)
     {
         $this->ee = &ee_gi();
         $this->mvcee = &eemvc_get_index_instance();
 
-        if (isset($_FILES[$PostName]) and is_array($_FILES[$PostName])) {
-            $F = $_FILES[$PostName];
+        if (isset($_FILES[$PostNameOrB64Data]) and is_array($_FILES[$PostNameOrB64Data])) {
+            $F = $_FILES[$PostNameOrB64Data];
             $this->Name = $F['name'];
             $this->Type = $F['type'];
             $this->Size = $F['size'];
@@ -385,8 +424,17 @@ class FileUpload {
             $this->Error_Code = $F['error'];
             $this->Extension = pathinfo($this->Name, PATHINFO_EXTENSION);
         } else {
-            $this->ee->errorExit('MVC-ExEngine File Uploads', 'Error getting uploaded file.');
+            $uri = $PostNameOrB64Data;
+            if ($b64isDataURI)
+                $uri = substr($uri,strpos($uri,",")+1);
+            $encodedData = str_replace(' ','+',$uri);
+            $this->FileData = base64_decode($encodedData);
+            $this->Error_Code = 0;
         }
+    }
+
+    function getName() {
+        return $this->Name;
     }
 
     function getExtension() {
@@ -413,6 +461,16 @@ class FileUpload {
         $this->Name = $NewName;
     }
 
+    static function getStaticFolderHTTP() {
+        $index = &eemvc_get_index_instance();
+        return $index->staticFolderHTTP . '/' . $index->AppConfiguration->StaticUploadFolder . '/';
+    }
+
+    static function getStaticFolder() {
+        $index = &eemvc_get_index_instance();
+        return $index->AppConfiguration->StaticFolder . '/'. $index->AppConfiguration->StaticUploadFolder . '/';
+    }
+
     function getStaticHTTPPath() {
         if (file_exists($this->StaticUploadFile)) {
             return $this->mvcee->staticFolderHTTP . '/' . $this->mvcee->AppConfiguration->StaticUploadFolder . '/' . $this->StaticRelative;
@@ -426,8 +484,19 @@ class FileUpload {
             $NLFolder = $this->mvcee->AppConfiguration->StaticFolder . '/' . $this->mvcee->AppConfiguration->StaticUploadFolder . '/' . $SubFolder;
             if (!is_dir($NLFolder))
                 mkdir($NLFolder);
-            $NewLocation =  $NLFolder . '/' . $this->Name;
-            $U = move_uploaded_file($this->Temp_Name, $NewLocation);
+
+            if (isset($this->Name)) {
+                $NewLocation = $NLFolder . '/' . $this->Name;
+            } else {
+                $this->ee->errorExit('MVC-ExEngine File Management','Please set a name before moving file.');
+                return null;
+            }
+
+            if (!isset($this->FileData))
+                $U = move_uploaded_file($this->Temp_Name, $NewLocation);
+            else
+                $U = file_put_contents($NewLocation,$this->FileData);
+
             if ($U) {
                 $this->StaticRelative = $SubFolder . '/' . $this->Name;
                 $this->StaticUploadFile = $NewLocation;
@@ -457,8 +526,17 @@ class FileUpload {
     function move($Location) {
         if ($this->Error_Code==0) {
             if (is_dir($Location)) {
-                $NewLocation = $Location . '/' . $this->Name;
-                return move_uploaded_file($this->Temp_Name, $NewLocation);
+                if (isset($this->Name)) {
+                    $NewLocation = $Location . '/' . $this->Name;
+                } else {
+                    $this->ee->errorExit('MVC-ExEngine File Management','Please set a name before moving file.');
+                    return null;
+                }
+
+                if (!isset($this->FileData))
+                    $U = move_uploaded_file($this->Temp_Name, $NewLocation);
+                else
+                    $U = file_put_contents($NewLocation,$this->FileData);
             } else {
                 return false;
             }

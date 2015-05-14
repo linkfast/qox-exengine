@@ -2,13 +2,25 @@
 
 namespace ExEngine\MVC\DBO;
 
-class Parse extends \ExEngine\MVC\Model {
-    const VERSION = "0.0.0.1";
+use Parse\ParseException;
 
-    var $objectId;
+class Parse extends \ExEngine\MVC\Model {
+    const VERSION = "0.0.0.2";
+
+    var $id;
     var $createdAt;
     var $updatedAt;
     var $ACL;
+
+    protected $APP_ID;
+    protected $REST_KEY;
+    protected $MASTER_KEY;
+
+    protected $LAST_ERROR;
+
+    function getLastError() {
+        return $this->LAST_ERROR;
+    }
 
     function __construct() {
         parent::__construct();
@@ -34,19 +46,16 @@ class Parse extends \ExEngine\MVC\Model {
         $ma = new \eema("eemvcdbo-parse-".$this->ee->classGetRealName($this),'MVC-EE DBO (Parse) "'.$this->ee->classGetRealName($this).'".');
         return $ma;
     }
-    private function checkParse() {
+    protected function checkParse() {
         return class_exists("Parse\\ParseClient");
     }
-    private function createParseObject() {
+    protected function createParseObject() {
         return \Parse\ParseObject::create($this->TABLEID);
     }
-    private function createParseQuery() {
+    protected function createParseQuery() {
         return new \Parse\ParseQuery($this->TABLEID);
     }
-    private function setParseVars() {
-
-    }
-    private function getProperties($DeleteNulls=false,$DeleteDefaults=false) {
+    protected function getProperties($DeleteNulls=false,$DeleteDefaults=false, $ObjectsToString=true) {
         $vars = get_object_vars($this);
         unset($vars["db"]);
         unset($vars["r"]);
@@ -88,6 +97,15 @@ class Parse extends \ExEngine\MVC\Model {
                 }
             }
         }
+
+        if ($ObjectsToString)
+            foreach ($vars as $v_k => &$v_v) {
+                if (is_a($v_v,'Parse\\ParseObject')) {
+                    /* @var $v_v \Parse\ParseObject */
+                    $v_v = $v_v->getObjectId();
+                }
+            }
+
         return $vars;
     }
 
@@ -99,7 +117,19 @@ class Parse extends \ExEngine\MVC\Model {
         return print_r($this->getProperties(),true);
     }
 
-    function load_all($WhereArray=null,$SafeMode=true,$SortArray=null) {
+    protected function parse_var_recog($obj) {
+        if (is_a($obj,'Parse\\ParseFile')) {
+            /* @var $obj \Parse\ParseFile */
+            $R = $obj->getURL();
+        } elseif (is_a($obj,'Parse\\ParseGeoPoint')) {
+            /* @var $obj \Parse\ParseGeoPoint */
+            $R = ["Lat" => $obj->getLatitude(), "Long" => $obj->getLongitude()];
+        } else
+            $R = 'other';
+        return $R;
+    }
+
+    function load_all($WhereArray=null,$SafeMode=true,$SortArray=null,$AllToArray=false,$preserveParseObj=false,$parseQueryAddons=null) {
         if (!isset($this->TABLEID)) $this->TABLEID = $this->ee->classGetRealName($this);
         $pQuery = $this->createParseQuery();
         if (is_array($WhereArray)) {
@@ -109,20 +139,39 @@ class Parse extends \ExEngine\MVC\Model {
                 }
             }
         }
+
+        if (isset($parseQueryAddons)) {
+            $parseQueryAddons($pQuery);
+        }
+
         $results = $pQuery->find();
         if (is_a($results[0], 'Parse\\ParseObject')) {
             $ClassName = get_class($this);
             $R = [];
             $data = $this->getProperties();
             foreach($results as $retObj) {
+                /* @var $O \ExEngine\MVC\DBO\Parse */
                 $O = new $ClassName();
                 foreach ($data as $name => $value) {
-                    $O->$name = $retObj->get($name);
-                    $O->createdAt = $retObj->getCreatedAt();
-                    $O->updatedAt = $retObj->getUpdatedAt();
-                    $O->objectId = $retObj->getObjectId();
+                    $obj = $retObj->get($name);
+                    if ($preserveParseObj) {
+                        $O->parseObject = $retObj;
+                    }
+
+                    $A = $this->parse_var_recog($obj);
+                    if ($A == 'other') {
+                        $O->$name = $retObj->get($name);
+                    } else {
+                        $O->$name = $A;
+                    }
                 }
-                $R[] = $O;
+                $O->createdAt = $retObj->getCreatedAt();
+                $O->updatedAt = $retObj->getUpdatedAt();
+                $O->id = $retObj->getObjectId();
+                if ($AllToArray)
+                    $R[] = $O->__toArray();
+                else
+                    $R[] = $O;
             }
             return $R;
         } else {
@@ -130,10 +179,10 @@ class Parse extends \ExEngine\MVC\Model {
         }
     }
 
-    function load_values($SafeMode=true,$DeleteDefaults=false) {
+    function load_values($SafeMode=true,$DeleteDefaults=false,$preserveParseObj=false) {
         if (!isset($this->TABLEID)) $this->TABLEID = $this->ee->classGetRealName($this);
-        $data = $this->getProperties(true, $DeleteDefaults);
-        if (array_key_exists('objectId',$data)) unset($data['objectId']);
+        $data = $this->getProperties(false, $DeleteDefaults);
+        if (array_key_exists('id',$data)) unset($data['id']);
         if (array_key_exists('createdAt',$data)) unset($data['createdAt']);
         if (array_key_exists('updatedAt',$data)) unset($data['updatedAt']);
         if (array_key_exists('ACL',$data)) unset($data['ACL']);
@@ -148,61 +197,90 @@ class Parse extends \ExEngine\MVC\Model {
                 'You must set at least one field to retrieve an object data from Parse.');
         }
         $pQuery = $this->createParseQuery();
-        foreach ($data as $name => $value) {
-           if (isset($value)) {
-               $pQuery->equalTo($name, $value);
-           }
-        }
-        $results = $pQuery->find();
-        if (is_a($results[0], 'Parse\\ParseObject')) {
-            $retObj = $results[0];
+        try {
             foreach ($data as $name => $value) {
-                $this->$name = $retObj->get($name);
+               if (isset($value)) {
+                   $pQuery->equalTo($name, $value);
+               }
             }
-            $this->createdAt = $retObj->getCreatedAt();
-            $this->updatedAt = $retObj->getUpdatedAt();
-            $this->objectId = $retObj->getObjectId();
-            return true;
-        } else {
+            $results = $pQuery->find();
+            if (is_a($results[0], 'Parse\\ParseObject')) {
+                /* @var $retObj \Parse\ParseObject */
+                $retObj = $results[0];
+
+                if ($preserveParseObj) {
+                    $this->parseObject = $retObj;
+                }
+                foreach ($data as $name => $value) {
+                    $obj = $retObj->get($name);
+                    $A = $this->parse_var_recog($obj);
+                    if ($A == 'other') {
+                        $this->$name = $retObj->get($name);
+                    } else {
+                        $this->$name = $A;
+                    }
+                }
+
+                $this->createdAt = $retObj->getCreatedAt();
+                $this->updatedAt = $retObj->getUpdatedAt();
+                $this->id = $retObj->getObjectId();
+                return true;
+            } else {
+                return false;
+            }
+        } catch (ParseException $ex) {
+            $this->LAST_ERROR = $ex->getMessage();
             return false;
         }
     }
-    function load() {
+    function load($preserveParseObj=false) {
         if (!isset($this->TABLEID)) $this->TABLEID = $this->ee->classGetRealName($this);
         $data = $this->getProperties();
-        if (!isset($data["objectId"])) {
+        if (!isset($data["id"])) {
             $this->ee->errorExit('MVC-ExEngine',
-                'objectId is not defined and is required to retrieve object data from Parse.');
+                'id is not defined and is required to retrieve object data from Parse.');
         }
         $pQuery = $this->createParseQuery();
         try {
-            $retObj = $pQuery->get($data['objectId']);
-            if (array_key_exists('objectId',$data)) unset($data['objectId']);
+            /* @var $retObj \Parse\ParseObject */
+            $retObj = $pQuery->get($data['id']);
+            if ($preserveParseObj) {
+                $this->parseObject = $retObj;
+            }
+            if (array_key_exists('id',$data)) unset($data['id']);
             if (array_key_exists('createdAt',$data)) unset($data['createdAt']);
             if (array_key_exists('updatedAt',$data)) unset($data['updatedAt']);
             if (array_key_exists('ACL',$data)) unset($data['ACL']);
             foreach ($data as $name => $value) {
-                $this->$name = $retObj->get($name);
+                $obj = $retObj->get($name);
+                $A = $this->parse_var_recog($obj);
+                if ($A == 'other') {
+                    $this->$name = $retObj->get($name);
+                } else {
+                    $this->$name = $A;
+                }
             }
+
             $this->createdAt = $retObj->getCreatedAt();
             $this->updatedAt = $retObj->getUpdatedAt();
-            $this->objectId = $retObj->getObjectId();
+            $this->id = $retObj->getObjectId();
             return $retObj;
         } catch (ParseException $ex) {
-            $this->log()->e($ex->getMessage());
+            $this->LAST_ERROR = $ex->getMessage();
+            $this->log()->e("Parse error: ".$this->LAST_ERROR,$this->getProperties());
             return false;
         }
     }
     function delete() {
         if (!isset($this->TABLEID)) $this->TABLEID = $this->ee->classGetRealName($this);
         $data = $this->getProperties();
-        if (!isset($data["objectId"])) {
+        if (!isset($data["id"])) {
             $this->ee->errorExit('MVC-ExEngine',
-                'objectId is not defined and is required to retrieve object data from Parse.');
+                'id is not defined and is required to retrieve object data from Parse.');
         }
         $pQuery = $this->createParseQuery();
         try {
-            $pObj = $pQuery->get($data['objectId']);
+            $pObj = $pQuery->get($data['id']);
             $pObj->destroy();
         } catch (ParseException $ex) {
             $this->log()->e($ex->getMessage());
@@ -211,15 +289,15 @@ class Parse extends \ExEngine\MVC\Model {
     }
     function update($SafeMode=true) {
         if (!isset($this->TABLEID)) $this->TABLEID = $this->ee->classGetRealName($this);
-        $data = $this->getProperties();
-        if (!isset($data["objectId"])) {
+        $data = $this->getProperties(false,false,false);
+        if (!isset($data["id"])) {
             $this->ee->errorExit('MVC-ExEngine',
-                'objectId is not defined and is required to retrieve object data from Parse.');
+                'id is not defined and is required to retrieve object data from Parse.');
         }
         $pQuery = $this->createParseQuery();
         try {
-            $pObj = $pQuery->get($data['objectId']);
-            if (array_key_exists('objectId',$data)) unset($data['objectId']);
+            $pObj = $pQuery->get($data['id']);
+            if (array_key_exists('id',$data)) unset($data['id']);
             if (array_key_exists('createdAt',$data)) unset($data['createdAt']);
             if (array_key_exists('updatedAt',$data)) unset($data['updatedAt']);
             if (array_key_exists('ACL',$data)) unset($data['ACL']);
@@ -231,20 +309,21 @@ class Parse extends \ExEngine\MVC\Model {
                 }
             }
             $pObj->save();
-            $this->objectId = $pObj->getObjectId();
+            $this->id = $pObj->getObjectId();
             $this->createdAt = $pObj->getCreatedAt();
             $this->updatedAt = $pObj->getUpdatedAt();
             return true;
         } catch (ParseException $ex) {
-            $this->log()->e($ex->getMessage());
+            $this->LAST_ERROR  = $ex->getMessage();
+            $this->log()->e($this->LAST_ERROR);
             return false;
         }
     }
     function insert($SafeMode=true) {
         if (!isset($this->TABLEID)) $this->TABLEID = $this->ee->classGetRealName($this);
         $pObj = $this->createParseObject();
-        $data = $this->getProperties();
-        if (array_key_exists('objectId',$data)) unset($data['objectId']);
+        $data = $this->getProperties(false,false,false);
+        if (array_key_exists('id',$data)) unset($data['id']);
         if (array_key_exists('createdAt',$data)) unset($data['createdAt']);
         if (array_key_exists('updatedAt',$data)) unset($data['updatedAt']);
         if (array_key_exists('ACL',$data)) unset($data['ACL']);
@@ -258,12 +337,84 @@ class Parse extends \ExEngine\MVC\Model {
         }
         try {
             $pObj->save();
-            $this->objectId = $pObj->getObjectId();
+            $this->id = $pObj->getObjectId();
             $this->createdAt = $pObj->getCreatedAt();
             $this->updatedAt = $pObj->getUpdatedAt();
             return true;
         } catch (ParseException $ex) {
-            $this->log()->e($ex->getMessage());
+            $this->LAST_ERROR = $ex->getMessage();
+            $this->log()->e($this->LAST_ERROR);
+            return false;
+        }
+    }
+}
+
+class ParseUser extends Parse {
+
+    var $id;
+    var $username;
+    var $password;
+
+    function loadById($preserveParseObj=false) {
+        return parent::load($preserveParseObj);
+    }
+
+    function load($preserveParseObj=false) {
+        $data = $this->getProperties();
+        if (!isset($data["username"]) && !isset($data["password"])) {
+            $this->ee->errorExit('MVC-ExEngine',
+                'username and password are not defined and is required to retrieve User object data from Parse.');
+        }
+        try {
+            $retObj = \Parse\ParseUser::logIn($data["username"], $data["password"]);
+            if (array_key_exists('id',$data)) unset($data['id']);
+            if (array_key_exists('createdAt',$data)) unset($data['createdAt']);
+            if (array_key_exists('updatedAt',$data)) unset($data['updatedAt']);
+            if (array_key_exists('ACL',$data)) unset($data['ACL']);
+            //print_r($data);
+            foreach ($data as $name => $value) {
+                $this->$name = $retObj->get($name);
+            }
+            $this->createdAt = $retObj->getCreatedAt();
+            $this->updatedAt = $retObj->getUpdatedAt();
+            $this->id = $retObj->getObjectId();
+            if ($preserveParseObj) {
+                $this->parseObject = $retObj;
+            }
+            return $retObj;
+        } catch (ParseException $Error) {
+            $this->log()->e($Error->getMessage());
+            return false;
+        }
+    }
+    protected function createParseObject() {
+        return new \Parse\ParseUser();
+    }
+    function insert($SafeMode=true) {
+        if (!isset($this->TABLEID)) $this->TABLEID = $this->ee->classGetRealName($this);
+        $pObj = $this->createParseObject();
+        $data = $this->getProperties();
+        if (array_key_exists('id',$data)) unset($data['id']);
+        if (array_key_exists('createdAt',$data)) unset($data['createdAt']);
+        if (array_key_exists('updatedAt',$data)) unset($data['updatedAt']);
+        if (array_key_exists('ACL',$data)) unset($data['ACL']);
+        foreach ($data as $name => $value) {
+            if (is_array($value)) {
+                $pObj->setArray($name, $value);
+            } else {
+                $pObj->set($name, $value);
+            }
+        }
+        try {
+            $pObj->signUp();
+            $this->id = $pObj->getObjectId();
+            $this->createdAt = $pObj->getCreatedAt();
+            $this->updatedAt = $pObj->getUpdatedAt();
+            return true;
+        } catch (ParseException $ex) {
+
+            $this->LAST_ERROR = $ex->getMessage();
+            $this->log()->e($this->LAST_ERROR);
             return false;
         }
     }
