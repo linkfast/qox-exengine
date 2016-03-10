@@ -71,6 +71,7 @@ namespace ExEngine\MVC\DBO {
 			unset($obj->r);
 			unset($obj->TABLEID);
 			unset($obj->INDEXKEY);
+			unset($obj->ee);
 			unset($obj->SQLAUTOMODE);
 			if (isset($obj->EXCLUDEVARS))
 				unset($obj->EXCLUDEVARS);
@@ -84,6 +85,7 @@ namespace ExEngine\MVC\DBO {
 			unset($obj->TABLEID);
 			unset($obj->INDEXKEY);
 			unset($obj->SQLAUTOMODE);
+			unset($obj->ee);
 			if (isset($obj->EXCLUDEVARS))
 				unset($obj->EXCLUDEVARS);
 			return print_r($obj,true);
