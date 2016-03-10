@@ -37,7 +37,7 @@ namespace ExEngine {
 
 	class DatabaseManager {
 
-		const VERSION = "0.0.3.1";
+		const VERSION = "0.0.3.2";
 
 		public $utf8Mode = false;
 
@@ -58,7 +58,7 @@ namespace ExEngine {
 		private $dbSelected=false;
 		/* @var $ee Core */
 		private $ee;
-		private $dbgMode = false;
+		var $dbgMode = false;
 
 		private $edbl_enabled=false;
 		private $edbl_driver;
@@ -75,6 +75,8 @@ namespace ExEngine {
 			$this->settingsParse($dbObj);
 
 			$this->edblPath = $this->ee->eePath."eefx/lib/edbl/";
+
+			//print 'creado';
 		}
 
 		function isConnected() {
@@ -90,6 +92,7 @@ namespace ExEngine {
 		}
 
 		final function open($DebugMode=false,$EDBL_Special=null) {
+			//print "OPEN";
 			$dbg = $DebugMode;
 			if (!$this->connected) {
 				switch ($this->type) {
@@ -115,8 +118,12 @@ namespace ExEngine {
 					# LEGACY
 					case "mysqli":
 
-						$this->connObj = @mysqli_connect($this->host,$this->user,$this->passwd);
-						$this->dbselObj = @mysqli_select_db($this->connObj,$this->db);
+						if (!function_exists('mysqli_connect')) {
+							$this->ee->errorExit("ExEngine Database Manager","MySQL (mysqli) driver is not installed, please check your PHP installation.");
+						}
+
+						$this->connObj = mysqli_connect($this->host, $this->user, $this->passwd);
+						$this->dbselObj = mysqli_select_db($this->connObj,$this->db);
 
 						if ($this->connObj) {
 							$this->connected = true;

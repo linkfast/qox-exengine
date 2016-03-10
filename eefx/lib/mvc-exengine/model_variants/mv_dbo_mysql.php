@@ -48,19 +48,20 @@ namespace ExEngine\MVC\DBO {
 
 		private function getProperties() {
 			$vars = get_object_vars($this);
+			unset($vars[$this->INDEXKEY]);
 			unset($vars["db"]);
 			unset($vars["r"]);
 			unset($vars["TABLEID"]);
 			unset($vars["INDEXKEY"]);
 			unset($vars["SQLAUTOMODE"]);
+			unset($vars["ee"]);
 			if (isset ($this->EXCLUDEVARS) ) {
 				unset($vars["EXCLUDEVARS"]);
-				for ($c = 0; $c
-										< count($this->
-											EXCLUDEVARS); $c++) {
+				for ($c = 0; $c < count($this->EXCLUDEVARS); $c++) {
 					unset($vars[$this->EXCLUDEVARS[$c]]);
 				}
 			}
+			# print_r($vars);
 			return $vars;
 		}
 
@@ -316,13 +317,18 @@ namespace ExEngine\MVC\DBO {
 			$ik = $this->INDEXKEY;
 
 			if (isset($ik)) {
+
 				if (method_exists($this,'__befinsert')) {
 					$this->__befinsert();
 				}
 				$iarr = $this->getProperties();
+				#print_r($iarr);
 				$this->loadDb();
+				#$this->db->dbgMode = true;
 				$this->db->open();
+
 				$r = $this->db->insertArray($this->TABLEID,$iarr,$SafeMode);
+
 				if ($r) {
 					$this->$ik = $this->db->InsertedID;
 					if (method_exists($this,'__aftinsert')) {
