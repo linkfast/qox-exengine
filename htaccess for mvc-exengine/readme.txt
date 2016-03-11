@@ -14,3 +14,9 @@ $mvc = new eemvc_index("start");
 $mvc->rewriteRulesEnabled = true; # NOTE THIS PROPERTY CHANGE, by default is false.
 
 $mvc->start();
+
+Note:
+Current versions of MVC-ExEngine project includes this file by default.
+
+Note 2:
+To use rewrite engine with NGINX please read the nginx_config_example.txt file.

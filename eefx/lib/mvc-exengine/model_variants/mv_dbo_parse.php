@@ -2,13 +2,13 @@
 
 namespace ExEngine\MVC\DBO;
 
-use Parse\ParseException;
-
 class Parse extends \ExEngine\MVC\Model {
-    const VERSION = "0.0.0.2";
+    const VERSION = "0.0.0.3";
 
     var $id;
+    /* @var $createdAt \DateTime */
     var $createdAt;
+    /* @var $updatedAt \DateTime */
     var $updatedAt;
     var $ACL;
 
@@ -22,11 +22,22 @@ class Parse extends \ExEngine\MVC\Model {
         return $this->LAST_ERROR;
     }
 
+    static function run_cloud_code($Function,$Data=null) {
+        $myParse = new Parse();
+        if (isset($Data) and is_array($Data)) {
+            $Data = array_merge($Data, ['from' => 'php']);
+        } else {
+            $Data = ['from' => 'php'];
+        }
+        $results = \Parse\ParseCloud::run($Function, $Data);
+        return $results;
+    }
+
     function __construct() {
         parent::__construct();
         if (!$this->checkParse())
             $this->ee->errorExit("MVC-ExEngine",
-                "Parse PHP SDK is not installed (or loaded), please check your includes.","ExEngine_MVC_Implementation_Library");
+                "Parse PHP SDK is not installed (or loaded), please check your includes. ?","ExEngine_MVC_Implementation_Library");
         if (!isset($this->DBC))
             $dbCfg = $this->r->getDbConf();
         else
@@ -47,7 +58,13 @@ class Parse extends \ExEngine\MVC\Model {
         return $ma;
     }
     protected function checkParse() {
-        return class_exists("Parse\\ParseClient");
+        $cE = class_exists("Parse\\ParseClient");
+        if (!$cE) {
+            $this->log()->e('Parse PHP SDK is not loaded.');
+        } else {
+            $this->log()->i('Parse PHP SDK ... OK (' + $cE + ')');
+        }
+        return $cE;
     }
     protected function createParseObject() {
         return \Parse\ParseObject::create($this->TABLEID);
@@ -124,10 +141,15 @@ class Parse extends \ExEngine\MVC\Model {
         } elseif (is_a($obj,'Parse\\ParseGeoPoint')) {
             /* @var $obj \Parse\ParseGeoPoint */
             $R = ["Lat" => $obj->getLatitude(), "Long" => $obj->getLongitude()];
+        } elseif (is_a($obj, 'Parse\\ParseObject')) {
+            /* @var $obj \Parse\ParseObject */
+            $R = $obj;
         } else
             $R = 'other';
         return $R;
     }
+
+
 
     function load_all($WhereArray=null,$SafeMode=true,$SortArray=null,$AllToArray=false,$preserveParseObj=false,$parseQueryAddons=null) {
         if (!isset($this->TABLEID)) $this->TABLEID = $this->ee->classGetRealName($this);
@@ -152,11 +174,14 @@ class Parse extends \ExEngine\MVC\Model {
             foreach($results as $retObj) {
                 /* @var $O \ExEngine\MVC\DBO\Parse */
                 $O = new $ClassName();
+                if ($preserveParseObj) {
+                    $O->parseObject = $retObj;
+                }
                 foreach ($data as $name => $value) {
                     $obj = $retObj->get($name);
-                    if ($preserveParseObj) {
-                        $O->parseObject = $retObj;
-                    }
+
+                    //print_r($);
+                    //print $name . "\n";
 
                     $A = $this->parse_var_recog($obj);
                     if ($A == 'other') {
@@ -178,6 +203,51 @@ class Parse extends \ExEngine\MVC\Model {
             return false;
         }
     }
+    function load_first($WhereArray=null,$SafeMode=true,$SortArray=null,$AllToArray=false,$preserveParseObj=false,$parseQueryAddons=null) {
+            if (!isset($this->TABLEID)) $this->TABLEID = $this->ee->classGetRealName($this);
+            $pQuery = $this->createParseQuery();
+            if (is_array($WhereArray)) {
+                foreach ($WhereArray as $name => $value) {
+                    if (isset($value)) {
+                        $pQuery->equalTo($name, $value);
+                    }
+                }
+            }
+
+            if (isset($parseQueryAddons)) {
+                $parseQueryAddons($pQuery);
+            }
+
+            $retObj = $pQuery->first();
+            if (is_a($retObj, 'Parse\\ParseObject')) {
+                $ClassName = get_class($this);
+                $data = $this->getProperties();
+                /* @var $O \ExEngine\MVC\DBO\Parse */
+                $O = new $ClassName();
+                if ($preserveParseObj) {
+                    $O->parseObject = $retObj;
+                }
+                foreach ($data as $name => $value) {
+                    $obj = $retObj->get($name);
+
+                    //print_r($);
+                    //print $name . "\n";
+
+                    $A = $this->parse_var_recog($obj);
+                    if ($A == 'other') {
+                        $O->$name = $retObj->get($name);
+                    } else {
+                        $O->$name = $A;
+                    }
+                }
+                $O->createdAt = $retObj->getCreatedAt();
+                $O->updatedAt = $retObj->getUpdatedAt();
+                $O->id = $retObj->getObjectId();
+                return $O;
+            } else {
+                return false;
+            }
+        }
 
     function load_values($SafeMode=true,$DeleteDefaults=false,$preserveParseObj=false) {
         if (!isset($this->TABLEID)) $this->TABLEID = $this->ee->classGetRealName($this);
@@ -193,8 +263,11 @@ class Parse extends \ExEngine\MVC\Model {
             }
         }
         if ($c==0) {
+            $err = [
+                "Classname" => $this->ee->classGetRealName($this)
+            ];
             $this->ee->errorExit('MVC-ExEngine',
-                'You must set at least one field to retrieve an object data from Parse.');
+                'You must set at least one field to retrieve an object data from Parse. Detail: ' . print_r($err,true));
         }
         $pQuery = $this->createParseQuery();
         try {
@@ -228,7 +301,7 @@ class Parse extends \ExEngine\MVC\Model {
             } else {
                 return false;
             }
-        } catch (ParseException $ex) {
+        } catch (\Parse\ParseException $ex) {
             $this->LAST_ERROR = $ex->getMessage();
             return false;
         }
@@ -265,7 +338,7 @@ class Parse extends \ExEngine\MVC\Model {
             $this->updatedAt = $retObj->getUpdatedAt();
             $this->id = $retObj->getObjectId();
             return $retObj;
-        } catch (ParseException $ex) {
+        } catch (\Parse\ParseException $ex) {
             $this->LAST_ERROR = $ex->getMessage();
             $this->log()->e("Parse error: ".$this->LAST_ERROR,$this->getProperties());
             return false;
@@ -282,8 +355,9 @@ class Parse extends \ExEngine\MVC\Model {
         try {
             $pObj = $pQuery->get($data['id']);
             $pObj->destroy();
-        } catch (ParseException $ex) {
-            $this->log()->e($ex->getMessage());
+        } catch (\Parse\ParseException $ex) {
+            $this->LAST_ERROR = $ex->getMessage();
+            $this->log()->e($this->getLastError());
             return false;
         }
     }
@@ -313,7 +387,7 @@ class Parse extends \ExEngine\MVC\Model {
             $this->createdAt = $pObj->getCreatedAt();
             $this->updatedAt = $pObj->getUpdatedAt();
             return true;
-        } catch (ParseException $ex) {
+        } catch (\Parse\ParseException $ex) {
             $this->LAST_ERROR  = $ex->getMessage();
             $this->log()->e($this->LAST_ERROR);
             return false;
@@ -341,7 +415,7 @@ class Parse extends \ExEngine\MVC\Model {
             $this->createdAt = $pObj->getCreatedAt();
             $this->updatedAt = $pObj->getUpdatedAt();
             return true;
-        } catch (ParseException $ex) {
+        } catch (\Parse\ParseException $ex) {
             $this->LAST_ERROR = $ex->getMessage();
             $this->log()->e($this->LAST_ERROR);
             return false;
@@ -382,7 +456,7 @@ class ParseUser extends Parse {
                 $this->parseObject = $retObj;
             }
             return $retObj;
-        } catch (ParseException $Error) {
+        } catch (\Parse\ParseException $Error) {
             $this->log()->e($Error->getMessage());
             return false;
         }
@@ -411,7 +485,7 @@ class ParseUser extends Parse {
             $this->createdAt = $pObj->getCreatedAt();
             $this->updatedAt = $pObj->getUpdatedAt();
             return true;
-        } catch (ParseException $ex) {
+        } catch (\Parse\ParseException $ex) {
 
             $this->LAST_ERROR = $ex->getMessage();
             $this->log()->e($this->LAST_ERROR);

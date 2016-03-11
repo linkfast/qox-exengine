@@ -20,7 +20,7 @@ FUNCTION_NAME is a function inside the controller class.
 PARAMETER1, PARAMETER2... are the parameter or parameters of the function (if has parameters), the first one will be the first one of the function too.
 GET1, etc. are the standard GET method values.
 
-You can also pass POST values to a Function inside a Controller.
+You can also pass POST values to a function inside a controller.
 
 See the examples dir for more detail about resources, views and models.
 
@@ -56,12 +56,12 @@ You can also modify the default database array in order to use ExEngine Database
 
 To-Do
 =====
-- Documentation (Wiki)
+- Documentation
 - Homepage
 
 How To Install
 ==============
-If not using Git Tools, just click ZIP icon at the top of the page to get the latest nightly release.
+If not using Git Tools, just click ZIP or TAG.GZ icon at the top of the page to get the latest nightly release.
 Remember that EE7 is an alpha product, but the releases contains minimal bugs, and is ready to development builds of your project.
 
 Remember that when changing version numbers (or revision) may be minor or mayor changes that can affect the desired function of your product.
@@ -70,6 +70,6 @@ The release of this product is under the GPL license, so its use is at your own 
 
 ExEngine Homepage: (under development  http://oss.qox-corp.com/exengine)
 
-ExEngine 7 Wiki  : (under development  http://oss.qox-corp.com/wiki/ee)
+ExEngine Docs  : (under development  http://oss.qox-corp.com/docs/exengine)
 
-(C) 2014 QOX Corporation - qox-corp.com
+(C) 2016 QOX Corporation - qox-corp.com

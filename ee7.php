@@ -17,7 +17,6 @@ if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 
 @section DESCRIPTION
 
-ExEngine 7 Wrapper.
+ExEngine 7 Wrapper (for legacy applications).
 */
-	require_once 'ee.php';
-?>
+require_once 'ee.php';

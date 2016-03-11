@@ -34,11 +34,12 @@ $ee = new \ExEngine\Core(["SilentMode"=>true]); // initiate exengine.
 
 $mail = new eemail();
 $mail->SMTP_Cfg_Array = eemail::createSMTPCfgArray(
-"smtp_server.com", 25, //smtp server host and port
-"smtp_username", 
-"smtp_password", 
-true,  // SMTP Authentication required?
-"tls"); //encryption: ssl or tls
+	"smtp_server.com", 25, //smtp server host and port
+	"smtp_username",
+	"smtp_password",
+	true,  // SMTP Authentication required?
+	"tls" //encryption: ssl or tls
+);
 
 $mail->FromOnlyAddress = "smtp_username@mydomain.com";
 $mail->FromName ="No Reply"; // optional
@@ -55,5 +56,3 @@ $mail->Message = "<b> I Love PHP Coding ! </b>"; //html body (it can also be pla
 
 if (!$mail->send_swiftmailer_smtp())
 	print $mail->LastError; // print last error if sending fails.
-
-?>

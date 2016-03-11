@@ -1,17 +1,30 @@
 <?php
-/*
- This file is part of ExEngine.
- Copyright © QOX Corporation
+/**
+@file index.php
+@author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe> <g@gchiappe.com>
+@version 1.0.1 @ 11 March 2016
 
- ExEngine is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser Gereral Public Licence as published by the Free Software Foundation; either version 2 of the Licence, or (at your opinion) any later version.
+@section LICENSE
 
- ExEngine is distributed in the hope that it will be usefull, but WITHOUT ANY WARRANTY; without even the implied warranty of merchantability or fitness for a particular purpose. See the GNU Lesser General Public Licence for more details.
+ExEngine is free software; you can redistribute it and/or modify it under the
+terms of the GNU Lesser General Public Licence as published by the Free Software
+Foundation; either version 2 of the Licence, or (at your opinion) any later version.
+ExEngine is distributed in the hope that it will be usefull, but WITHOUT ANY WARRANTY;
+without even the implied warranty of merchantability or fitness for a particular purpose.
+See the GNU Lesser General Public Licence for more details.
 
- You should have received a copy of the GNU Lesser General Public Licence along with ExEngine; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, Ma 02111-1307 USA.
+You should have received a copy of the GNU Lesser General Public Licence along with ExEngine;
+if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, Ma 02111-1307 USA.
+
+@section DESCRIPTION
+
+ExEngine Index Page
+
  */
+error_reporting(E_ALL);
 include_once("../ee.php");
 
-$ee = new exengine();
+$ee = new \ExEngine\Core();
 $jq = new jquery($ee);
 
 if ($ee->cArray["debug"]) {	
@@ -19,12 +32,11 @@ if ($ee->cArray["debug"]) {
 	$version = $ee->miscGetVersion()." ".exengine::RELEASE;
 } else $version = exengine::V_MAJOR."-".exengine::RELEASE;
 
-
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<?
+<?php
 $jq->load();
 $jq->load_ui("redmond");
 ?>
@@ -49,14 +61,13 @@ body {
 	<div align="center">
 		<p>&nbsp;</p>
 		<p> <a href="https://github.com/QOXCorp/exengine" target="_blank"><img src="common/ee7_full.png" alt="QOXExEngine" border="0" /></a><br />
-		 QOX<strong>ExEngine/<? print $version ; ?>
+		 QOX<strong>ExEngine/<?php print $version ; ?>
 			</strong>
 			<?php if ($ee->cArray["debug"]) { ?>
 			<span style="color: #F00; font-weight: bold;">(debug-mode enabled)</span>
-			<? } ?>
+			<?php } ?>
 		</p>
-		<?php if (@$_GET['from'] == "ee.php") {
-			?>
+		<?php if (@$_GET['from'] == "ee.php") { ?>
 		<div id="alert-fromee7" align="center"
 			class="ui-state-highlight ui-corner-all smallButtons"
 			style="margin: auto; width: 85%; margin-top: 20px; padding: 0 .7em;">
@@ -66,10 +77,10 @@ body {
 			application.<br /> <br />
 			<button>ok</button>
 		</div>
-		<?
+		<?php
 		}
 		if (@$_GET['from'] == "ppage") {
-			?>
+		?>
 		<div id="alert-from-ppage"
 			class="ui-state-highlight ui-corner-all smallButtons"
 			style="margin: auto; width: 85%; margin-top: 20px; padding: 0 .7em;">
@@ -78,11 +89,11 @@ body {
 			<br />
 			<button>ok</button>
 		</div>
-		<?
+		<?php
 		}
 		?>
 		<div>
-		<? if ($ee->cArray["debug"]) { ?>
+		<?php if ($ee->cArray["debug"]) { ?>
 			<p>
 				<span style="color: #333; font-weight: bold; font-size: 16px;">DEBUG MODE TOOLS:</span><br><br>
 				<a href="common/excommander.php">EXENGINE COMMANDER</a><br>
@@ -91,7 +102,7 @@ body {
                 <a href="common/manager.php">EXTENSION MANAGER</a>
 			</p>
 			<p>Note: Menu will be hidden when debug-mode is disabled.</p>
-			<? } ?>
+        <?php } ?>
 		</div>
 	</div>
 </body>

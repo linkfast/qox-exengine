@@ -21,5 +21,3 @@
 
 	$resu = array();
 	$uts->runTests($resu);
-
-?>

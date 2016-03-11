@@ -1,8 +1,8 @@
 <?php
 /**
 @file ee.php
-@author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>
-@version 7.0.8.43
+@author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe> <g@gchiappe.com>
+@version 7.0.8.44 @ 10 March 2016
 
 @section LICENSE
 
@@ -24,11 +24,11 @@ ExEngine PHP Framework core, this file contains the main functions, and the need
  */
 
 // QOX ExEngine
-// Copyright © 2003-2009 DarkGiank Software (darkgiank.info)
-// Copyright © 2009-2013 LinkFast Company (linkfastsa.com)
-// Copyright © 2013-2014 QOX Corporation (qox-corp.com)
-//
-// Based on DGS ExEngine by Giancarlo Chiappe
+// Copyright © 2003-2009 DGS (gchiappe.com)
+// Copyright © 2010-2013 LinkFast Company (linkfastsa.com)
+// Copyright © 2014-2016 QOX Corporation (qox-corp.com)
+
+// Based on DGS ExEngine by Giancarlo Chiappe Aguilar
 
 namespace {
 	/* PHP Version Check */
@@ -70,13 +70,14 @@ namespace ExEngine {
 		const REALVERSION = "7.0.8";
 		const BUILD = 44;
 
-		const REL_DATE = "11 DEC 2014";
+		const REL_DATE = "10 MAR 2016";
 		const RELEASE = "alpha";
 		const EE7WP = "http://oss.qox-corp.com/exengine";
 
 		private static $instance = false;
 
-		// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array) ( no operational yet )
+		// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array)
+		// ( not operational yet )
 		const COMUPS_SERVER = "update-oss.qox-corp.com"; /// Comups update server for update checking.
 		const COMUPS_PKG	= "exengine"; /// Comups package name for version checking.
 
@@ -1050,7 +1051,7 @@ namespace ExEngine {
 		}
 
 		# TagMode
-		# (c) 2012 LinkFast Company Opensource
+		# (c) 2012 LinkFast Company (Aldea-LinkFast Open source)
 		private $TagTempFile;
 		private $TagStringLoaded=false;
 		private $TagStringsArr;
