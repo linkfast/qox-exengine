@@ -47,7 +47,7 @@ namespace ExEngine\MVC {
 
     class Index {
 
-        const VERSION = "0.0.2.7"; /// Version of EE MVC Implementation library.
+        const VERSION = "0.0.3.1"; /// Version of EE MVC Implementation library.
 
         private $ee; /// This is the connector to the main ExEngine object.
         public $controllername; /// Name of the Controller in use.
@@ -197,6 +197,8 @@ namespace ExEngine\MVC {
                 $YW = new \eespyc();
                 $YW->load();
                 $dbCfgArr = \ExEngine\Extended\Spyc\Spyc::YAMLLoad($CfFile);
+
+
 
                 if ($dbCfgArr['check']) {
                     if ($dbCfgArr['type']=='mongodb'){
@@ -566,7 +568,15 @@ namespace ExEngine\MVC {
                         break;
                     case 'STATICTAGGED':
                         $file = $this->staticFolder.$_GET['FILE'];
-                        $this->specialLoadViewStatic($file,true,true);
+                        $base_file = pathinfo($file, PATHINFO_FILENAME);
+                        $base_path = pathinfo($file, PATHINFO_DIRNAME);
+                        $res_php_file = $base_path . '/' . $base_file . '.php';
+                        $data = null;
+                        if (file_exists($res_php_file)) {
+                            $this->debug('mvcee_index: Loading PHP preprocessor for a dynamic resource.');
+                            include_once $res_php_file;
+                        }
+                        $this->specialLoadViewStatic($file, true, true, $data);
                         break;
                     default:
                         $this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: Mode Not Found.");

@@ -1,9 +1,8 @@
 <?php
 /**
 @file eemvcil.php
-@author Giancarlo Chiappe <gch@linkfastsa.com>
-<gchiappe@gmail.com>
-	@version 0.0.1.41
+@author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>
+@version 0.0.3.1
 
 @section LICENSE
 

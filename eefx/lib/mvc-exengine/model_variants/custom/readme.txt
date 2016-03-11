@@ -11,8 +11,12 @@ You can create more methods but is not recommended.
 
 All of them must have default arguments defined and working.
 
-The following properties are key values to set the TABLEID (table name) and INDEXKEY (identifier property):
+The following properties are key values to set the TABLEID (table name or document container in NoSQL)
+ and INDEXKEY (identifier property):
 
 	TABLEID, INDEXKEY
 
-You can create more required properties, set their names in uppercase, checkout the MV_DBO_MONGODB that has the MONGODB property that specifies wich database is going to be used. MySQL DBO does not have that field because is using the same database connection of MVC-ExEngine that uses the specified database in the ExEngine instance (ExEngine Database Manager).
+You can create more required properties, set their names in uppercase, checkout the MV_DBO_MONGODB that has the MONGODB
+ property that specifies wich database is going to be used. MySQL DBO does not have that field because is using the
+ same database connection of MVC-ExEngine that uses the specified database in the ExEngine instance (ExEngine Database
+ Manager).

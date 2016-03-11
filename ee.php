@@ -2,7 +2,7 @@
 /**
 @file ee.php
 @author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe> <g@gchiappe.com>
-@version 7.0.8.44 @ 10 March 2016
+@version 7.0.9.1 @ 11 March 2016
 
 @section LICENSE
 
@@ -64,17 +64,18 @@ namespace ExEngine {
 
 		const V_MAJOR = 7;
 		const V_MINOR = 0;
-		const V_BUILD = 8;
-		const V_REVIS = 44;
+		const V_BUILD = 9;
+		const V_REVIS = 1;
 		#For EE6's ForwardMode Compatibility
-		const REALVERSION = "7.0.8";
-		const BUILD = 44;
+		const REALVERSION = "7.0.9";
+		const BUILD = 1;
 
 		const REL_DATE = "10 MAR 2016";
 		const RELEASE = "alpha";
 		const EE7WP = "http://oss.qox-corp.com/exengine";
 
 		private static $instance = false;
+        private static $global_scope = [];
 
 		// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array)
 		// ( not operational yet )
@@ -1182,6 +1183,29 @@ namespace ExEngine {
                 $classname = $matches[1];
             }
             return $classname;
+        }
+
+        /* global scope functions */
+        final function globalGetData($objKey=null) {
+            if (!isset($objKey))
+                return self::$global_scope;
+            if (array_key_exists($objKey, self::$global_scope)) {
+                return self::$global_scope[$objKey];
+            } else {
+                return null;
+            }
+        }
+
+        final function globalSetData($objKey, $objValue, $objReplace=false) {
+            if (array_key_exists($objKey, self::$global_scope)) {
+                if ($objReplace)
+                    self::$global_scope[$objKey] = $objValue;
+                else
+                    return false;
+            } else {
+                self::$global_scope[$objKey] = $objValue;
+            }
+            return true;
         }
 	}
 }
