@@ -28,7 +28,7 @@ namespace ExEngine\MVC;
 /* Accessible from all controllers, models and views in the object $this->r */
 class Methods {
 
-    const VERSION = "0.0.1.7";
+    const VERSION = "0.0.1.8";
 
     /* @var $cparent Controller */
     var $cparent;
@@ -131,6 +131,15 @@ class Methods {
             $this->tra = "/";
         }
         $this->goTo = new Redirect($this);
+    }
+
+    final function getAllSession() {
+        if ($this->cparent->index->isSessionEnabled())
+            return @$_SESSION;
+        else {
+            $this->ee->errorExit("MVC-ExEngine","Cannot get a session variable, session support is not enabled.");
+            return null;
+        }
     }
 
     final function getSession($element) {

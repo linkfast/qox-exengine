@@ -571,7 +571,7 @@ namespace ExEngine\MVC {
                         $base_file = pathinfo($file, PATHINFO_FILENAME);
                         $base_path = pathinfo($file, PATHINFO_DIRNAME);
                         $res_php_file = $base_path . '/' . $base_file . '.php';
-                        $data = null;
+                        $data['SESSION'] = $this->r->getAllSession();
                         if (file_exists($res_php_file)) {
                             $this->debug('mvcee_index: Loading PHP preprocessor for a dynamic resource.');
                             include_once $res_php_file;
