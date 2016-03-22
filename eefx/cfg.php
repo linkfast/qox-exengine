@@ -25,7 +25,7 @@ Should be edited to match your application/server configuration and paths.
 #Default config array :
 $ee_config = 
 array(
-	"http_path" => "/lib/exengine/", # Full path to ExEngine (http://myhost:port/myapp/exengine/) (you can use /myapp/exengine/ also)
+	"http_path" => "/ap/lib/exengine/", # Full path to ExEngine (http://myhost:port/myapp/exengine/) (you can use /myapp/exengine/ also)
 	"https_path" => "same", # Full path to ExEngine (SSL) (https://myhost:port/myapp/exengine/) (you can use /myapp/exengine/ also) (Set to "same" to use the http_path value)					   
 	"pear_path" => "auto", # Set to "auto" for not changing the default include directory.				   
 

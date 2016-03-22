@@ -2,12 +2,18 @@
 
 /**
  * Default Application Config
- * V. 0.0.1.7
+ * V. 0.0.1.8
  */
 
 Namespace ExEngine\MVC;
 
 abstract class DefaultApplicationConfig {
+    # New:
+    var $ViewsSandboxing = 'auto';
+    var $PopulateAllLocales = true;
+    var $AutomaticLocalePopulate = false;
+
+    # Older:
     var $DefaultController = "start";
     var $RewriteRulesEnabled = false;
     var $RewriteBaseFolder = '';
@@ -43,6 +49,12 @@ abstract class DefaultApplicationConfig {
     protected $ee;
     function __construct() {
         $this->ee = &ee_gi();
+        $mvc_session = new Session();
+        $mvc_session->Enabled = false; # Disabled by default, set $this->SessionCfg->Enabled = true; to enable.
+        $mvc_session->Name = "MVC_EXENGINE_SESSION_ID";
+        $mvc_session->Lifetime = 3600 * 24; # One day.
+        $mvc_session->Path = "/";
+        $this->SessionCfg = $mvc_session;
     }
 
     /**
@@ -53,8 +65,11 @@ abstract class DefaultApplicationConfig {
         return date('D', time()) === 'Mon';
     }
 
+    /**
+     * You must override this function to set the configuration values.
+     * Note: Session support is disabled by default, set $this->SessionCfg->Enabled = true; to enable or
+     * create a new \ExEngine\MVC\Session object for a custom session configuration.
+     */
     function ApplicationInit() { }
 
 }
-
-?>

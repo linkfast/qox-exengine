@@ -2,8 +2,6 @@
 
 namespace ExEngine\MVC\DBO;
 
-use Parse\ParseException;
-
 class Parse extends \ExEngine\MVC\Model {
     const VERSION = "0.0.0.2";
 
@@ -228,7 +226,7 @@ class Parse extends \ExEngine\MVC\Model {
             } else {
                 return false;
             }
-        } catch (ParseException $ex) {
+        } catch (\Parse\ParseException $ex) {
             $this->LAST_ERROR = $ex->getMessage();
             return false;
         }
@@ -265,7 +263,7 @@ class Parse extends \ExEngine\MVC\Model {
             $this->updatedAt = $retObj->getUpdatedAt();
             $this->id = $retObj->getObjectId();
             return $retObj;
-        } catch (ParseException $ex) {
+        } catch (\Parse\ParseException $ex) {
             $this->LAST_ERROR = $ex->getMessage();
             $this->log()->e("Parse error: ".$this->LAST_ERROR,$this->getProperties());
             return false;
@@ -282,7 +280,7 @@ class Parse extends \ExEngine\MVC\Model {
         try {
             $pObj = $pQuery->get($data['id']);
             $pObj->destroy();
-        } catch (ParseException $ex) {
+        } catch (\Parse\ParseException $ex) {
             $this->log()->e($ex->getMessage());
             return false;
         }
@@ -313,7 +311,7 @@ class Parse extends \ExEngine\MVC\Model {
             $this->createdAt = $pObj->getCreatedAt();
             $this->updatedAt = $pObj->getUpdatedAt();
             return true;
-        } catch (ParseException $ex) {
+        } catch (\Parse\ParseException $ex) {
             $this->LAST_ERROR  = $ex->getMessage();
             $this->log()->e($this->LAST_ERROR);
             return false;
@@ -341,7 +339,7 @@ class Parse extends \ExEngine\MVC\Model {
             $this->createdAt = $pObj->getCreatedAt();
             $this->updatedAt = $pObj->getUpdatedAt();
             return true;
-        } catch (ParseException $ex) {
+        } catch (\Parse\ParseException $ex) {
             $this->LAST_ERROR = $ex->getMessage();
             $this->log()->e($this->LAST_ERROR);
             return false;
@@ -382,7 +380,7 @@ class ParseUser extends Parse {
                 $this->parseObject = $retObj;
             }
             return $retObj;
-        } catch (ParseException $Error) {
+        } catch (\Parse\ParseException $Error) {
             $this->log()->e($Error->getMessage());
             return false;
         }
@@ -411,7 +409,7 @@ class ParseUser extends Parse {
             $this->createdAt = $pObj->getCreatedAt();
             $this->updatedAt = $pObj->getUpdatedAt();
             return true;
-        } catch (ParseException $ex) {
+        } catch (\Parse\ParseException $ex) {
 
             $this->LAST_ERROR = $ex->getMessage();
             $this->log()->e($this->LAST_ERROR);
@@ -419,5 +417,3 @@ class ParseUser extends Parse {
         }
     }
 }
-
-?>

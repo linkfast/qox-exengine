@@ -8,25 +8,41 @@ Namespace ExEngine\Extended;
  */
 class Composer {
 
+	static $Loaded=false;
+
     /**
-     * @var string
+     * @var string|null
      */
     var $ComposerDir=null;
 
 	/**
-	 * @var bool|\exengine
+	 * @var bool|\ExEngine\Core
 	 */
 	var $ee;
 
-    /**
-     *
-     */
+	/**
+	 * Composer constructor.
+	 * This library provides support for Composer packages in ExEngine.
+	 * Note: ExEngine does not relies on Composer but is compatible with it.
+	 */
     function __construct() {
 		$this->ee = &ee_gi();
 		//print $this->ee->appPath.'vendor';
         if (file_exists($this->ee->appPath.'vendor') && is_dir($this->ee->appPath.'vendor'))
             $this->ComposerDir = $this->ee->appPath.'vendor';
     }
+
+	/**
+	 * Check if package is installed, format is: vendor/product, example: isPackageInstalled('twbs/bootstrap') .
+	 * @param $packageName
+	 * @return bool
+	 */
+	function isPackageInstalled($packageName) {
+		$pkgDiscoveryName = $this->ComposerDir . '/' . $packageName . '/composer.json';
+		if (file_exists($pkgDiscoveryName))
+			return true;
+		return false;
+	}
 
 	/**
 	 * Check if composer is detected.
@@ -37,6 +53,7 @@ class Composer {
 	}
 
 	/**
+	 * File proxy for hidden vendor folder.
 	 * @param $Package
 	 * @param $FilePath
 	 * @param bool $Return
@@ -53,24 +70,29 @@ class Composer {
 		} else return false;
 	}
 
-    /**
-     *
-     */
+	/**
+	 * Activates composer. Will return true if included successfully.
+	 * @return bool
+	 */
     function autoload() {
-        if (file_exists( $this->ComposerDir .'/autoload.php')) {
-            include_once ( $this->ComposerDir . '/autoload.php' );
-			return true;
-        } else return false;
+		if (!self::$Loaded) {
+			if (file_exists($this->ComposerDir . '/autoload.php')) {
+				include_once($this->ComposerDir . '/autoload.php');
+				self::$Loaded = true;
+				return true;
+			} else return false;
+		} else return true;
     }
 
     /**
-     * @param string $Product
+	 * Returns full path to the product folder, returns false if package is not installed or not found.
+     * @param string $packageName
      * @return string|bool
      */
-    function getPackageDir($Product) {
+    function getPackageDir($packageName) {
 		//print $this->ee->httpGetUrlFromPath($this->ComposerDir . '/' . $Product);
-        if (file_exists($this->ComposerDir . '/' . $Product) && is_dir($this->ComposerDir . '/' . $Product))
-            return $this->ComposerDir . '/' . $Product;
+        if (file_exists($this->ComposerDir . '/' . $packageName) && is_dir($this->ComposerDir . '/' . $packageName))
+            return $this->ComposerDir . '/' . $packageName;
         else
             return false;
     }

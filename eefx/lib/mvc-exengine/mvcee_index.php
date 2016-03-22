@@ -33,6 +33,12 @@ namespace {
     function &eemvc_get_index_instance() {
         return ExEngine\MVC\Index::get_instance();
     }
+
+    function sandbox_code($the_file, $index) {
+        //print $the_file;
+        include_once $the_file;
+        return $data;
+    }
 }
 
 namespace ExEngine\MVC {
@@ -508,32 +514,40 @@ namespace ExEngine\MVC {
             }
         }
 
-        /// This function will start the MVC listener, should be called in the index file.
+        /**
+         * This function will start the MVC listener, must be called in the root index.php file.
+         */
         final function start() {
 
+            # Deprecated.
             if (isset($this->SessionMode) && $this->SessionMode) {
                 $this->ee->errorExit('MVC-ExEngine','mvcee_index::SessionMode property is deprecated, please set the session options at construct time.');
             }
 
+            # Go parse URL, then continue.
             $this->parseURL();
 
-            //print "<h1>" . $this->urlParsedData[1] . "</h1>";
-
+            # DevGuard
             if ($this->dgEnabled and !in_array($this->urlParsedData[0],$this->AppConfiguration->DevGuardExceptions)) {
-                $dg = new \ee_devguard();
-                $dg->guard($this->dgKey);
+                if (class_exists('\ee_devguard')) {
+                    $dg = new \ee_devguard();
+                    $dg->guard($this->dgKey);
+                } else {
+                    $this->ee->errorExit('Security Breach', 'DevGuard class cannot be loaded, check your ExEngine and
+                    MVC-ExEngine configuration and installation. Hard Halted.');
+                    exit();
+                    # Not loading DevGuard when is enabled in config is treated as a security breach. Halting
+                    # is a must.
+                }
             }
 
             if (!$this->jQueryObject && $this->jQueryEnabled)
                 $this->jQueryObject = new \jquery($this->ee);
 
+            # Core's SilentMode is required, MVC-ExEngine do lots of AJAX and REST work.
             if (!$this->ee->argsGet("SilentMode")) {
-                print "
-						<h1>
-							MVC-ExEngine can not work with SilentMode argument set to FALSE. Please set it to TRUE.
-						</h1>
-						";
-                exit();
+                $this->ee->errorExit('Invalid configuration', 'MVC-ExEngine cannot work without SilentMode argument set
+                to false. You must set it to true or use the MVCOnly special mode for ExEngine Core.');
             }
 
             $this->setStaticFolder();
@@ -571,12 +585,37 @@ namespace ExEngine\MVC {
                         $base_file = pathinfo($file, PATHINFO_FILENAME);
                         $base_path = pathinfo($file, PATHINFO_DIRNAME);
                         $res_php_file = $base_path . '/' . $base_file . '.php';
+                        if ($this->r == null) {
+                            $this->r = new Methods();
+                            $this->r->parentController->index = $this;
+                        }
                         $data['SESSION'] = $this->r->getAllSession();
                         if (file_exists($res_php_file)) {
                             $this->debug('mvcee_index: Loading PHP preprocessor for a dynamic resource.');
-                            include_once $res_php_file;
+                            $this->ee->eeLoad('phpsandbox');
+                            $pp = new \corveda_phpsandbox();
+
+                            $index = new \stdClass();
+                            $index->r = &$this->r;
+
+                            if ($pp->installed) {
+                                print "/*\nMVC-ExEngine Dynamic Resource Processor\n*/\n";
+                                $pp->load();
+                                $s = new \PHPSandbox\PHPSandbox();
+                                $s->whitelistFunc('sandbox_code');
+                                $s->define_vars(['file' => $res_php_file, 'obj' => $index]);
+                                $r_data = $s->execute(function () {
+                                    return sandbox_code($file, $obj);
+                                });
+                            } else {
+                                print "/*\nMVC-ExEngine Dynamic Resource Processor\nSecurity Warning: Processing without sandboxing.\n*/\n";
+                                include_once $res_php_file;
+                                $r_data = $data;
+                            }
+
+                            unset($data, $index);
                         }
-                        $this->specialLoadViewStatic($file, true, true, $data);
+                        $this->specialLoadViewStatic($file, true, true, $r_data);
                         break;
                     default:
                         $this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: Mode Not Found.");

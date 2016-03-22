@@ -2,7 +2,7 @@
     "name": "qoxcorp/exengine-core",
     "description": "Rapid application development PHP Framework.",
 	"keywords": ["exengine", "mvc", "rad", "rapid", "easy", "unittest", "cli"],
-    "license": "GLP",
+    "license": "MIT",
 	"support" : {
 		"issues" : "https://github.com/QOXCorp/exengine/issues"
 	},

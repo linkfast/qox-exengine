@@ -30,17 +30,32 @@ class Methods {
 
     const VERSION = "0.0.1.8";
 
-    /* @var $cparent Controller */
-    var $cparent;
+    /* @var $parentController Controller */
+    var $parentController = null;
     var $jQueryObject;
     var $goTo;
 
+    private $ee;
+    final function __construct(&$parent=null) {
+        $this->parentController = new \stdClass();
+        if ($parent instanceof Controller) {
+            $this->parentController = &$parent;
+        }
+        $this->jQueryObject = &$this->parentController->index->jQueryObject;
+        $this->tra = null;
+        $this->ee = &ee_gi();
+        if ($this->parentController->index->trailingSlashLegacy) {
+            $this->tra = "/";
+        }
+        $this->goTo = new Redirect($this);
+    }
+
     final function sf() {
-        return $this->cparent->index->staticFolderHTTP . $this->tra;
+        return $this->parentController->index->staticFolderHTTP . $this->tra;
     }
 
     final function fsf() {
-        return $this->cparent->index->staticFolder . $this->tra ;
+        return $this->parentController->index->staticFolder . $this->tra ;
     }
 
     /**
@@ -48,7 +63,7 @@ class Methods {
      * @return string
      */
     final function c() {
-        return $this->cparent->index->controllersFolderHTTP.$this->tra;
+        return $this->parentController->index->controllersFolderHTTP.$this->tra;
     }
 
     /* TODO: REMOVE
@@ -68,9 +83,9 @@ class Methods {
 
     final function home() {
         $x[0] = null;
-        if (!$this->cparent->index->rewriteRulesEnabled) {
+        if (!$this->parentController->index->rewriteRulesEnabled) {
             $x = $_SERVER['REQUEST_URI'];
-            $x = explode($this->cparent->index->indexname,$x);
+            $x = explode($this->parentController->index->indexname,$x);
         }
         return "//" . $_SERVER['HTTP_HOST']. $x[0];
     }
@@ -81,9 +96,9 @@ class Methods {
      * @return array|bool
      */
     final function getDbConf($databaseFile='default') {
-        $CfFile =  $this->cparent->index->AppConfiguration->ConfigurationFolder . '/database/';
+        $CfFile =  $this->parentController->index->AppConfiguration->ConfigurationFolder . '/database/';
         if ($databaseFile=='default') {
-            $CfFile .= $this->cparent->index->AppConfiguration->DefaultDatabase . '.yml';
+            $CfFile .= $this->parentController->index->AppConfiguration->DefaultDatabase . '.yml';
         } else {
             $CfFile .= $databaseFile . '.yml';
         }
@@ -99,51 +114,41 @@ class Methods {
     }
 
     final function sc() {
-        return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername . $this->tra;
+        return $this->parentController->index->sameControllerFolderHTTP.$this->parentController->index->controllername . $this->tra;
     }
 
     final function scfolder() {
-        return $this->cparent->index->sameControllerFolderHTTP . $this->tra;
+        return $this->parentController->index->sameControllerFolderHTTP . $this->tra;
     }
 
     final function scf() {
-        return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername."/".$this->cparent->functionName. $this->tra;
+        return $this->parentController->index->sameControllerFolderHTTP.$this->parentController->index->controllername."/".$this->parentController->functionName. $this->tra;
     }
 
     final function scfi() {
-        if ($this->cparent->functionName == "index")
-            return $this->cparent->index->sameControllerFolderHTTP.$this->cparent->index->controllername . $this->tra;
+        if ($this->parentController->functionName == "index")
+            return $this->parentController->index->sameControllerFolderHTTP.$this->parentController->index->controllername . $this->tra;
         else
             return $this->scf();
     }
 
     final function vs() {
-        return $this->cparent->index->controllersFolderHTTP.$this->tra."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
+        return $this->parentController->index->controllersFolderHTTP.$this->tra."?EEMVC_SPECIAL=VIEWSIMULATOR&VIEW=";
     }
 
-    private $ee;
-    final function __construct(&$parent) {
-        $this->cparent = &$parent;
-        $this->jQueryObject = &$this->cparent->index->jQueryObject;
-        $this->tra = null;
-        $this->ee = &ee_gi();
-        if ($this->cparent->index->trailingSlashLegacy) {
-            $this->tra = "/";
-        }
-        $this->goTo = new Redirect($this);
-    }
+
 
     final function getAllSession() {
-        if ($this->cparent->index->isSessionEnabled())
-            return @$_SESSION;
-        else {
+        if ($this->parentController->index->isSessionEnabled()) {
+            return $_SESSION;
+        } else {
             $this->ee->errorExit("MVC-ExEngine","Cannot get a session variable, session support is not enabled.");
             return null;
         }
     }
 
     final function getSession($element) {
-        if ($this->cparent->index->isSessionEnabled())
+        if ($this->parentController->index->isSessionEnabled())
             return @$_SESSION[$element];
         else {
             $this->ee->errorExit("MVC-ExEngine","Cannot get a session variable, session support is not enabled.");
@@ -152,7 +157,7 @@ class Methods {
     }
 
     final function setSession($element,$value) {
-        if ($this->cparent->index->isSessionEnabled())
+        if ($this->parentController->index->isSessionEnabled())
             $_SESSION[$element] = $value;
         else {
             $this->ee->errorExit("MVC-ExEngine","Cannot set a session variable, session support is not enabled.");
@@ -161,11 +166,11 @@ class Methods {
     }
 
     final function clearSession() {
-        if ($this->cparent->index->dgEnabled) {
+        if ($this->parentController->index->dgEnabled) {
             $dgSession = $_SESSION["DG_SA"];
         }
         session_unset();
-        if ($this->cparent->index->dgEnabled) {
+        if ($this->parentController->index->dgEnabled) {
             $_SESSION["DG_SA"] = $dgSession;
         }
     }
@@ -322,7 +327,7 @@ class Methods {
     final function query($EncodeToBase64=false) {
         $b64 = $EncodeToBase64;
         $qs = $_SERVER['QUERY_STRING'];
-        if (!$this->cparent->ee->strContains($qs, '?')) {
+        if (!$this->parentController->ee->strContains($qs, '?')) {
             $qs = preg_replace('/&/', '?', $qs, 1);
         }
         if ($b64)
@@ -335,8 +340,8 @@ class Methods {
      * Gets StaticUploadFolder HTTP path.
      * @return string
      */
-    final function sfu() {
-        return $this->cparent->index->staticFolderHTTP . '/' . $this->cparent->index->AppConfiguration->StaticUploadFolder .  $this->tra;
+    final function suf() {
+        return $this->parentController->index->staticFolderHTTP . '/' . $this->parentController->index->AppConfiguration->StaticUploadFolder .  $this->tra;
     }
 
     /**
