@@ -1,5 +1,5 @@
-QOX MVC-ExEngine
-================
+QOX MVC-ExEngine Pretty Url'ing
+===============================
 
 Use this .htaccess file in the root folder of your application (same place as index.php),
 this will enable rewrite rules for MVC-ExEngine.
