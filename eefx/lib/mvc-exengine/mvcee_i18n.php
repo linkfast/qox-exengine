@@ -3,7 +3,7 @@ namespace ExEngine\MVC {
 
 	class I18n {
 
-		const VERSION = '0.0.0.1';
+		const VERSION = '0.0.0.2';
 
 		private $CurrentLocale='en';
         private $DefaultStringsFile = null;
