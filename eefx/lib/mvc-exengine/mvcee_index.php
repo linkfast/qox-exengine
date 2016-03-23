@@ -556,6 +556,10 @@ namespace ExEngine\MVC {
             if (isset($_GET['EEMVC_SPECIAL'])) {
 
                 switch ($_GET['EEMVC_SPECIAL']) {
+                    case 'EEMA':
+                        $this->debug('ExEngine Message Agent Requested in a Special Mode.');
+                        $this->ee->maCreateClient(false, 'EEMVC_SPECIAL=EEMA&');
+                        break;
                     case 'VIEWSIMULATOR':
                         if ($this->ee->cArray["debug"]) {
                             if (isset($_GET['ERROR'])) if ($_GET['ERROR'] == "NODYNAMIC") $this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: EEMVC_SC and EEMVC_SCF special tags does no work in the Views Simulator.",null,true);

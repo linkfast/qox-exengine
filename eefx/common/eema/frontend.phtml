@@ -142,12 +142,12 @@
 <script src="<?php print $httpResPath; ?>plugins/holder/docs.min.js"></script>
 <script>
     var viewportHeight = null;
-    var eema_self = '<?php print $ee->miscPhpSelfNoPath(); ?>';
-    var eema_loc = '<?php print $ee->miscGetResPath("http"); ?>';
+    var eema_self = '<?php print $ee->miscPhpSelfNoPath(); ?>?<?php print $extra ?>';
+    var eema_loc = '<?php print $ee->miscGetResPath("http"); ?>?<?php print $extra ?>';
 	<?php if ($CreateSession) { ?>
-    var eema_server = eema_self + '?server_mode=true';
+    var eema_server = eema_self + 'server_mode=true';
 	<?php } else { ?>
-	var eema_server = eema_self + '?server_mode=true&NoNewSession=true';
+	var eema_server = eema_self + 'server_mode=true&NoNewSession=true';
 	<?php } ?>
 </script>
 <script src="<?php print $httpCommonPath; ?>eema/eema.js"></script>

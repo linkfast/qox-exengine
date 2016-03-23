@@ -1,7 +1,9 @@
 <?php
 namespace ExEngine\MVC {
 
-	class I18n {
+    use ExEngine\Extended\Spyc\Spyc;
+
+    class I18n {
 
 		const VERSION = '0.0.0.2';
 
@@ -15,6 +17,7 @@ namespace ExEngine\MVC {
 		private $index;
 		private $controller = false;
 		private $stringsFileLoaded=false;
+        private $eema;
 
 
         /**
@@ -46,10 +49,12 @@ namespace ExEngine\MVC {
 				$this->ee->errorExit('MVC-ExEngine Locales','Default Locale `' . $this->index->AppConfiguration->DefaultLocale . '` not found in locales folder.');
 			}
 			if ($this->controller instanceof Controller) {
-				if ($this->controller->locale != 'default') {
+				if ($this->controller->locale != $this->index->AppConfiguration->DefaultLocale) {
 					$this->changeLocale($this->controller->locale);
 				}
 			}
+
+            $this->eema = new \eema('eemvci18n', 'MVC-EE i18n Engine');
 		}
 
         /**
@@ -90,6 +95,9 @@ namespace ExEngine\MVC {
 			} else {
                 # If not, try to get from the default locale
 				if (isset($this->DefaultStrings[$LocaleString])) {
+                    if ($this->index->AppConfiguration->AutomaticLocalePopulate) {
+                        $this->addToLocales($LocaleString, $this->DefaultStrings[$LocaleString], true); # Copy
+                    }
 					return $this->DefaultStrings[$LocaleString];
 				} else {
                     # If not found in default locale, return the NotFoundValue and if enabled create in the default
@@ -120,21 +128,68 @@ namespace ExEngine\MVC {
          * $ chmod a-w *.yml
          * @param $Key
          * @param $Value
+         * @param $OmitDefault
          */
-        function addToLocales($Key, $Value) {
+        function addToLocales($Key, $Value, $OmitDefault=false) {
             $this->DefaultStrings[$Key] = $Value;
             # Open default localefile:
             $NewItem = $Key . ': "' . $Value . '"' . PHP_EOL; #Yaml format.
-            if (file_exists($this->DefaultStringsFile)) { #Only APPEND, this will not create the file.
-                file_put_contents($this->DefaultStringsFile, $NewItem, FILE_APPEND);
+            if (file_exists($this->DefaultStringsFile) && !$OmitDefault) { #Only APPEND, this will not create the file.
+
+                $NewItem_Def = $NewItem;
+
+                # Check if we have to add a newline or not.
+                $current = @file_get_contents($this->DefaultStringsFile);
+                $lastchar = substr($current, -1);
+                $this->d()->i('Last Char: ' . ($lastchar == PHP_EOL ? 'EOL' : $lastchar));
+                if ($lastchar != PHP_EOL) {
+                    $NewItem_Def = "\n" . $NewItem;
+                }
+
+                $result = @file_put_contents($this->DefaultStringsFile, $NewItem_Def, FILE_APPEND);
+                if ($result === false) {
+                    $this->d()->e('Cannot write: ' . $this->DefaultStringsFile . ' No permissions.');
+                }
+
             }
             if ($this->index->AppConfiguration->PopulateAllLocales) {
+                $this->d()->i('-- PopulateAllLocales --');
+                $NewItem_O = $NewItem;
                 foreach(glob($this->index->AppConfiguration->AppFolder . '/locales/*.yml') as $yFile) {
+                    # Check if adding is necessary.
+
+                    $this->d()->i("Trying to insert into: " . $yFile);
                     if ($this->ee->strContains($yFile, $this->index->AppConfiguration->DefaultLocale))
                         continue;
-                    file_put_contents($yFile, $NewItem, FILE_APPEND);
+
+                    $data = Spyc::YAMLLoad($yFile);
+                    if (isset($data[$Key])) {
+                        $this->d()->i('Key found, not inserting a new one.');
+                        continue;
+                    }
+
+                    # Check if we have to add a newline or not.
+                    $current = @file_get_contents($this->DefaultStringsFile);
+                    $lastchar = substr($current, -1);
+                    $this->d()->i('Last Char: ' . ($lastchar == PHP_EOL ? 'EOL' : $lastchar));
+                    if ($lastchar != PHP_EOL) {
+                        $NewItem_O = "\n" . $NewItem;
+                    }
+                    $result = @file_put_contents($yFile, $NewItem_O, FILE_APPEND);
+                    if ($result === false) {
+                        $this->d()->e('Cannot write: ' . $yFile . ' No permissions.');
+                    }
                 }
             }
+        }
+
+        /**
+         * d
+         * Debug gateway.
+         * @return \eema
+         */
+        private function d() {
+            return $this->eema;
         }
 	}
 }

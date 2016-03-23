@@ -26,8 +26,12 @@ ExEngine 7 / Libs / ExEngine Message Agent (eema)
  * Class eema
  */
 
-class eema {
-    const VERSION = "0.0.1.5";
+class eema extends MessageAgent {
+
+}
+
+class MessageAgent {
+    const VERSION = "0.0.1.6";
     private $ee;
     private $appKey = null;
     private $appShortName = null;
