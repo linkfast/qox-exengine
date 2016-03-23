@@ -85,7 +85,7 @@ class Controller {
             $this->__atconstruct();
             $this->functionName = $fn;
         }
-
+        $this->locale = $this->index->AppConfiguration->DefaultLocale;
         $this->I18n = new I18n();
     }
 
