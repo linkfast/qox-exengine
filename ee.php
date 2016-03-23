@@ -840,9 +840,10 @@ namespace ExEngine {
 
 		}
 
-		final function debugCreateClient($useMa=false, $CreateSession=true) {
+		final function debugCreateClient($useMa=false, $CreateSession=true, $query_extra='') {
 			$pee = &$this;
 			$cd = true;
+			$extra = $query_extra;
 			if (!$useMa) {
 				$eemaLegacyMode = true;
 				include_once($this->miscGetResPath("full")."eema.php");
@@ -852,8 +853,8 @@ namespace ExEngine {
 		}
 
 		/* message agent client creator */
-		final function maCreateClient($CreateSession=true) {
-			$this->debugCreateClient(true);
+		final function maCreateClient($CreateSession=true, $QueryExtra = '') {
+			$this->debugCreateClient(true, $CreateSession, $QueryExtra);
 		}
 
 		#Misc Functions
