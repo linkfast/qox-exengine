@@ -16,7 +16,7 @@ if (isset($_POST['send']) && $_POST['send']  == "1") {
 
 <body>
 <form action="servertalk.php" method="post">
-<p><img src="<? print $ee->miscGetResPath("http"); ?>ee7_full.png" alt="ExEngine 7 Logo" /></p>
+<p><img src="<?php print $ee->miscGetResPath("http"); ?>ee7_full.png" alt="ExEngine 7 Logo" /></p>
 <p><strong>QOX ServerTalk Utility</strong></p>
 <p>ServerTalk Address : 
   <input name="sIP" type="text" id="sIP" value="<?php if (isset($_POST['sIP'])) { print $_POST['sIP']; } ?>" /> 

@@ -17,7 +17,7 @@ body {
 </style></head>
 
 <body>
-<p><img src="<? print $ee->miscGetResPath("http"); ?>ee7_full.png" alt="ExEngine 7 Logo" /></p>
+<p><img src="ee7_full.png" alt="ExEngine 7 Logo" /></p>
 <h1>AJAX-Enabled Application</h1>
 <p><strong>Castellano:</strong><br />
 Esta aplicación requiere un explorador de internet que soporte AJAX, por favor actualize a una versión más reciente o utilize otro explorador.</p>

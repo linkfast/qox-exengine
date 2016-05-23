@@ -53,7 +53,7 @@ a:active {
 
 <body>
 <div align="center">
-  <p><img src="ee7_th.png" width="223" height="159" alt="ExEngine 7 Logo" /></p>
+  <p><img src="ee7_th.png" alt="ExEngine 7 Logo" /></p>
   <p><strong>CONCEPT OF EXENGINE 7 SETUP</strong></p>
   <p><strong>== NOT WORKING EXAMPLE ==</strong><br/>
   </p>
@@ -99,13 +99,13 @@ a:active {
             <tr>
               <td width="28%" height="45" align="left" valign="middle" class="optionEE">http PATH TO EXENGINE DIRECTORY</td>
               <td width="72%" height="45" align="left" valign="middle"><p>
-                <input name="textfield" type="text" id="textfield" value="<? print $loc_http; ?>" /> 
+                <input name="textfield" type="text" id="textfield" value="<?php print $loc_http; ?>" />
               <span class="descrOpt">i.e. http://www.myapp.com/</span></p></td>
             </tr>
             <tr>
               <td width="28%" height="45" align="left" valign="middle" bgcolor="#BFF1C1" class="optionEE">HTTPS PATH TO EXENGINE DIRECTORY</td>
               <td width="72%" height="45" align="left" valign="middle" bgcolor="#BFF1C1"><p>
-                <input name="textfield" type="text" id="textfield" value="<? print $loc_https; ?>" /> 
+                <input name="textfield" type="text" id="textfield" value="<?php print $loc_https; ?>" />
               <span class="descrOpt">i.e. https://www.myapp.com/ (optional)</span></p></td>
             </tr>
             <tr>
@@ -275,7 +275,7 @@ a:active {
       <td align="right">&nbsp;</td>
     </tr>
   </table>
-  <p>QOX<strong>ExEngine/<? print $ee->miscGetVersion()." ".exengine::RELEASE; ?> </strong></p>
+  <p>QOX<strong>ExEngine/<?php print $ee->miscGetVersion()." ".exengine::RELEASE; ?> </strong></p>
 </div>
 </body>
 </html>
