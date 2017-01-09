@@ -1,14 +1,14 @@
 <?php
 /**
 @file ee.php
-@author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe> <g@gchiappe.com>
-@version 7.0.9.1 @ 22 March 2016
+@author Giancarlo A. Chiappe Aguilar <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>
+@version 7.0.8.45
 
 @section LICENSE
 
 MIT License
 
-Copyright (c) 2016 QOX Corporation
+Copyright (c) 2017 QOX Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,15 +32,17 @@ SOFTWARE.
 
 ExEngine Core
 
-ExEngine PHP Framework core, this file contains the main functions, and the needed ones to load any module that extend the framework functionality.
- */
+ExEngine PHP Framework core, this file contains the main functions, and the needed
+ones to load any module that extends the framework functionality.
+
+*/
 
 // QOX ExEngine
-// Copyright © 2003-2009 DGS (gchiappe.com)
-// Copyright © 2010-2013 LinkFast Company (linkfastsa.com)
-// Copyright © 2014-2016 QOX Corporation (qox-corp.com)
-
-// Based on DGS ExEngine by Giancarlo Chiappe Aguilar
+// Copyright © 2003-2009 DGS (darkgiank.info)
+// Copyright © 2009-2013 LinkFast Company (linkfastsa.com)
+// Copyright © 2013-2017 QOX Corporation (qox-corp.com)
+//
+// Based on "DGS ExEngine" by Giancarlo A. Chiappe Aguilar <gchiappe@outlook.com.pe>
 
 namespace {
 	/* PHP Version Check */
@@ -67,33 +69,51 @@ namespace ExEngine {
 		public $eeDir;			/// ExEngine Directory (Relative to $appPath).
 		public $appPath;		/// Application Path (automatic, overridable).
 
+        /**
+         * Deprecation Notice:
+         * ForwardMode is going deprecated, removal on next minor version.
+         * @var bool
+         */
 		public $forwardMode = false; 	/// ExEngine 6 ForwardMode controller.
+
+        /**
+         * Deprecation Notice:
+         * ForwardMode is going deprecated, removal on next minor version.
+         * @var string
+         */
 		public $ee6version = "6.4.3.2";	/// ExEngine 6 ForwardMode Version
 
-		public $is64bit=false; /// Check for 64-bit execution, useful when using very big integers.
+		public $is64bit = false; /// Check for 64-bit execution, useful when using very big integers.
 
 		public $msEnabled = false; /// Multi-Site (MuS) Mode (Like- ExEngine 6 MU)
 
 		const V_MAJOR = 7;
 		const V_MINOR = 0;
-		const V_BUILD = 9;
-		const V_REVIS = 1;
-		#For EE6's ForwardMode Compatibility
-		const REALVERSION = "7.0.9";
-		const BUILD = 1;
+		const V_BUILD = 8;
+		const V_REVIS = 45;
 
-		const REL_DATE = "10 MAR 2016";
+        /**
+         * Deprecation Notice:
+         * ForwardMode is going deprecated, removal on next minor version.
+         */
+		const REALVERSION = "7.0.8";
+		const BUILD = 45;
+
+		const REL_DATE = "09 JAN 2017";
 		const RELEASE = "alpha";
 		const EE7WP = "http://oss.qox-corp.com/exengine";
 
 		private static $instance = false;
-        private static $global_scope = [];
 
-		// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array)
-		// ( not operational yet )
+		// Update Settings (overridable, use "ee_comups_server" and "ee_comups_package" in config array) ( no operational yet )
 		const COMUPS_SERVER = "update-oss.qox-corp.com"; /// Comups update server for update checking.
 		const COMUPS_PKG	= "exengine"; /// Comups package name for version checking.
 
+        /**
+         * Returns the current ExEngine's Core instance.
+         *
+         * @return bool|Core
+         */
 		public static function &get_instance()
 		{
 			return self::$instance;
@@ -208,7 +228,7 @@ namespace ExEngine {
 				$this->is64bit = true;
 			} else {
 				$this->is64bit = false;
-				$this->errorWarning("ExEngine is running in a 32-bit enviroment, 64-bit environment is recommended.");
+				$this->errorWarning("ExEngine is running in a 32-bit environment, 64-bit environment is recommended.");
 			}
 
 			if (defined('STDIN')) {
@@ -294,12 +314,13 @@ namespace ExEngine {
 				$this->libLoadRes("me");			# MixedEngines Control Library		(me)
 				#
 
-				$this->libLoadRes("eedbm");			# Database Manager					(eedbm)
+				$this->libLoadRes("eedbm");			# SQL Database Manager				(eedbm)
+                /** EE's JQuery is going deprecated, removal on next minor version */
 				$this->libLoadRes("jquery");		# ExEngine's jQuery					(jquery)
 				$this->libLoadRes("eema");		    # ExEngine Message Agent            (eema)
 
 				if ($this->argsGet("SpecialMode") == "MVCOnly") {
-					$this->libLoadRes("eemvcil"); #MVC-ExEngine contains drivers for NoSQL DBs.
+					$this->libLoadRes("eemvcil"); #MVC-ExEngine
 					$this->aArray["SilentMode"] = true;
 				} else {
 					$this->libLoadRes("eendbm");		# NoSQL Database Manager			(eendbm)
@@ -309,7 +330,13 @@ namespace ExEngine {
 					$this->libLoadRes("ifile");			# Internet Files Manipulation		(ifile)
 					$this->libLoadRes("mail");			# Internet Mail Class				(eemail)
 					$this->libLoadRes("gd");			# GD Image Manipulation				(gd)
-					$this->libLoadRes("eemvcil");		# EE ModelViewController I.Lib.		(eemvc_index,eemvc_model,eemvc_model_dbo (& DBO variants),eemvc_controller,eemvc_methods)
+                    # MVC-ExEngine:
+                    # - eemvc_index
+                    # - eemvc_model
+                    # - eemvc_model_dbo (& DBO variants)
+                    # - eemvc_controller
+                    # - eemvc_methods
+					$this->libLoadRes("eemvcil");
 				}
 				if ($this->cArray["devguard"])
 					$this->libLoadRes("devguard"); # DevGuard Class (ee_devguard)
@@ -679,10 +706,10 @@ namespace ExEngine {
 			if (isset($_GET)) {
 				$getArgs = $_GET;
 			}
-
 			if (is_array($postArgs) && is_array($getArgs))	return array_merge($postArgs,$getArgs);
 			elseif (is_array($postArgs)) return $postArgs;
 			elseif (is_array($getArgs)) return $getArgs;
+			return [];
 		}
 
 		final function httpCheckURL($url) {
@@ -840,10 +867,9 @@ namespace ExEngine {
 
 		}
 
-		final function debugCreateClient($useMa=false, $CreateSession=true, $query_extra='') {
+		final function debugCreateClient($useMa=false, $CreateSession=true) {
 			$pee = &$this;
 			$cd = true;
-			$extra = $query_extra;
 			if (!$useMa) {
 				$eemaLegacyMode = true;
 				include_once($this->miscGetResPath("full")."eema.php");
@@ -853,8 +879,8 @@ namespace ExEngine {
 		}
 
 		/* message agent client creator */
-		final function maCreateClient($CreateSession=true, $QueryExtra = '') {
-			$this->debugCreateClient(true, $CreateSession, $QueryExtra);
+		final function maCreateClient($CreateSession=true) {
+			$this->debugCreateClient(true);
 		}
 
 		#Misc Functions
@@ -1007,6 +1033,14 @@ namespace ExEngine {
 			return( false );
 		}
 		# String Functions
+        /**
+         * Returns true if $SubString is found in $String.
+         *
+         * @param string $String The haystack.
+         * @param string $SubString The needle.
+         * @param bool $CaseSensitive Enables case sensitive search.
+         * @return bool
+         */
 		final function strContains($String,$SubString,$CaseSensitive=true) {
 			if (!$CaseSensitive){
 				$String = strtolower($String); $SubString = strtolower($SubString);
@@ -1064,8 +1098,13 @@ namespace ExEngine {
 			return $retval;
 		}
 
-		# TagMode
-		# (c) 2012 LinkFast Company (Aldea-LinkFast Open source)
+		/**
+         * TagMode
+         * (c) 2012 LinkFast Company Open Source
+         *
+         * TagMode is a View-Controller architecture for small web applications.
+         * For bigger applications, consider using MVC-ExEngine.
+         */
 		private $TagTempFile;
 		private $TagStringLoaded=false;
 		private $TagStringsArr;
@@ -1197,29 +1236,6 @@ namespace ExEngine {
             }
             return $classname;
         }
-
-        /* global scope functions */
-        final function globalGetData($objKey=null) {
-            if (!isset($objKey))
-                return self::$global_scope;
-            if (array_key_exists($objKey, self::$global_scope)) {
-                return self::$global_scope[$objKey];
-            } else {
-                return null;
-            }
-        }
-
-        final function globalSetData($objKey, $objValue, $objReplace=false) {
-            if (array_key_exists($objKey, self::$global_scope)) {
-                if ($objReplace)
-                    self::$global_scope[$objKey] = $objValue;
-                else
-                    return false;
-            } else {
-                self::$global_scope[$objKey] = $objValue;
-            }
-            return true;
-        }
 	}
 }
 
@@ -1231,7 +1247,7 @@ namespace {
 	function &ee_gi()
 	{
 		if(!\ExEngine\Core::get_instance()) {
-			die('ExEngine not instanciated. Cannot continue.');
+			die('ExEngine not instantiated. Cannot continue.');
 		} else
 			return \ExEngine\Core::get_instance();
 	}

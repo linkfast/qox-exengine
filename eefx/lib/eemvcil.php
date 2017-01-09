@@ -1,8 +1,9 @@
 <?php
 /**
 @file eemvcil.php
-@author Giancarlo Chiappe <gchiappe@qox-corp.com> <gchiappe@outlook.com.pe>
-@version 0.0.3.1
+@author Giancarlo Chiappe <gch@linkfastsa.com>
+<gchiappe@gmail.com>
+	@version 0.0.1.41
 
 @section LICENSE
 
@@ -26,7 +27,7 @@ ExEngine MVC Implementation Library
 
 include_once('mvc-exengine/mvcee_index.php');
 include_once('mvc-exengine/mvcee_controller.php');
-include_once('mvc-exengine/mvcee_methods.php');
+include_once('mvc-exengine/mvcee_appenv.php');
 include_once('mvc-exengine/mvcee_model.php');
 
 /* MVC-ExEngine 0.0.2+ */

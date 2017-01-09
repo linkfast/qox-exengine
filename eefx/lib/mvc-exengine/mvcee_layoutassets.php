@@ -72,6 +72,12 @@ class LayoutAssets {
 		}
 	}
 
+    /**
+     * @param string $Type
+     * @param string $YamlString
+     * @param bool $Return
+     * @return string
+     */
 	function loadAssets_ControllerView($Type='',$YamlString='',$Return=false) {
 		$ValidTypes = ['Fonts','JS','CSS'];
 		$RetData = '';

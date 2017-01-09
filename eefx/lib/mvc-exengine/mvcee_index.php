@@ -33,19 +33,13 @@ namespace {
     function &eemvc_get_index_instance() {
         return ExEngine\MVC\Index::get_instance();
     }
-
-    function sandbox_code($the_file, $index) {
-        //print $the_file;
-        include_once $the_file;
-        return $data;
-    }
 }
 
 namespace ExEngine\MVC {
 
-    class Session {
+    class AppSession {
         var $Enabled = false;
-        var $Name = 'MVC-EXENGINE_SESSIONID';
+        var $Name = 'MVC_EXENGINE_SESSIONID';
         var $Lifetime = 0;
         var $Path = '/';
         var $Domain = null;
@@ -53,7 +47,7 @@ namespace ExEngine\MVC {
 
     class Index {
 
-        const VERSION = "0.0.3.1"; /// Version of EE MVC Implementation library.
+        const VERSION = "0.0.2.7"; /// Version of EE MVC Implementation library.
 
         private $ee; /// This is the connector to the main ExEngine object.
         public $controllername; /// Name of the Controller in use.
@@ -73,6 +67,8 @@ namespace ExEngine\MVC {
 
         private $controllerLayout = 'default';
         private $layoutAdditionalData = null;
+        /* @var $layoutI18n I18n */
+        private $layoutI18n = null;
 
         public $AlwaysSilent=false; /// Set to true if you do not want to show warnings or slogans to the rendered pages, this is a global variable, you can set silent to a specific controller by setting the $this->imSilent variable to true.
 
@@ -121,8 +117,8 @@ namespace ExEngine\MVC {
 
         private $ControllerPageTitle = '';
 
-        /* @var $r Methods */
-        public $r;
+        /* @var $app ApplicationEnvironment */
+        public $app;
 
         public function addModelToArray($ModelFile,$ControllerName) {
             $this->loadedModels['Controllers'][$ControllerName][] = $ModelFile;
@@ -204,8 +200,6 @@ namespace ExEngine\MVC {
                 $YW->load();
                 $dbCfgArr = \ExEngine\Extended\Spyc\Spyc::YAMLLoad($CfFile);
 
-
-
                 if ($dbCfgArr['check']) {
                     if ($dbCfgArr['type']=='mongodb'){
                         if (!class_exists("MongoClient")) {
@@ -274,10 +268,10 @@ namespace ExEngine\MVC {
             if ($Configuration->ComposerAutoload) { $this->composerAutoLoad(); }
 
             /* check session and start */
-            if ($Configuration->SessionCfg instanceof Session) {
+            if ($Configuration->SessionCfg instanceof AppSession) {
                 $SessionMode = $Configuration->SessionCfg;
             } else {
-                $SessionMode = new Session();
+                $SessionMode = new AppSession();
                 $SessionMode->Enabled = false;
             }
 
@@ -470,10 +464,14 @@ namespace ExEngine\MVC {
                 $data["EEMVC_JQUERYUI"]  = $jqstr2;
                 $data["EEMVC_JQUERYMIGRATE"] = $jqstr3;
 
-                $data["I18n"] = new I18n();
-
+                if (!array_key_exists('I18n', $data)) {
+                    if ($this->layoutI18n != null) {
+                        $data["I18n"] = $this->layoutI18n;
+                    } else {
+                        $data["I18n"] = new I18n();
+                    }
+                }
                 extract($data);
-
                 ob_start();
 
                 if ($dynamic) {
@@ -514,40 +512,32 @@ namespace ExEngine\MVC {
             }
         }
 
-        /**
-         * This function will start the MVC listener, must be called in the root index.php file.
-         */
+        /// This function will start the MVC listener, should be called in the index file.
         final function start() {
 
-            # Deprecated.
             if (isset($this->SessionMode) && $this->SessionMode) {
                 $this->ee->errorExit('MVC-ExEngine','mvcee_index::SessionMode property is deprecated, please set the session options at construct time.');
             }
 
-            # Go parse URL, then continue.
             $this->parseURL();
 
-            # DevGuard
+            //print "<h1>" . $this->urlParsedData[1] . "</h1>";
+
             if ($this->dgEnabled and !in_array($this->urlParsedData[0],$this->AppConfiguration->DevGuardExceptions)) {
-                if (class_exists('\ee_devguard')) {
-                    $dg = new \ee_devguard();
-                    $dg->guard($this->dgKey);
-                } else {
-                    $this->ee->errorExit('Security Breach', 'DevGuard class cannot be loaded, check your ExEngine and
-                    MVC-ExEngine configuration and installation. Hard Halted.');
-                    exit();
-                    # Not loading DevGuard when is enabled in config is treated as a security breach. Halting
-                    # is a must.
-                }
+                $dg = new \ee_devguard();
+                $dg->guard($this->dgKey);
             }
 
             if (!$this->jQueryObject && $this->jQueryEnabled)
                 $this->jQueryObject = new \jquery($this->ee);
 
-            # Core's SilentMode is required, MVC-ExEngine do lots of AJAX and REST work.
             if (!$this->ee->argsGet("SilentMode")) {
-                $this->ee->errorExit('Invalid configuration', 'MVC-ExEngine cannot work without SilentMode argument set
-                to false. You must set it to true or use the MVCOnly special mode for ExEngine Core.');
+                print "
+						<h1>
+							MVC-ExEngine can not work with SilentMode argument set to FALSE. Please set it to TRUE.
+						</h1>
+						";
+                exit();
             }
 
             $this->setStaticFolder();
@@ -556,10 +546,6 @@ namespace ExEngine\MVC {
             if (isset($_GET['EEMVC_SPECIAL'])) {
 
                 switch ($_GET['EEMVC_SPECIAL']) {
-                    case 'EEMA':
-                        $this->debug('ExEngine Message Agent Requested in a Special Mode.');
-                        $this->ee->maCreateClient(false, 'EEMVC_SPECIAL=EEMA&');
-                        break;
                     case 'VIEWSIMULATOR':
                         if ($this->ee->cArray["debug"]) {
                             if (isset($_GET['ERROR'])) if ($_GET['ERROR'] == "NODYNAMIC") $this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: EEMVC_SC and EEMVC_SCF special tags does no work in the Views Simulator.",null,true);
@@ -586,40 +572,7 @@ namespace ExEngine\MVC {
                         break;
                     case 'STATICTAGGED':
                         $file = $this->staticFolder.$_GET['FILE'];
-                        $base_file = pathinfo($file, PATHINFO_FILENAME);
-                        $base_path = pathinfo($file, PATHINFO_DIRNAME);
-                        $res_php_file = $base_path . '/' . $base_file . '.php';
-                        if ($this->r == null) {
-                            $this->r = new Methods();
-                            $this->r->parentController->index = $this;
-                        }
-                        $data['SESSION'] = $this->r->getAllSession();
-                        if (file_exists($res_php_file)) {
-                            $this->debug('mvcee_index: Loading PHP preprocessor for a dynamic resource.');
-                            $this->ee->eeLoad('phpsandbox');
-                            $pp = new \corveda_phpsandbox();
-
-                            $index = new \stdClass();
-                            $index->r = &$this->r;
-
-                            if ($pp->installed) {
-                                print "/*\nMVC-ExEngine Dynamic Resource Processor\n*/\n";
-                                $pp->load();
-                                $s = new \PHPSandbox\PHPSandbox();
-                                $s->whitelistFunc('sandbox_code');
-                                $s->define_vars(['file' => $res_php_file, 'obj' => $index]);
-                                $r_data = $s->execute(function () {
-                                    return sandbox_code($file, $obj);
-                                });
-                            } else {
-                                print "/*\nMVC-ExEngine Dynamic Resource Processor\nSecurity Warning: Processing without sandboxing.\n*/\n";
-                                include_once $res_php_file;
-                                $r_data = $data;
-                            }
-
-                            unset($data, $index);
-                        }
-                        $this->specialLoadViewStatic($file, true, true, $r_data);
+                        $this->specialLoadViewStatic($file,true,true);
                         break;
                     default:
                         $this->ee->errorExit("EEMVCIL","EEMVC_SPECIAL: Mode Not Found.");
@@ -690,7 +643,9 @@ namespace ExEngine\MVC {
                     $this->LayoutAssetsLoader->loadAssets();
                 }
 
-                $output = $this->load_controller($this->urlParsedData[0],$this->urlParsedData[1]);
+                /* @var $ctrl Controller */
+                $ctrl = null;
+                $output = $this->load_controller($this->urlParsedData[0],$this->urlParsedData[1], $ctrl);
 
                 if (!$this->AlwaysSilent) {
 
@@ -722,10 +677,14 @@ namespace ExEngine\MVC {
 
 
 
-                    $LayoutData = ["Content" => $output, "LayoutAssets" => $this->LayoutAssetsLoader,
-                        "Title" => $this->ControllerPageTitle, "R" => $this->r];
+                    $LayoutData = [
+                        "Content" => $output,
+                        "LayoutAssets" => $this->LayoutAssetsLoader,
+                        "Title" => $this->ControllerPageTitle,
+                        "Env" => $this->app
+                    ];
                     if (is_array($this->layoutAdditionalData)) {
-                        $LayoutData = array_merge($LayoutData,$this->layoutAdditionalData);
+                        $LayoutData = array_merge($LayoutData, $this->layoutAdditionalData);
                     }
 
                     $output = $this->loadView('layouts/' . $LayoutLoad, $LayoutData,true);
@@ -743,7 +702,7 @@ namespace ExEngine\MVC {
         }
 
         /// This function will call the controller, parse variables, session and render, the use of this function is totally automatic.
-        private final function load_controller($name,$next) {
+        private final function load_controller($name, $next, &$ctrl) {
             if ($name != null)
                 $this->controllername = $name;
             else
@@ -761,6 +720,9 @@ namespace ExEngine\MVC {
             }
             $mystring = $name;
             $parts = explode("?", $mystring);
+
+            //print $mystring;
+
             $name = $parts[0];
             $mystring = $next;
             $parts = explode("?", $mystring);
@@ -773,12 +735,12 @@ namespace ExEngine\MVC {
                 $this->controllersFolder = $this->controllersFolder.$name;
                 $this->urlParsedData = array_slice($this->urlParsedData, 1);
                 //print $this->controllersFolder . $this->defcontroller . " " . $this->urlParsedData[1] .  "<br/>";
-                $this->load_controller($this->defcontroller, $this->urlParsedData[1]);
+                $this->load_controller($this->defcontroller, $this->urlParsedData[1], $ctrl);
             } elseif (is_dir($this->controllersFolder.$name) && strlen($next)>0) {
                 //print "IS DIR && REPEAT FOR '$next'" . "<br/>";
                 $this->controllersFolder = $this->controllersFolder.$name;
                 $this->urlParsedData = array_slice($this->urlParsedData, 1);
-                $this->load_controller($next, $this->urlParsedData[1]);
+                $this->load_controller($next, $this->urlParsedData[1], $ctrl);
             } elseif (file_exists($this->controllersFolder.$name.".php")) {
                 //print "CONTROLLER FOUND!";
                 $proceed = true;
@@ -823,7 +785,7 @@ namespace ExEngine\MVC {
                     $no = $name;
                     $name = ucfirst($name);
                     /* @var $ctrl Controller */
-                    $ctrl = new $name($this->ee,$this);
+                    $ctrl = new $name($this->ee, $this);
                     if (strlen($next) == 0) {
                         $next = "index";
                     }
@@ -848,6 +810,7 @@ namespace ExEngine\MVC {
                                 $ctrl->__startup();
                             }
                             $ctrl->functionName = $next;
+                            //print_r(array_slice($this->urlParsedData, 2));
                             call_user_func_array(array($ctrl, $next), array_slice($this->urlParsedData, 2));
                             if (method_exists($name,'__atdestroy')) {
                                 $ctrl->functionName = "__atdestroy";
@@ -869,15 +832,16 @@ namespace ExEngine\MVC {
                                 $ctrl->__atdestroy();
                             }
                         } else {
-                            $this->raiseError("e404mnf", [
+                            /*$this->raiseError("e404mnf", [
                                 "Error1_Type" => "Method not found",
                                 "Error1_Msg" => "Method \"" . ucfirst($next) . "\" not found in \"" . $this->controllersFolder . ucfirst($name) . "\".",
                                 "Error2_Type" => "Index function does not accept arguments."
-                            ], $ctl_folder, true, __LINE__, __FILE__);
+                            ], $ctl_folder, true, __LINE__, __FILE__);*/
+                            $this->raiseError404($this->actualInputQuery);
                         }
                     }
-                    if ($ctrl->r instanceof Methods) {
-                        $this->r = &$ctrl->r;
+                    if ($ctrl->app instanceof ApplicationEnvironment) {
+                        $this->app = &$ctrl->app;
                     }
                     if (isset($ctrl->imSilent)) {
                         if ($ctrl->imSilent)
@@ -894,6 +858,7 @@ namespace ExEngine\MVC {
                         if (is_array($ctrl->layoutData))
                             $this->layoutAdditionalData = $ctrl->layoutData;
                     }
+                    $this->layoutI18n = $ctrl->I18n;
                     $this->TracerEnabledInController = $ctrl->tracerEnabled;
                 }
                 if (!file_exists($this->controllersFolder.$namel) && file_exists($this->controllersFolder.$this->defcontroller.".php")) {
@@ -915,6 +880,9 @@ namespace ExEngine\MVC {
                                 }
                                 $ctrl->functionName = $name;
                                 call_user_func(array($ctrl, $name));
+
+                                //print $name;
+
                                 if (method_exists($name2,'__atdestroy')) {
                                     $ctrl->functionName = "__atdestroy";
                                     $ctrl->__atdestroy();
@@ -933,8 +901,8 @@ namespace ExEngine\MVC {
                                     $ctrl->__atdestroy();
                                 }
                             }
-                            if ($ctrl->r instanceof Methods) {
-                                $this->r = &$ctrl->r;
+                            if ($ctrl->app instanceof ApplicationEnvironment) {
+                                $this->app = &$ctrl->app;
                             }
                             if (isset($ctrl->imSilent)) {
                                 if ($ctrl->imSilent)
@@ -951,16 +919,19 @@ namespace ExEngine\MVC {
                                 if (is_array($ctrl->layoutData))
                                     $this->layoutAdditionalData = $ctrl->layoutData;
                             }
+                            $this->layoutI18n = $ctrl->I18n;
                             $this->TracerEnabledInController = $ctrl->tracerEnabled;
                         } else {
-                            $this->raiseError("e404mnf",array("Error1_Type"=> "Controller not found", "Error1_Msg" => "Controller \"".ucfirst($this->urlParsedData[0]). "\" not found in \"".$this->controllersFolder."\". ", "Error2_Type" => "Method in default controller not found", "Error2_Msg"=>"Method \"".ucfirst($this->urlParsedData[0]). "\" not found in \"".$this->controllersFolder.ucfirst($this->defcontroller)."\"."),$ctl_folder,true,__LINE__,__FILE__);
+                            //$this->raiseError("e404mnf",array("Error1_Type"=> "Controller not found", "Error1_Msg" => "Controller \"".ucfirst($this->urlParsedData[0]). "\" not found in \"".$this->controllersFolder."\". ", "Error2_Type" => "Method in default controller not found", "Error2_Msg"=>"Method \"".ucfirst($this->urlParsedData[0]). "\" not found in \"".$this->controllersFolder.ucfirst($this->defcontroller)."\"."),$ctl_folder,true,__LINE__,__FILE__);
+                            $this->raiseError404($this->actualInputQuery);
                         }
                     } else {
 
                     }
                 } elseif (!file_exists($this->controllersFolder.$namel) && !file_exists($this->controllersFolder.$this->defcontroller.".php")) {
                     if (!$this->showDefaultView)
-                        $this->raiseError("e404mnf",array("Error1_Type"=> "Default controller not found", "Error1_Msg" => "Controller \"".ucfirst($this->defcontroller). "\" not found in \"".$this->controllersFolder."\". ", "Error2_Type" => "Method in default controller not found", "Error2_Msg"=>"Method \"".ucfirst("index"). "\" not found in \"".$this->controllersFolder.ucfirst($this->defcontroller)."\"."),$ctl_folder,true,__LINE__,__FILE__);
+                        $this->raiseError404($this->actualInputQuery);
+                        //$this->raiseError("e404mnf",array("Error1_Type"=> "Default controller not found", "Error1_Msg" => "Controller \"".ucfirst($this->defcontroller). "\" not found in \"".$this->controllersFolder."\". ", "Error2_Type" => "Method in default controller not found", "Error2_Msg"=>"Method \"".ucfirst("index"). "\" not found in \"".$this->controllersFolder.ucfirst($this->defcontroller)."\"."),$ctl_folder,true,__LINE__,__FILE__);
                     else
                         include_once($this->ee->libGetResPath("mvc-ee","full")."default_view.php");
                 }
@@ -1002,9 +973,6 @@ namespace ExEngine\MVC {
             } else {
                 $this->AlwaysSilent=true; // disable the layout loading
                 if ($this->ee->cArray["debug"]) {
-
-
-
                     $this->ee->errorExit("MVC-ExEngine: Error ".$error,print_r($data,true)."
 					<br/>
 					"."Line Number: ".$linenumber."
@@ -1014,6 +982,37 @@ namespace ExEngine\MVC {
                 }
                 else {
                     $this->ee->errorExit("Application Error #".$error,"Powered by MVC-ExEngine",null,$noexit);
+                }
+            }
+        }
+
+        final private function raiseError404($Query) {
+            if ($this->AppConfiguration->SendHTTPErrors)
+                header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found", true, 404);
+            $methodName = "Error_404";
+            $controllersFolder = $this->controllersFolder;
+            if ($this->errorHandler) {
+                if (file_exists($controllersFolder . "/" . $this->errorHandler . ".php")) {
+                    include_once($controllersFolder . "/" . $this->errorHandler . ".php");
+                    $name = ucfirst($this->errorHandler);
+                    $ctrl = new $name($this->ee, $this);
+                    if (method_exists($name, $methodName)) {
+                        $allData = array(
+                            "Url" => $Query
+                        );
+                        call_user_func_array(array($ctrl, $methodName), $allData);
+                    }
+                }
+            } else {
+                $this->AlwaysSilent=true;
+                if ($this->ee->cArray["debug"]) {
+                    $this->ee->errorExit(
+                        "MVC-ExEngine: Error 404",
+                        'Page "'.$Query.'" not found.'
+                        , null, false);
+                }
+                else {
+                    $this->ee->errorExit("Application Error: HTTP_404","Powered by MVC-ExEngine", null, true);
                 }
             }
         }

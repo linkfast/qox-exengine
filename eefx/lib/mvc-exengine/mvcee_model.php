@@ -29,7 +29,7 @@ namespace ExEngine\MVC {
 
 		/* @var $db \eedbm */
 		protected $db;
-		/* @var $r Methods */
+		/* @var $r ApplicationEnvironment */
 		protected $r;
 		/* @var $ee \exengine */
 		protected $ee;
@@ -55,35 +55,13 @@ namespace ExEngine\MVC {
 		}
 
 		function __construct() {
-			$this->r = new Methods($this);
+			$this->r = new ApplicationEnvironment($this);
 			$this->ee = &ee_gi();
 		}
 
 		//Database loader, compatible with EEDBM
 		final function loadDB($dbObj="default") {
-			# $this->db = new \eedbm($this->ee,$dbObj);
-			if (is_array($dbObj)) {
-				$this->ee->errorExit('Model : ' . get_class($this),'`$this->loadDb()` only accepts the name of the database configuration file (that are inside config/database folder), using EEDBM object is deprecated.');
-			} else {
-				$this->ee->eeLoad('eespyc');
-				$YW = new \eespyc();
-				$YW->load();
-				if ($dbObj!='default') {
-					if (file_exists('config/database/' . $dbObj . '.yml')) {
-						$DBArr = \ExEngine\Extended\Spyc\Spyc::YAMLLoad('config/database/' . $dbObj . '.yml');
-					} else {
-						$this->ee->errorExit('Model : ' . get_class($this),'Database configuration file `'.$dbObj.'` not found.');
-					}
-				} else {
-					$DBArr = \ExEngine\Extended\Spyc\Spyc::YAMLLoad('config/database/' . $this->index->AppConfiguration->DefaultDatabase . '.yml');
-				}
-				if ($DBArr['type']=='mongodb')
-					$this->ee->errorExit('Model : ' . get_class($this),'MongoDB is not supported by ExEngine Database Manager, you can use this database only with DBO Models.');
-				else {
-					//print 'crea';
-					$this->db = new \eedbm($this->ee,$DBArr);
-				}
-			}
+			$this->db = new \eedbm($this->ee,$dbObj);
 		}
 
 		//Get all Controller's properties
