@@ -1,3 +1,13 @@
+This Project is not longer Maintained
+===
+
+A fresh, game-changer, face-cleaned and reworked edition of ExEngine has been made, you can find it here:
+
+https://github.com/linkfast-oss/exengine
+
+This project is now archived and available for historical purposes.
+
+
 QOX ExEngine Application Framework
 ==================================
 ExEngine PHP Opensource Framework
@@ -77,6 +87,7 @@ License Info
 
 MIT License
 
+Copyright (c) 2020 Link Fast S.A.
 Copyright (c) 2016 QOX Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
